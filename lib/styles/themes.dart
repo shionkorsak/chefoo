@@ -5,7 +5,7 @@ ThemeData get lightTheme {
       fontFamily: Font.montserrat,
       primarySwatch: Colors.blue,
       useMaterial3: true,
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16.0)),
