@@ -59,6 +59,66 @@ class _TestScreenState extends State<TestScreen> {
     }
   }
 
+  String _formatTimestamp(int timestamp) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 365) {
+      return '${(difference.inDays / 365).floor()} years ago';
+    } else if (difference.inDays > 30) {
+      return '${(difference.inDays / 30).floor()} months ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'Just now';  // Default case
+    }
+  }
+
+  void _showAllPictures(BuildContext context, List<String> pictures, String placeName) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppBar(
+              title: Text('All photos - $placeName'),
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
+                itemCount: pictures.length,
+                itemBuilder: (context, index) => Image.network(
+                  '$proxyBaseUrl/photo'
+                  '?maxwidth=800'
+                  '&photo_reference=${pictures[index]}',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +157,23 @@ class _TestScreenState extends State<TestScreen> {
                               children: [
                                 Icon(Icons.star, size: 16, color: Colors.amber[700]),
                                 Text(' ${place.rating.toStringAsFixed(1)}'),
+                                const SizedBox(width: 16),
+                                // Add open/closed status
+                                if (place.isOpenNow != null) ...[
+                                  Icon(
+                                    Icons.circle,
+                                    size: 8,
+                                    color: place.isOpenNow! ? Colors.green : Colors.red,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    place.isOpenNow! ? 'Open' : 'Closed',
+                                    style: TextStyle(
+                                      color: place.isOpenNow! ? Colors.green : Colors.red,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ],
@@ -116,6 +193,94 @@ class _TestScreenState extends State<TestScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
+
+                                // Pictures
+                                if (place.pictureUrls.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Photos',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SizedBox(
+                                    height: 100,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: place.pictureUrls.length > 3 
+                                                ? 3 
+                                                : place.pictureUrls.length,
+                                            itemBuilder: (context, index) {
+                                              print('Building photo ${index + 1} of ${place.pictureUrls.length}'); // Debug log
+                                              return Padding(
+                                                padding: const EdgeInsets.only(right: 8.0),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: Image.network(
+                                                    '$proxyBaseUrl/photo'
+                                                    '?maxwidth=400'
+                                                    '&photo_reference=${place.pictureUrls[index]}',
+                                                    width: 100,
+                                                    height: 100,
+                                                    fit: BoxFit.cover,
+                                                    loadingBuilder: (context, child, loadingProgress) {
+                                                      if (loadingProgress == null) return child;
+                                                      return Container(
+                                                        width: 100,
+                                                        height: 100,
+                                                        color: Colors.grey[200],
+                                                        child: const Center(
+                                                          child: CircularProgressIndicator(),
+                                                        ),
+                                                      );
+                                                    },
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      print('Error loading image: $error'); // Debug log
+                                                      return Container(
+                                                        width: 100,
+                                                        height: 100,
+                                                        color: Colors.grey[200],
+                                                        child: const Icon(Icons.error),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        if (place.pictureUrls.length > 3)
+                                          InkWell(
+                                            onTap: () => _showAllPictures(
+                                              context, 
+                                              place.pictureUrls, 
+                                              place.name,
+                                            ),
+                                            child: Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                color: Colors.black54,
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  '+${place.pictureUrls.length - 3}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
 
                                 // Phone
                                 if (place.phone != null) ...[
@@ -156,28 +321,78 @@ class _TestScreenState extends State<TestScreen> {
                                   ...place.reviews.map(
                                     (review) => Padding(
                                       padding: const EdgeInsets.only(
-                                          left: 8.0, bottom: 8.0),
+                                        left: 8.0, 
+                                        bottom: 16.0,
+                                      ),
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Row(
                                             children: [
-                                              Text(
-                                                review.authorName,
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.w500),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      review.authorName,
+                                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.star, size: 14, color: Colors.amber[700]),
+                                                        Text(review.rating.toStringAsFixed(1)),
+                                                        const SizedBox(width: 8),
+                                                        if (review.time != null)
+                                                          Text(
+                                                            _formatTimestamp(int.parse(review.time!)),
+                                                            style: TextStyle(
+                                                              color: Colors.grey[600],
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                              const SizedBox(width: 8),
-                                              Icon(Icons.star,
-                                                  size: 14,
-                                                  color: Colors.amber[700]),
-                                              Text(
-                                                  review.rating.toStringAsFixed(1)),
                                             ],
                                           ),
                                           const SizedBox(height: 4),
                                           Text(review.text),
+                                          if (review.photoReference != null) ...[
+                                            const SizedBox(height: 8),
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: Image.network(
+                                                '$proxyBaseUrl/photo'
+                                                '?maxwidth=400'
+                                                '&photo_reference=${review.photoReference}',
+                                                height: 150,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                                loadingBuilder: (context, child, loadingProgress) {
+                                                  if (loadingProgress == null) return child;
+                                                  return Container(
+                                                    height: 150,
+                                                    color: Colors.grey[200],
+                                                    child: const Center(
+                                                      child: CircularProgressIndicator(),
+                                                    ),
+                                                  );
+                                                },
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  print('Error loading review image: $error');
+                                                  return Container(
+                                                    height: 150,
+                                                    color: Colors.grey[200],
+                                                    child: const Icon(Icons.error),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 8),
+                                          const Divider(),
                                         ],
                                       ),
                                     ),

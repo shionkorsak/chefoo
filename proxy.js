@@ -44,7 +44,7 @@ app.get('/details', async (req, res) => {
     return res.status(400).json({ error: 'Missing place_id parameter' });
   }
 
-  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_phone_number,opening_hours,reviews&key=${apiKey}`;
+  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_phone_number,opening_hours,reviews,photos,price_level,formatted_address&key=${apiKey}`;
   console.log('Forwarding request to Google API (Place Details):', url);
 
   try {
@@ -60,6 +60,36 @@ app.get('/details', async (req, res) => {
   } catch (error) {
     console.error('Error fetching place details:', error);
     res.status(500).json({ error: 'Failed to fetch place details' });
+  }
+});
+
+// Proxy for Photo
+app.get('/photo', async (req, res) => {
+  const { photo_reference, maxwidth } = req.query;
+
+  if (!photo_reference) {
+    return res.status(400).json({ error: 'Missing photo_reference parameter' });
+  }
+
+  const url = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxwidth || 400}&photo_reference=${photo_reference}&key=${apiKey}`;
+  console.log('Forwarding request to Google API (Photo):', url);
+
+  try {
+    const googleRes = await fetch(url);
+    
+    if (!googleRes.ok) {
+      console.error('Google API error:', googleRes.statusText);
+      return res.status(googleRes.status).json({ error: googleRes.statusText });
+    }
+
+    // Forward the content type header
+    res.set('Content-Type', googleRes.headers.get('Content-Type'));
+    
+    // Pipe the response directly
+    googleRes.body.pipe(res);
+  } catch (error) {
+    console.error('Error fetching photo:', error);
+    res.status(500).json({ error: 'Failed to fetch photo' });
   }
 });
 

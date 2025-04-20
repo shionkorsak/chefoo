@@ -42,7 +42,7 @@ class PlaceService {
     }
   }
 
-  // Get Place Details (phone, reviews, opening hours)
+  // Update the getPlaceDetails method
   Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
     final url = Uri.parse(
       '$proxyBaseUrl/details?place_id=$placeId',
@@ -50,16 +50,26 @@ class PlaceService {
 
     print('Requesting place details for place_id: $placeId');
 
-    final response = await client.get(url);
+    try {
+      final response = await client.get(url);
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      return jsonData['result'];
-    } else {
-      throw Exception('Failed to load place details');
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        if (jsonData['status'] == 'OK') {
+          return jsonData['result'];
+        } else {
+          print('API Error: ${jsonData['error_message']}');
+          throw Exception(jsonData['error_message']);
+        }
+      } else {
+        throw Exception('Failed to load place details');
+      }
+    } catch (e) {
+      print('Error in getPlaceDetails: $e');
+      throw e;
     }
   }
 

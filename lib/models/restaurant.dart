@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 class Place {
   final String id;
   final String name;
@@ -11,6 +13,7 @@ class Place {
   final List<String> pictureUrls;
   final double lat;
   final double lng;
+  final bool? isOpenNow;  // Add this field
 
   Place({
     required this.id,
@@ -25,6 +28,7 @@ class Place {
     required this.pictureUrls,
     required this.lat,
     required this.lng,
+    this.isOpenNow,  // Add this parameter
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -43,27 +47,70 @@ class Place {
       pictureUrls: (json['pictures'] as List).cast<String>(),
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
+      isOpenNow: json['is_open_now'] as bool?,  // Add this line
     );
   }
 
   factory Place.fromGooglePlace(Map<String, dynamic> place, Map<String, dynamic> details) {
+    // Use LinkedHashSet to maintain order and prevent duplicates
+    final Set<String> photoRefs = <String>{};
+    
+    // Add photos from place data, skipping the first one
+    if (place['photos'] != null) {
+      final photos = place['photos'] as List;
+      for (var i = 1; i < photos.length; i++) {  // Start from index 1 instead of 0
+        if (photos[i]['photo_reference'] != null) {
+          photoRefs.add(photos[i]['photo_reference'] as String);
+        }
+      }
+    }
+
+    // Add photos from details if available
+    if (details['photos'] != null) {
+      final photos = details['photos'] as List;
+      for (var photo in photos) {
+        if (photo['photo_reference'] != null) {
+          photoRefs.add(photo['photo_reference'] as String);
+        }
+      }
+    }
+
+    print('Found ${photoRefs.length} unique photos for ${place['name']}');
+
+    // Process reviews
+    final reviews = (details['reviews'] as List?)?.map((r) {
+      String? photoRef;
+      
+      // Get photo from review
+      if (r['photos'] != null && 
+          (r['photos'] as List).isNotEmpty && 
+          r['photos'][0]['photo_reference'] != null) {
+        photoRef = r['photos'][0]['photo_reference'] as String;
+      }
+
+      return Review(
+        authorName: r['author_name'] as String,
+        rating: (r['rating'] as num).toDouble(),
+        text: r['text'] as String,
+        time: r['time']?.toString(),
+        photoReference: photoRef,
+      );
+    }).toList() ?? [];
+
     return Place(
       id: place['place_id'] as String,
       name: place['name'] as String,
-      rating: (place['rating'] ?? 0.0) as double,
+      rating: (place['rating'] ?? 0.0).toDouble(),
       address: place['vicinity'] as String,
-      distance: 0.0, // We'll implement this later with GPS
+      distance: 0.0,
       tags: [],
       phone: details['formatted_phone_number'] as String?,
       openingHours: details['opening_hours']?['weekday_text']?.cast<String>(),
-      reviews: (details['reviews'] as List?)
-          ?.map((r) => Review.fromJson(r as Map<String, dynamic>))
-          .toList() ?? [],
-      pictureUrls: (place['photos'] as List?)
-          ?.map((p) => p['photo_reference'] as String)
-          .toList() ?? [],
+      reviews: reviews,
+      pictureUrls: photoRefs.toList(),
       lat: place['geometry']['location']['lat'] as double,
       lng: place['geometry']['location']['lng'] as double,
+      isOpenNow: details['opening_hours']?['open_now'] as bool?,
     );
   }
 
@@ -81,6 +128,7 @@ class Place {
       'pictures': pictureUrls,
       'lat': lat,
       'lng': lng,
+      'is_open_now': isOpenNow,  // Add this line
     };
   }
 }
@@ -90,29 +138,41 @@ class Review {
   final double rating;
   final String text;
   final String? time;
+  final String? photoReference;
 
   Review({
     required this.authorName,
     required this.rating,
     required this.text,
     this.time,
+    this.photoReference,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
+    String? photoRef;
+    if (json['photos'] != null && 
+        (json['photos'] as List).isNotEmpty && 
+        json['photos'][0]['photo_reference'] != null) {
+      photoRef = json['photos'][0]['photo_reference'] as String;
+    }
+
     return Review(
       authorName: json['author_name'] as String,
       rating: (json['rating'] as num).toDouble(),
       text: json['text'] as String,
       time: json['time']?.toString(),
+      photoReference: photoRef,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'author_name': authorName,
+      'profile_photo_url': null,
       'rating': rating,
       'text': text,
       'time': time,
+      'photo_reference': photoReference,
     };
   }
 }
