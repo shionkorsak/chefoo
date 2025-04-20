@@ -22,10 +22,9 @@ class _TestScreenState extends State<TestScreen> {
       _isLoading = true;
     });
 
-    //final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
     final placeService = PlaceService(client: http.Client());
 
-    // Hardcoded example location (you can use the user's current location here)
     final lat = 37.7749; // Latitude for San Francisco
     final lng = -122.4194; // Longitude for San Francisco
     final radius = 1000.0; // Radius in meters
@@ -34,7 +33,7 @@ class _TestScreenState extends State<TestScreen> {
       lat: lat,
       lng: lng,
       radius: radius,
-      apiKey: 'AIzaSyAUTKMiek6eX3Wx9aHpQpyZ3FSXa5f4nvk',
+      apiKey: apiKey,
     );
 
     setState(() {

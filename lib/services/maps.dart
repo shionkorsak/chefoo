@@ -61,74 +61,86 @@ class PlaceService {
 
   // Main method to get Nearby Places
   Future<ApiResponse<List<Place>>> getNearbyPlaces({
-    required double lat,
-    required double lng,
-    required double radius,
-    required String apiKey,
-  }) async {
-    final url = Uri.parse(
-      '$proxyBaseUrl/nearbysearch'
-      '?location=$lat,$lng'
-      '&radius=$radius'
-      '&type=restaurant'
-      '&key=$apiKey'  // Pass API key through proxy
-    );
+  required double lat,
+  required double lng,
+  required double radius,
+  required String apiKey,
+}) async {
+  final url = Uri.parse(
+    '$proxyBaseUrl/nearbysearch'
+    '?location=$lat,$lng'
+    '&radius=$radius'
+    '&type=restaurant'
+    '&key=$apiKey'  // Pass API key through proxy
+  );
 
-    try {
-      print('Making request to: $url');  // Log the request URL
-      final response = await client.get(url);
-      
-      // Log the response body for debugging
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+  try {
+    print('Making request to: $url');
+    final response = await client.get(url);
 
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-        print('Response JSON Data: $jsonData');  // Log the response body in JSON format
-        final results = jsonData['results'] as List;
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-        final places = results.map((item) {
-          return Place(
-            id: item['place_id'],
-            name: item['name'],
-            rating: (item['rating'] ?? 0).toDouble(),
-            address: item['vicinity'] ?? '',
-            distance: 0,
-            tags: [],
-            phone: null,
-            pictureUrls: (item['photos'] as List?)
-                    ?.map((p) =>
-                        'https://maps.googleapis.com/maps/api/place/photo'
-                        '?maxwidth=400'
-                        '&photoreference=${p['photo_reference']}'
-                        '&key=$apiKey')
-                    .toList() ??
-                [],
-            reviews: [],
-          );
-        }).toList();
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      final results = jsonData['results'] as List;
 
-        return ApiResponse(
-          success: true,
-          message: 'Places loaded',
-          data: places,
+      final List<Place> places = [];
+
+      for (var item in results) {
+        final placeId = item['place_id'];
+        String? phone;
+
+        // Try to get the phone number
+        try {
+          phone = await getPhoneNumber(placeId, apiKey);
+        } catch (e) {
+          print('Failed to get phone for $placeId: $e');
+        }
+
+        final place = Place(
+          id: placeId,
+          name: item['name'],
+          rating: (item['rating'] ?? 0).toDouble(),
+          address: item['vicinity'] ?? '',
+          distance: 0,
+          tags: [],
+          phone: phone,
+          pictureUrls: (item['photos'] as List?)
+                  ?.map((p) =>
+                      'https://maps.googleapis.com/maps/api/place/photo'
+                      '?maxwidth=400'
+                      '&photoreference=${p['photo_reference']}'
+                      '&key=$apiKey')
+                  .toList() ??
+              [],
+          reviews: [],
         );
-      } else {
-        print('Failed to load places. Status code: ${response.statusCode}');
-        print('Error response body: ${response.body}');
-        return ApiResponse(
-          success: false,
-          message: 'Failed to load places',
-          error: 'HTTP ${response.statusCode}: ${response.body}',
-        );
+
+        places.add(place);
       }
-    } catch (e) {
-      print('Error occurred: $e');  
+
+      return ApiResponse(
+        success: true,
+        message: 'Places loaded',
+        data: places,
+      );
+    } else {
+      print('Failed to load places. Status code: ${response.statusCode}');
+      print('Error response body: ${response.body}');
       return ApiResponse(
         success: false,
-        message: 'Exception occurred',
-        error: e.toString(),
+        message: 'Failed to load places',
+        error: 'HTTP ${response.statusCode}: ${response.body}',
       );
     }
+  } catch (e) {
+    print('Error occurred: $e');
+    return ApiResponse(
+      success: false,
+      message: 'Exception occurred',
+      error: e.toString(),
+    );
   }
+}
 }

@@ -8,6 +8,7 @@ class Place {
   final String? phone;
   final List<String> pictureUrls;
   final List<Review> reviews;
+  final List<String>? openingHours;
 
   Place({
     required this.id,
@@ -19,6 +20,7 @@ class Place {
     this.phone,
     required this.pictureUrls,
     required this.reviews,
+    this.openingHours,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class Place {
       reviews: (json['reviews'] as List)
           .map((reviewJson) => Review.fromJson(reviewJson))
           .toList(),
+      openingHours: (json['opening_hours'] as List?)?.cast<String>(),
     );
   }
 
@@ -48,6 +51,7 @@ class Place {
       'phone': phone,
       'pictures': pictureUrls,
       'reviews': reviews.map((review) => review.toJson()).toList(),
+      'opening_hours': openingHours,
     };
   }
 }
