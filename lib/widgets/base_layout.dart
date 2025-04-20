@@ -1,17 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
-
-import 'constants.dart';
-import 'services/location.dart';
-import 'services/maps.dart';
-import 'screens/testScreen.dart';
-import 'screens.dart';
-import 'commons.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'services/location.dart';
+import '../services/location.dart';
 
 class BaseLayout extends StatefulWidget {
   final Widget child;
@@ -62,44 +51,6 @@ class _BaseLayoutState extends State<BaseLayout> {
           return widget.child;
         },
       ),
-    );
-  }
-}
-void main() async {
-  await MapsConstants.init();
-  await initializeApp();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        Provider<PlaceService>(
-          create: (_) => PlaceService(
-            client: http.Client(),
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => LocationService(),
-        ),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
-      initialRoute: Screens.testScreen,  // Set the initial route to Screens.testScreen
-      routes: {
-        Screens.testScreen: (_) => const TestScreen(),
-        //Screens.profile: (_) => const ProfileScreen(),  // Add profile route here when needed
-        // You can add more routes here as needed.
-      },
     );
   }
 }

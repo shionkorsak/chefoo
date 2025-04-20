@@ -7,7 +7,7 @@ const PORT = 3000;
 
 app.use(cors());
 
-const apiKey = 'AIzaSyAUTKMiek6eX3Wx9aHpQpyZ3FSXa5f4nvk'; // ← Replace with your real key
+const apiKey = 'AIzaSyAUTKMiek6eX3Wx9aHpQpyZ3FSXa5f4nvk';
 
 // Proxy for Nearby Search
 app.get('/nearbysearch', async (req, res) => {
@@ -36,7 +36,6 @@ app.get('/nearbysearch', async (req, res) => {
   }
 });
 
-// Proxy for Place Details (phone number, etc.)
 app.get('/details', async (req, res) => {
   const { place_id } = req.query;
 
@@ -63,7 +62,6 @@ app.get('/details', async (req, res) => {
   }
 });
 
-// Proxy for Photo
 app.get('/photo', async (req, res) => {
   const { photo_reference, maxwidth } = req.query;
 
@@ -82,10 +80,8 @@ app.get('/photo', async (req, res) => {
       return res.status(googleRes.status).json({ error: googleRes.statusText });
     }
 
-    // Forward the content type header
     res.set('Content-Type', googleRes.headers.get('Content-Type'));
     
-    // Pipe the response directly
     googleRes.body.pipe(res);
   } catch (error) {
     console.error('Error fetching photo:', error);
@@ -93,7 +89,6 @@ app.get('/photo', async (req, res) => {
   }
 });
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`Proxy server running at http://localhost:${PORT}`);
+  console.log(`proxy server running at http://localhost:${PORT}`);
 });

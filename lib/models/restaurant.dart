@@ -13,7 +13,7 @@ class Place {
   final List<String> pictureUrls;
   final double lat;
   final double lng;
-  final bool? isOpenNow;  // Add this field
+  final bool? isOpenNow;
 
   Place({
     required this.id,
@@ -28,7 +28,7 @@ class Place {
     required this.pictureUrls,
     required this.lat,
     required this.lng,
-    this.isOpenNow,  // Add this parameter
+    this.isOpenNow,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -47,25 +47,22 @@ class Place {
       pictureUrls: (json['pictures'] as List).cast<String>(),
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
-      isOpenNow: json['is_open_now'] as bool?,  // Add this line
+      isOpenNow: json['is_open_now'] as bool?,
     );
   }
 
   factory Place.fromGooglePlace(Map<String, dynamic> place, Map<String, dynamic> details) {
-    // Use LinkedHashSet to maintain order and prevent duplicates
     final Set<String> photoRefs = <String>{};
     
-    // Add photos from place data, skipping the first one
     if (place['photos'] != null) {
       final photos = place['photos'] as List;
-      for (var i = 1; i < photos.length; i++) {  // Start from index 1 instead of 0
+      for (var i = 1; i < photos.length; i++) {
         if (photos[i]['photo_reference'] != null) {
           photoRefs.add(photos[i]['photo_reference'] as String);
         }
       }
     }
 
-    // Add photos from details if available
     if (details['photos'] != null) {
       final photos = details['photos'] as List;
       for (var photo in photos) {
@@ -77,11 +74,9 @@ class Place {
 
     print('Found ${photoRefs.length} unique photos for ${place['name']}');
 
-    // Process reviews
     final reviews = (details['reviews'] as List?)?.map((r) {
       String? photoRef;
       
-      // Get photo from review
       if (r['photos'] != null && 
           (r['photos'] as List).isNotEmpty && 
           r['photos'][0]['photo_reference'] != null) {
@@ -128,7 +123,7 @@ class Place {
       'pictures': pictureUrls,
       'lat': lat,
       'lng': lng,
-      'is_open_now': isOpenNow,  // Add this line
+      'is_open_now': isOpenNow,
     };
   }
 }

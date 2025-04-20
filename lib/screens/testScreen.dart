@@ -1,12 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import '../services/maps.dart';
-import '../models/api_response.dart';
-import '../models/restaurant.dart';
-import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';
+
+import '../services/location.dart';
+import '../services/maps.dart';
+import '../models/restaurant.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({Key? key}) : super(key: key);
@@ -22,7 +23,13 @@ class _TestScreenState extends State<TestScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchNearbyPlaces();
+    _initializeLocation();
+  }
+
+  Future<void> _initializeLocation() async {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    await locationService.getCurrentLocation();
+    await _fetchNearbyPlaces();
   }
 
   Future<void> _fetchNearbyPlaces() async {
@@ -31,12 +38,15 @@ class _TestScreenState extends State<TestScreen> {
     });
 
     try {
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final position = locationService.currentPosition;
+
       final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
       final placeService = Provider.of<PlaceService>(context, listen: false);
 
       final response = await placeService.getNearbyPlaces(
-        lat: 37.7749,
-        lng: -122.4194,
+        lat: position!.latitude,
+        lng: position.longitude,
         radius: 1000.0,
         apiKey: apiKey,
       );
@@ -45,14 +55,9 @@ class _TestScreenState extends State<TestScreen> {
         _isLoading = false;
         if (response.success && response.data != null) {
           _places = response.data!;
-          print('Loaded ${_places.length} places');
-          for (var place in _places) {
-            print('Place loaded: ${place.name}');
-          }
         }
       });
     } catch (e) {
-      print('Error fetching places: $e');
       setState(() {
         _isLoading = false;
       });
@@ -75,7 +80,7 @@ class _TestScreenState extends State<TestScreen> {
     } else if (difference.inMinutes > 0) {
       return '${difference.inMinutes} minutes ago';
     } else {
-      return 'Just now';  // Default case
+      return 'Just now';
     }
   }
 
@@ -119,117 +124,278 @@ class _TestScreenState extends State<TestScreen> {
     );
   }
 
+  String _getDistanceString(double lat, double lng) {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final currentPosition = locationService.currentPosition;
+    if (currentPosition == null) return '';
+
+    final distance = Geolocator.distanceBetween(
+      currentPosition.latitude,
+      currentPosition.longitude,
+      lat,
+      lng,
+    );
+
+    if (distance < 1000) {
+      return '${distance.toStringAsFixed(0)}m';
+    } else {
+      return '${(distance / 1000).toStringAsFixed(1)}km';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nearby Restaurants'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchNearbyPlaces,
+    return Consumer<LocationService>(
+      builder: (context, locationService, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Nearby Restaurants'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () async {
+                  await locationService.getCurrentLocation();
+                  await _fetchNearbyPlaces();
+                },
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _places.isEmpty
-              ? const Center(child: Text('No restaurants found nearby'))
-              : ListView.builder(
-                  itemCount: _places.length,
-                  itemBuilder: (context, index) {
-                    final place = _places[index];
-                    return Card(
-                      margin: const EdgeInsets.all(8.0),
-                      child: ExpansionTile(
-                        title: Text(
-                          place.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(Icons.star, size: 16, color: Colors.amber[700]),
-                                Text(' ${place.rating.toStringAsFixed(1)}'),
-                                const SizedBox(width: 16),
-                                // Add open/closed status
-                                if (place.isOpenNow != null) ...[
-                                  Icon(
-                                    Icons.circle,
-                                    size: 8,
-                                    color: place.isOpenNow! ? Colors.green : Colors.red,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    place.isOpenNow! ? 'Open' : 'Closed',
-                                    style: TextStyle(
-                                      color: place.isOpenNow! ? Colors.green : Colors.red,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ],
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _places.isEmpty
+                  ? const Center(child: Text('No restaurants found nearby'))
+                  : ListView.builder(
+                      itemCount: _places.length,
+                      itemBuilder: (context, index) {
+                        final place = _places[index];
+                        return Card(
+                          margin: const EdgeInsets.all(8.0),
+                          child: ExpansionTile(
+                            title: Text(
+                              place.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ],
-                        ),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
+                            subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Address
+                                const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.location_on, size: 16),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(place.address)),
+                                    Icon(Icons.star, size: 16, color: Colors.amber[700]),
+                                    Text(' ${place.rating.toStringAsFixed(1)}'),
+                                    const SizedBox(width: 16),
+                                    if (locationService.currentPosition != null) ...[
+                                      Icon(Icons.location_on, size: 16),
+                                      Text(' ${_getDistanceString(place.lat, place.lng)}'),
+                                      const SizedBox(width: 16),
+                                    ],
+                                    if (place.isOpenNow != null) ...[
+                                      Icon(
+                                        Icons.circle,
+                                        size: 8,
+                                        color: place.isOpenNow! ? Colors.green : Colors.red,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        place.isOpenNow! ? 'Open' : 'Closed',
+                                        style: TextStyle(
+                                          color: place.isOpenNow! ? Colors.green : Colors.red,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-
-                                // Pictures
-                                if (place.pictureUrls.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Photos',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  SizedBox(
-                                    height: 100,
-                                    child: Row(
+                              ],
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
                                       children: [
-                                        Expanded(
-                                          child: ListView.builder(
-                                            scrollDirection: Axis.horizontal,
-                                            itemCount: place.pictureUrls.length > 3 
-                                                ? 3 
-                                                : place.pictureUrls.length,
-                                            itemBuilder: (context, index) {
-                                              print('Building photo ${index + 1} of ${place.pictureUrls.length}'); // Debug log
-                                              return Padding(
-                                                padding: const EdgeInsets.only(right: 8.0),
-                                                child: ClipRRect(
+                                        const Icon(Icons.location_on, size: 16),
+                                        const SizedBox(width: 8),
+                                        Expanded(child: Text(place.address)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (place.pictureUrls.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Photos',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      SizedBox(
+                                        height: 100,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                itemCount: place.pictureUrls.length > 3
+                                                    ? 3
+                                                    : place.pictureUrls.length,
+                                                itemBuilder: (context, index) {
+                                                  return Padding(
+                                                    padding: const EdgeInsets.only(right: 8.0),
+                                                    child: ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image.network(
+                                                        '$proxyBaseUrl/photo'
+                                                        '?maxwidth=400'
+                                                        '&photo_reference=${place.pictureUrls[index]}',
+                                                        width: 100,
+                                                        height: 100,
+                                                        fit: BoxFit.cover,
+                                                        loadingBuilder: (context, child, loadingProgress) {
+                                                          if (loadingProgress == null) return child;
+                                                          return Container(
+                                                            width: 100,
+                                                            height: 100,
+                                                            color: Colors.grey[200],
+                                                            child: const Center(
+                                                              child: CircularProgressIndicator(),
+                                                            ),
+                                                          );
+                                                        },
+                                                        errorBuilder: (context, error, stackTrace) {
+                                                          return Container(
+                                                            width: 100,
+                                                            height: 100,
+                                                            color: Colors.grey[200],
+                                                            child: const Icon(Icons.error),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            if (place.pictureUrls.length > 3)
+                                              InkWell(
+                                                onTap: () => _showAllPictures(
+                                                  context,
+                                                  place.pictureUrls,
+                                                  place.name,
+                                                ),
+                                                child: Container(
+                                                  width: 100,
+                                                  height: 100,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black54,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '+${place.pictureUrls.length - 3}',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    if (place.phone != null) ...[
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.phone, size: 16),
+                                          const SizedBox(width: 8),
+                                          Text(place.phone!),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                    if (place.openingHours != null &&
+                                        place.openingHours!.isNotEmpty) ...[
+                                      const Text(
+                                        'Opening Hours',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      ...place.openingHours!.map(
+                                        (hours) => Padding(
+                                          padding: const EdgeInsets.only(left: 8.0),
+                                          child: Text(hours),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                    if (place.reviews.isNotEmpty) ...[
+                                      const Text(
+                                        'Reviews',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      ...place.reviews.map(
+                                        (review) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                            bottom: 16.0,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          review.authorName,
+                                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Icon(Icons.star, size: 14, color: Colors.amber[700]),
+                                                            Text(review.rating.toStringAsFixed(1)),
+                                                            const SizedBox(width: 8),
+                                                            if (review.time != null)
+                                                              Text(
+                                                                _formatTimestamp(int.parse(review.time!)),
+                                                                style: TextStyle(
+                                                                  color: Colors.grey[600],
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(review.text),
+                                              if (review.photoReference != null) ...[
+                                                const SizedBox(height: 8),
+                                                ClipRRect(
                                                   borderRadius: BorderRadius.circular(8),
                                                   child: Image.network(
                                                     '$proxyBaseUrl/photo'
                                                     '?maxwidth=400'
-                                                    '&photo_reference=${place.pictureUrls[index]}',
-                                                    width: 100,
-                                                    height: 100,
+                                                    '&photo_reference=${review.photoReference}',
+                                                    height: 150,
+                                                    width: double.infinity,
                                                     fit: BoxFit.cover,
                                                     loadingBuilder: (context, child, loadingProgress) {
                                                       if (loadingProgress == null) return child;
                                                       return Container(
-                                                        width: 100,
-                                                        height: 100,
+                                                        height: 150,
                                                         color: Colors.grey[200],
                                                         child: const Center(
                                                           child: CircularProgressIndicator(),
@@ -237,192 +403,47 @@ class _TestScreenState extends State<TestScreen> {
                                                       );
                                                     },
                                                     errorBuilder: (context, error, stackTrace) {
-                                                      print('Error loading image: $error'); // Debug log
                                                       return Container(
-                                                        width: 100,
-                                                        height: 100,
+                                                        height: 150,
                                                         color: Colors.grey[200],
                                                         child: const Icon(Icons.error),
                                                       );
                                                     },
                                                   ),
                                                 ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        if (place.pictureUrls.length > 3)
-                                          InkWell(
-                                            onTap: () => _showAllPictures(
-                                              context, 
-                                              place.pictureUrls, 
-                                              place.name,
-                                            ),
-                                            child: Container(
-                                              width: 100,
-                                              height: 100,
-                                              decoration: BoxDecoration(
-                                                color: Colors.black54,
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  '+${place.pictureUrls.length - 3}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-
-                                // Phone
-                                if (place.phone != null) ...[
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.phone, size: 16),
-                                      const SizedBox(width: 8),
-                                      Text(place.phone!),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
-
-                                // Opening Hours
-                                if (place.openingHours != null &&
-                                    place.openingHours!.isNotEmpty) ...[
-                                  const Text(
-                                    'Opening Hours',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  ...place.openingHours!.map(
-                                    (hours) => Padding(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      child: Text(hours),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
-
-                                // Reviews
-                                if (place.reviews.isNotEmpty) ...[
-                                  const Text(
-                                    'Reviews',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  ...place.reviews.map(
-                                    (review) => Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 8.0, 
-                                        bottom: 16.0,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      review.authorName,
-                                                      style: const TextStyle(fontWeight: FontWeight.bold),
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.star, size: 14, color: Colors.amber[700]),
-                                                        Text(review.rating.toStringAsFixed(1)),
-                                                        const SizedBox(width: 8),
-                                                        if (review.time != null)
-                                                          Text(
-                                                            _formatTimestamp(int.parse(review.time!)),
-                                                            style: TextStyle(
-                                                              color: Colors.grey[600],
-                                                              fontSize: 12,
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
+                                              ],
+                                              const SizedBox(height: 8),
+                                              const Divider(),
                                             ],
                                           ),
-                                          const SizedBox(height: 4),
-                                          Text(review.text),
-                                          if (review.photoReference != null) ...[
-                                            const SizedBox(height: 8),
-                                            ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: Image.network(
-                                                '$proxyBaseUrl/photo'
-                                                '?maxwidth=400'
-                                                '&photo_reference=${review.photoReference}',
-                                                height: 150,
-                                                width: double.infinity,
-                                                fit: BoxFit.cover,
-                                                loadingBuilder: (context, child, loadingProgress) {
-                                                  if (loadingProgress == null) return child;
-                                                  return Container(
-                                                    height: 150,
-                                                    color: Colors.grey[200],
-                                                    child: const Center(
-                                                      child: CircularProgressIndicator(),
-                                                    ),
-                                                  );
-                                                },
-                                                errorBuilder: (context, error, stackTrace) {
-                                                  print('Error loading review image: $error');
-                                                  return Container(
-                                                    height: 150,
-                                                    color: Colors.grey[200],
-                                                    child: const Icon(Icons.error),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                          const SizedBox(height: 8),
-                                          const Divider(),
-                                        ],
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async {
+                                          final url =
+                                              'https://www.google.com/maps/dir/?api=1&destination=${Uri.encodeComponent(place.address)}';
+                                          if (await canLaunch(url)) {
+                                            await launch(url);
+                                          }
+                                        },
+                                        icon: const Icon(Icons.directions),
+                                        label: const Text('Navigate'),
                                       ),
                                     ),
-                                  ),
-                                ],
-
-                                // Navigation Button
-                                const SizedBox(height: 16),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () async {
-                                      final url =
-                                          'https://www.google.com/maps/dir/?api=1&destination=${Uri.encodeComponent(place.address)}';
-                                      if (await canLaunch(url)) {
-                                        await launch(url);
-                                      }
-                                    },
-                                    icon: const Icon(Icons.directions),
-                                    label: const Text('Navigate'),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
+        );
+      },
     );
   }
 }
