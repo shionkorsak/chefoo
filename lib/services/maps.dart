@@ -12,7 +12,6 @@ class PlaceService {
 
   PlaceService({required this.client});
 
-  // Get Distance using the Google Maps Distance Matrix API
   Future<double> getDistance({
     required double originLat,
     required double originLng,
@@ -42,7 +41,6 @@ class PlaceService {
     }
   }
 
-  // Update the getPlaceDetails method
   Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
     final url = Uri.parse(
       '$proxyBaseUrl/details?place_id=$placeId',
@@ -73,7 +71,6 @@ class PlaceService {
     }
   }
 
-  // Get Nearby Places with basic info + details
   Future<ApiResponse<List<Place>>> getNearbyPlaces({
     required double lat,
     required double lng,
@@ -139,29 +136,6 @@ class _NearbyPlacesScreenState extends State<NearbyPlacesScreen> {
   bool _isLoading = false;
   List<Place> _places = [];
 
-  final samplePlaces = [
-    Place(
-      id: '1',
-      name: 'Sample Place',
-      rating: 4.5,
-      address: '123 Sample St',
-      distance: 1.2,
-      tags: [],
-      phone: '123-456-7890',
-      pictureUrls: [],
-      reviews: [
-        Review(
-          authorName: 'John Doe',
-          rating: 5.0,
-          text: 'Great place!',
-        ),
-      ],
-      openingHours: ['Monday: 9 AM - 5 PM'],
-      lat: 37.7749,
-      lng: -122.4194,
-    ),
-  ];
-
   Future<void> _fetchNearbyPlaces() async {
     setState(() {
       _isLoading = true;
@@ -170,10 +144,9 @@ class _NearbyPlacesScreenState extends State<NearbyPlacesScreen> {
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
     final placeService = PlaceService(client: http.Client());
 
-    // Hardcoded sample location: San Francisco
     final lat = 37.7749;
     final lng = -122.4194;
-    final radius = 1000.0; // in meters
+    final radius = 1000.0;
 
     try {
       final response = await placeService.getNearbyPlaces(
@@ -228,30 +201,24 @@ class _NearbyPlacesScreenState extends State<NearbyPlacesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Display restaurant name
                             Text(
                               place.name,
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
 
-                            // Display restaurant rating
                             Text("Rating: ${place.rating.toStringAsFixed(1)}"),
 
-                            // Display restaurant address
                             Text("Address: ${place.address}"),
 
-                            // Display restaurant phone number
                             Text("Phone: ${place.phone ?? 'Not available'}"),
 
-                            // Display restaurant opening hours
                             if (place.openingHours?.isNotEmpty ?? false) ...[
                               const SizedBox(height: 4),
                               const Text("Opening Hours:", style: TextStyle(fontWeight: FontWeight.bold)),
                               ...?place.openingHours?.map((h) => Text(h)).toList(),
                             ],
 
-                            // Display restaurant reviews
                             if (place.reviews.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               const Text("Reviews:", style: TextStyle(fontWeight: FontWeight.bold)),

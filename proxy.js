@@ -1,15 +1,22 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 
-const apiKey = 'AIzaSyAUTKMiek6eX3Wx9aHpQpyZ3FSXa5f4nvk';
+const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
-// Proxy for Nearby Search
+if (!apiKey) {
+  console.error('ERROR: GOOGLE_MAPS_API_KEY not found in environment variables');
+  process.exit(1);
+}
+
 app.get('/nearbysearch', async (req, res) => {
   const { location, radius, type } = req.query;
 

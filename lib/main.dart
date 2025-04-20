@@ -97,7 +97,7 @@ class MyApp extends StatelessWidget {
       initialRoute: Screens.testScreen,  // Set the initial route to Screens.testScreen
       routes: {
         Screens.testScreen: (_) => const TestScreen(),
-        //Screens.profile: (_) => const ProfileScreen(),  // Add profile route here when needed
+        //Screens.profile: (_) => const ProfileScreen(),
         // You can add more routes here as needed.
       },
     );
