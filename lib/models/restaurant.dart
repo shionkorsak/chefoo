@@ -3,12 +3,14 @@ class Place {
   final String name;
   final double rating;
   final String address;
-  final double distance; 
+  final double distance;
   final List<String> tags;
   final String? phone;
-  final List<String> pictureUrls;
-  final List<Review> reviews;
   final List<String>? openingHours;
+  final List<Review> reviews;
+  final List<String> pictureUrls;
+  final double lat;
+  final double lng;
 
   Place({
     required this.id,
@@ -18,9 +20,11 @@ class Place {
     required this.distance,
     required this.tags,
     this.phone,
-    required this.pictureUrls,
-    required this.reviews,
     this.openingHours,
+    required this.reviews,
+    required this.pictureUrls,
+    required this.lat,
+    required this.lng,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -32,11 +36,34 @@ class Place {
       distance: (json['distance'] as num).toDouble(),
       tags: (json['tags'] as List).cast<String>(),
       phone: json['phone'] as String?,
-      pictureUrls: (json['pictures'] as List).cast<String>(),
+      openingHours: (json['opening_hours'] as List?)?.cast<String>(),
       reviews: (json['reviews'] as List)
           .map((reviewJson) => Review.fromJson(reviewJson))
           .toList(),
-      openingHours: (json['opening_hours'] as List?)?.cast<String>(),
+      pictureUrls: (json['pictures'] as List).cast<String>(),
+      lat: (json['lat'] as num).toDouble(),
+      lng: (json['lng'] as num).toDouble(),
+    );
+  }
+
+  factory Place.fromGooglePlace(Map<String, dynamic> place, Map<String, dynamic> details) {
+    return Place(
+      id: place['place_id'] as String,
+      name: place['name'] as String,
+      rating: (place['rating'] ?? 0.0) as double,
+      address: place['vicinity'] as String,
+      distance: 0.0, // We'll implement this later with GPS
+      tags: [],
+      phone: details['formatted_phone_number'] as String?,
+      openingHours: details['opening_hours']?['weekday_text']?.cast<String>(),
+      reviews: (details['reviews'] as List?)
+          ?.map((r) => Review.fromJson(r as Map<String, dynamic>))
+          .toList() ?? [],
+      pictureUrls: (place['photos'] as List?)
+          ?.map((p) => p['photo_reference'] as String)
+          .toList() ?? [],
+      lat: place['geometry']['location']['lat'] as double,
+      lng: place['geometry']['location']['lng'] as double,
     );
   }
 
@@ -49,45 +76,43 @@ class Place {
       'distance': distance,
       'tags': tags,
       'phone': phone,
-      'pictures': pictureUrls,
-      'reviews': reviews.map((review) => review.toJson()).toList(),
       'opening_hours': openingHours,
+      'reviews': reviews.map((review) => review.toJson()).toList(),
+      'pictures': pictureUrls,
+      'lat': lat,
+      'lng': lng,
     };
   }
 }
 
 class Review {
-  final String id;
   final String authorName;
   final double rating;
   final String text;
-  final DateTime timestamp;
+  final String? time;
 
   Review({
-    required this.id,
     required this.authorName,
     required this.rating,
     required this.text,
-    required this.timestamp,
+    this.time,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: json['id'] as String,
       authorName: json['author_name'] as String,
       rating: (json['rating'] as num).toDouble(),
       text: json['text'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      time: json['time']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'author_name': authorName,
       'rating': rating,
       'text': text,
-      'timestamp': timestamp.toIso8601String(),
+      'time': time,
     };
   }
 }

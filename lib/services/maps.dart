@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/restaurant.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const String proxyBaseUrl = 'http://localhost:3000'; 
+const String proxyBaseUrl = 'http://localhost:3000';
 
 class PlaceService {
   final http.Client client;
@@ -22,11 +24,11 @@ class PlaceService {
       '$proxyBaseUrl/distancematrix'
       '?origins=$originLat,$originLng'
       '&destinations=$destLat,$destLng'
-      '&key=$apiKey'  // Pass API key through proxy
+      '&key=$apiKey',
     );
 
     final response = await client.get(url);
-    
+
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       if (jsonData['status'] == 'OK') {
@@ -40,42 +42,14 @@ class PlaceService {
     }
   }
 
-  // Get phone number using the Google Maps Place Details API
-  Future<String?> getPhoneNumber(String placeId, String apiKey) async {
+  // Get Place Details (phone, reviews, opening hours)
+  Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
     final url = Uri.parse(
-      '$proxyBaseUrl/details'
-      '?place_id=$placeId'
-      '&key=$apiKey'  // Pass API key through proxy
+      '$proxyBaseUrl/details?place_id=$placeId',
     );
 
-    final response = await client.get(url);
+    print('Requesting place details for place_id: $placeId');
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      final result = jsonData['result'];
-      return result['formatted_phone_number'] as String?;
-    } else {
-      throw Exception('Failed to load place details');
-    }
-  }
-
-  // Main method to get Nearby Places
-  Future<ApiResponse<List<Place>>> getNearbyPlaces({
-  required double lat,
-  required double lng,
-  required double radius,
-  required String apiKey,
-}) async {
-  final url = Uri.parse(
-    '$proxyBaseUrl/nearbysearch'
-    '?location=$lat,$lng'
-    '&radius=$radius'
-    '&type=restaurant'
-    '&key=$apiKey'  // Pass API key through proxy
-  );
-
-  try {
-    print('Making request to: $url');
     final response = await client.get(url);
 
     print('Response status: ${response.statusCode}');
@@ -83,64 +57,221 @@ class PlaceService {
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
-      final results = jsonData['results'] as List;
+      return jsonData['result'];
+    } else {
+      throw Exception('Failed to load place details');
+    }
+  }
 
-      final List<Place> places = [];
+  // Get Nearby Places with basic info + details
+  Future<ApiResponse<List<Place>>> getNearbyPlaces({
+    required double lat,
+    required double lng,
+    required double radius,
+    required String apiKey,
+  }) async {
+    final url = Uri.parse(
+      '$proxyBaseUrl/nearbysearch'
+      '?location=$lat,$lng'
+      '&radius=$radius'
+      '&type=restaurant'
+      '&key=$apiKey',
+    );
 
-      for (var item in results) {
-        final placeId = item['place_id'];
-        String? phone;
+    try {
+      print('Making request to: $url');
+      final response = await client.get(url);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-        // Try to get the phone number
-        try {
-          phone = await getPhoneNumber(placeId, apiKey);
-        } catch (e) {
-          print('Failed to get phone for $placeId: $e');
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        final results = jsonData['results'] as List;
+        final places = <Place>[];
+
+        for (var place in results) {
+          try {
+            final details = await getPlaceDetails(place['place_id']);
+            final placeWithDetails = Place.fromGooglePlace(place, details);
+            places.add(placeWithDetails);
+            print('Added place: ${placeWithDetails.name}');
+          } catch (e) {
+            print('Error processing place: $e');
+            continue;
+          }
         }
 
-        final place = Place(
-          id: placeId,
-          name: item['name'],
-          rating: (item['rating'] ?? 0).toDouble(),
-          address: item['vicinity'] ?? '',
-          distance: 0,
-          tags: [],
-          phone: phone,
-          pictureUrls: (item['photos'] as List?)
-                  ?.map((p) =>
-                      'https://maps.googleapis.com/maps/api/place/photo'
-                      '?maxwidth=400'
-                      '&photoreference=${p['photo_reference']}'
-                      '&key=$apiKey')
-                  .toList() ??
-              [],
-          reviews: [],
+        return ApiResponse(
+          success: true,
+          message: 'Places loaded successfully',
+          data: places,
         );
-
-        places.add(place);
+      } else {
+        throw Exception('Failed to load places');
       }
-
-      return ApiResponse(
-        success: true,
-        message: 'Places loaded',
-        data: places,
-      );
-    } else {
-      print('Failed to load places. Status code: ${response.statusCode}');
-      print('Error response body: ${response.body}');
+    } catch (e) {
+      print('Error fetching places: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to load places',
-        error: 'HTTP ${response.statusCode}: ${response.body}',
+        error: e.toString(),
       );
     }
-  } catch (e) {
-    print('Error occurred: $e');
-    return ApiResponse(
-      success: false,
-      message: 'Exception occurred',
-      error: e.toString(),
-    );
   }
 }
+
+class NearbyPlacesScreen extends StatefulWidget {
+  @override
+  _NearbyPlacesScreenState createState() => _NearbyPlacesScreenState();
+}
+
+class _NearbyPlacesScreenState extends State<NearbyPlacesScreen> {
+  bool _isLoading = false;
+  List<Place> _places = [];
+
+  final samplePlaces = [
+    Place(
+      id: '1',
+      name: 'Sample Place',
+      rating: 4.5,
+      address: '123 Sample St',
+      distance: 1.2,
+      tags: [],
+      phone: '123-456-7890',
+      pictureUrls: [],
+      reviews: [
+        Review(
+          authorName: 'John Doe',
+          rating: 5.0,
+          text: 'Great place!',
+        ),
+      ],
+      openingHours: ['Monday: 9 AM - 5 PM'],
+      lat: 37.7749,
+      lng: -122.4194,
+    ),
+  ];
+
+  Future<void> _fetchNearbyPlaces() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
+    final placeService = PlaceService(client: http.Client());
+
+    // Hardcoded sample location: San Francisco
+    final lat = 37.7749;
+    final lng = -122.4194;
+    final radius = 1000.0; // in meters
+
+    try {
+      final response = await placeService.getNearbyPlaces(
+        lat: lat,
+        lng: lng,
+        radius: radius,
+        apiKey: apiKey,
+      );
+
+      print('Nearby places response: ${response.message}');
+
+      setState(() {
+        _isLoading = false;
+        if (response.success && response.data != null) {
+          _places = response.data!;
+          print('Loaded places: ${_places.length}');
+          for (var place in _places) {
+            print('Place: ${place.name}, Reviews: ${place.reviews.length}');
+          }
+        } else {
+          _places = [];
+          print('No places found');
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error fetching nearby places: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('Building UI for ${_places.length} places');
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Nearby Places'),
+      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _places.isEmpty
+              ? const Center(child: Text("No places found. Please try again."))
+              : ListView.builder(
+                  itemCount: _places.length,
+                  itemBuilder: (context, index) {
+                    final place = _places[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Display restaurant name
+                            Text(
+                              place.name,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 4),
+
+                            // Display restaurant rating
+                            Text("Rating: ${place.rating.toStringAsFixed(1)}"),
+
+                            // Display restaurant address
+                            Text("Address: ${place.address}"),
+
+                            // Display restaurant phone number
+                            Text("Phone: ${place.phone ?? 'Not available'}"),
+
+                            // Display restaurant opening hours
+                            if (place.openingHours?.isNotEmpty ?? false) ...[
+                              const SizedBox(height: 4),
+                              const Text("Opening Hours:", style: TextStyle(fontWeight: FontWeight.bold)),
+                              ...?place.openingHours?.map((h) => Text(h)).toList(),
+                            ],
+
+                            // Display restaurant reviews
+                            if (place.reviews.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              const Text("Reviews:", style: TextStyle(fontWeight: FontWeight.bold)),
+                              ...place.reviews.map((review) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        review.authorName,
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      Text("Rating: ${review.rating.toStringAsFixed(1)}"),
+                                      Text(review.text),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _fetchNearbyPlaces,
+        child: Icon(Icons.refresh),
+      ),
+    );
+  }
 }

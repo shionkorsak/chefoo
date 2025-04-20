@@ -44,7 +44,7 @@ app.get('/details', async (req, res) => {
     return res.status(400).json({ error: 'Missing place_id parameter' });
   }
 
-  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&key=${apiKey}`;
+  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_phone_number,opening_hours,reviews&key=${apiKey}`;
   console.log('Forwarding request to Google API (Place Details):', url);
 
   try {
