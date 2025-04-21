@@ -14,6 +14,7 @@ class Place {
   final double lat;
   final double lng;
   final bool? isOpenNow;
+  List<Map<String, dynamic>>? popularTimes;
 
   Place({
     required this.id,
@@ -29,6 +30,7 @@ class Place {
     required this.lat,
     required this.lng,
     this.isOpenNow,
+    this.popularTimes,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,9 @@ class Place {
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       isOpenNow: json['is_open_now'] as bool?,
+      popularTimes: (json['popular_times'] as List?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
     );
   }
 
@@ -106,6 +111,9 @@ class Place {
       lat: place['geometry']['location']['lat'] as double,
       lng: place['geometry']['location']['lng'] as double,
       isOpenNow: details['opening_hours']?['open_now'] as bool?,
+      popularTimes: (details['popular_times'] as List?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
     );
   }
 
@@ -124,7 +132,12 @@ class Place {
       'lat': lat,
       'lng': lng,
       'is_open_now': isOpenNow,
+      'popular_times': popularTimes,
     };
+  }
+
+  void updatePopularTimes(List<Map<String, dynamic>> times) {
+    popularTimes = times;
   }
 }
 
