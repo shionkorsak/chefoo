@@ -41,17 +41,62 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
+  fonts:
+    - family: KindSans
+      fonts:
+        - asset: assets/fonts/Font/kindsans-thin.ttf
+          weight: 100
+        - asset: assets/fonts/Font/kindsans-thinitalic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/Font/kindsans-light.ttf
+          weight: 300
+        - asset: assets/fonts/Font/kindsans-lightitalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Font/kindsans-regular.ttf
+          weight: 400
+        - asset: assets/fonts/Font/kindsans-regularitalic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/Font/kindsans-medium.ttf
+          weight: 500
+        - asset: assets/fonts/Font/kindsans-mediumitalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Font/kindsans-semibold.ttf
+          weight: 600
+        - asset: assets/fonts/Font/kindsans-semibolditalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/Font/kindsans-bold.ttf
+          weight: 700
+        - asset: assets/fonts/Font/kindsans-bolditalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Font/kindsans-heavy.ttf
+          weight: 800
+        - asset: assets/fonts/Font/kindsans-heavyitalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/Font/kindsans-black.ttf
+          weight: 900
+        - asset: assets/fonts/Font/kindsans-blackitalic.ttf
+          weight: 900
+          style: italic
+
+    - family: Helvetica
+      fonts:
+        - asset: assets/fonts/Font/Helvetica.ttf
+          weight: 400
+        - asset: assets/fonts/Font/Helvetica-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Font/Helvetica-BoldOblique.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Font/Helvetica-Oblique.ttf
+          weight: 400
+          style: italic
+          
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
