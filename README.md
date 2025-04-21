@@ -52,7 +52,7 @@ flutter run
 ```
 
 ## Component documentation
-Feel free to edit anything you want. All the frontend-esque
+Feel free to edit anything you want. All the frontend-esque stuff I have is because I was testing to see if I was importing info correctly etc!
 
 ### Widgets
 
