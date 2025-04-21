@@ -44,57 +44,57 @@ flutter:
   fonts:
     - family: KindSans
       fonts:
-        - asset: assets/fonts/Font/kindsans-thin.ttf
+        - asset: assets/fonts/kindsans/kindsans-thin.ttf
           weight: 100
-        - asset: assets/fonts/Font/kindsans-thinitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-thinitalic.ttf
           weight: 100
           style: italic
-        - asset: assets/fonts/Font/kindsans-light.ttf
+        - asset: assets/fonts/kindsans/kindsans-light.ttf
           weight: 300
-        - asset: assets/fonts/Font/kindsans-lightitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-lightitalic.ttf
           weight: 300
           style: italic
-        - asset: assets/fonts/Font/kindsans-regular.ttf
+        - asset: assets/fonts/kindsans/kindsans-regular.ttf
           weight: 400
-        - asset: assets/fonts/Font/kindsans-regularitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-regularitalic.ttf
           weight: 400
           style: italic
-        - asset: assets/fonts/Font/kindsans-medium.ttf
+        - asset: assets/fonts/kindsans/kindsans-medium.ttf
           weight: 500
-        - asset: assets/fonts/Font/kindsans-mediumitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-mediumitalic.ttf
           weight: 500
           style: italic
-        - asset: assets/fonts/Font/kindsans-semibold.ttf
+        - asset: assets/fonts/kindsans/kindsans-semibold.ttf
           weight: 600
-        - asset: assets/fonts/Font/kindsans-semibolditalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-semibolditalic.ttf
           weight: 600
           style: italic
-        - asset: assets/fonts/Font/kindsans-bold.ttf
+        - asset: assets/fonts/kindsans/kindsans-bold.ttf
           weight: 700
-        - asset: assets/fonts/Font/kindsans-bolditalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-bolditalic.ttf
           weight: 700
           style: italic
-        - asset: assets/fonts/Font/kindsans-heavy.ttf
+        - asset: assets/fonts/kindsans/kindsans-heavy.ttf
           weight: 800
-        - asset: assets/fonts/Font/kindsans-heavyitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-heavyitalic.ttf
           weight: 800
           style: italic
-        - asset: assets/fonts/Font/kindsans-black.ttf
+        - asset: assets/fonts/kindsans/kindsans-black.ttf
           weight: 900
-        - asset: assets/fonts/Font/kindsans-blackitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-blackitalic.ttf
           weight: 900
           style: italic
 
     - family: Helvetica
       fonts:
-        - asset: assets/fonts/Font/Helvetica.ttf
+        - asset: assets/fonts/helvetica/Helvetica.ttf
           weight: 400
-        - asset: assets/fonts/Font/Helvetica-Bold.ttf
+        - asset: assets/fonts/helvetica/Helvetica-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Font/Helvetica-BoldOblique.ttf
+        - asset: assets/fonts/helvetica/Helvetica-BoldOblique.ttf
           weight: 700
           style: italic
-        - asset: assets/fonts/Font/Helvetica-Oblique.ttf
+        - asset: assets/fonts/helvetica/Helvetica-Oblique.ttf
           weight: 400
           style: italic
           
