@@ -18,7 +18,7 @@ cd chefoo
 
 2. Install Node.js dependencies:
 ```zsh
-npm i
+npm init -y
 ```
 
 3. Install Python dependencies (busyness info):
