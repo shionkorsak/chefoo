@@ -1,45 +1,190 @@
+# chefoo
 
-# Flutter Skeleton
+## How to set up
 
-This is a skeleton project for Flutter which provide a basic structure to organize your Flutter application.
+### Prerequisites
+- Flutter
+- Node.js (v14 or higher)
+- Python 3.x
+- Google Maps API key (find it in our notion)
 
-The structure proposed here is the same as disgussed in:
+### Installation steps
 
-- [A Simple way to organize your code in Flutter](https://medium.com/@kanellopoulos.leo/a-simple-way-to-organize-your-code-in-flutter-e175e7004fb5)
-- [A Simple way to organize your Styles & Themes in Flutter](https://medium.com/@kanellopoulos.leo/a-simple-way-to-organize-your-styles-themes-in-flutter-a0e7eba5b297)
-
-## Features
-
-- Boilerplate folder structur for a Flutter mobile project.
-- Example code and comments to help you.
-
-## Getting Started
-
-These instructions will help you grab a copy of the project and start developing.
-
-### Installation
-1. Clone the repository:
-
-```
-git clone https://github.com/SimpleAppsgr/flutter_skeleton
+1. Clone the repo:
+```bash
+git clone https://github.com/shionkorsak/chefoo.git
+cd chefoo
 ```
 
-2. Change into the new directory:
-
-``` 
-cd flutter_skeleton
+2. Install Node.js dependencies:
+```zsh
+npm i
 ```
 
-3. Fetch dependencies:
+3. Install Python dependencies (busyness info):
+```zsh
+pip3 install --upgrade git+https://github.com/m-wrzr/populartimes
+```
 
-``` 
-flutter clean 
+4. Create a `.env` file in the *ROOT* directory:
+```env
+GOOGLE_MAPS_API_KEY=key_here
+```
+
+5. Install Flutter dependencies:
+```bash
 flutter pub get
 ```
 
-4. Run the project:
-
+6. Start the proxy server:
+```bash
+node proxy.js
 ```
+
+7. In a new terminal, start the backend server:
+```bash
+node server.js
+```
+
+8. Run the Flutter app:
+```bash
 flutter run
 ```
-This will launch your sample app on your emulator or device.
+
+## Component documentation
+Feel free to edit anything you want. All the frontend-esque
+
+### Widgets
+
+#### 1. BaseLayout
+A wrapper widget that provides common functionality:
+- App bar with title (you maybe should delete this?)
+- Location service initialization
+- Loading states
+- Error handling
+
+Usage:
+```dart
+BaseLayout(
+  title: 'Screen Title',
+  child: YourWidget(),
+)
+```
+
+#### 2. RestaurantCard
+Displays detailed information about a restaurant:
+- Name, rating, and distance
+- Opening hours
+- Popular times chart
+- Reviews
+- Photos with grid view
+- Phone number and directions buttons
+
+Usage:
+```dart
+RestaurantCard(place: placeObject)
+```
+
+#### 3. PopularTimesChart
+Shows restaurant busy times in a graph:
+- Day-by-day view with navigation
+- Hour-by-hour popularity data
+- Interactive time selection
+
+Usage:
+```dart
+PopularTimesChart(popularTimes: placeObject.popularTimes!)
+```
+
+#### 4. PhotoGrid
+Displays restaurant photos in a grid layout:
+- Fullscreen view
+- 2-column grid
+- Loading states and error handling
+
+Usage:
+```dart
+PhotoGrid(
+  photoRefs: place.pictureUrls,
+  placeName: place.name,
+)
+```
+
+### Services
+
+#### 1. LocationService
+Handles location-related functionality:
+- Get current location
+- Calculate distances
+- Location permissions
+- Error handling
+
+Usage:
+```dart
+final locationService = Provider.of<LocationService>(context);
+final position = locationService.currentPosition;
+```
+
+#### 2. PopularTimesService
+Fetches real-time popularity data:
+- Get current popularity
+- Day-by-day predictions
+- Error handling
+
+Usage:
+```dart
+final service = PopularTimesService();
+final times = await service.getPopularTimes(placeId);
+```
+
+### Models
+
+#### 1. Place
+Restaurant data model containing:
+- Basic info (name, address, rating)
+- Opening hours
+- Reviews
+- Photos
+- Popular times
+- Location coordinates
+
+Usage:
+```dart
+Place place = Place.fromJson(jsonData);
+// or
+Place place = Place.fromGooglePlace(placeData, detailsData);
+```
+
+## API Routes
+
+### Proxy Server (port 3000)
+- `/nearbysearch` - Get nearby restaurants
+- `/details` - Get restaurant details
+- `/photo` - Get restaurant photos
+
+### Backend Server (port 3001)
+- `/api/populartimes/:placeId` - Get popularity data
+
+## Important notes
+
+1. State Management:
+   - Location state is managed via Provider
+   - Restaurant data is managed in RestaurantListContainer
+   - Popular times use local state in their widget
+
+## Troubleshooting
+
+1. If images don't load:
+   - Check if proxy server is running
+   - Verify photo references are valid
+   - Check console for error messages
+
+2. If popular times don't show:
+   - Ensure backend server is running
+   - Check if place ID is valid
+   - Verify Python dependencies are installed
+
+3. If location doesn't update:
+   - Check location permissions
+   - Verify GPS is enabled
+   - Try refreshing?
