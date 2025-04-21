@@ -1,7 +1,6 @@
 name: flutter_skeleton
 description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.0+1
 
@@ -9,6 +8,7 @@ environment:
   sdk: ^3.5.4
 
 dependencies:
+  flutter_svg: ^2.0.10
   flutter:
     sdk: flutter
 
@@ -23,13 +23,11 @@ dev_dependencies:
   #flutter_launcher_icons: ^0.14.1
   #flutter_native_splash: ^2.4.3
 flutter:
-
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/svgs/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -45,59 +43,59 @@ flutter:
   fonts:
     - family: KindSans
       fonts:
-        - asset: assets/fonts/Font/kindsans-thin.ttf
+        - asset: assets/fonts/kindsans/kindsans-thin.ttf
           weight: 100
-        - asset: assets/fonts/Font/kindsans-thinitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-thinitalic.ttf
           weight: 100
           style: italic
-        - asset: assets/fonts/Font/kindsans-light.ttf
+        - asset: assets/fonts/kindsans/kindsans-light.ttf
           weight: 300
-        - asset: assets/fonts/Font/kindsans-lightitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-lightitalic.ttf
           weight: 300
           style: italic
-        - asset: assets/fonts/Font/kindsans-regular.ttf
+        - asset: assets/fonts/kindsans/kindsans-regular.ttf
           weight: 400
-        - asset: assets/fonts/Font/kindsans-regularitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-regularitalic.ttf
           weight: 400
           style: italic
-        - asset: assets/fonts/Font/kindsans-medium.ttf
+        - asset: assets/fonts/kindsans/kindsans-medium.ttf
           weight: 500
-        - asset: assets/fonts/Font/kindsans-mediumitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-mediumitalic.ttf
           weight: 500
           style: italic
-        - asset: assets/fonts/Font/kindsans-semibold.ttf
+        - asset: assets/fonts/kindsans/kindsans-semibold.ttf
           weight: 600
-        - asset: assets/fonts/Font/kindsans-semibolditalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-semibolditalic.ttf
           weight: 600
           style: italic
-        - asset: assets/fonts/Font/kindsans-bold.ttf
+        - asset: assets/fonts/kindsans/kindsans-bold.ttf
           weight: 700
-        - asset: assets/fonts/Font/kindsans-bolditalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-bolditalic.ttf
           weight: 700
           style: italic
-        - asset: assets/fonts/Font/kindsans-heavy.ttf
+        - asset: assets/fonts/kindsans/kindsans-heavy.ttf
           weight: 800
-        - asset: assets/fonts/Font/kindsans-heavyitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-heavyitalic.ttf
           weight: 800
           style: italic
-        - asset: assets/fonts/Font/kindsans-black.ttf
+        - asset: assets/fonts/kindsans/kindsans-black.ttf
           weight: 900
-        - asset: assets/fonts/Font/kindsans-blackitalic.ttf
+        - asset: assets/fonts/kindsans/kindsans-blackitalic.ttf
           weight: 900
           style: italic
 
     - family: Helvetica
       fonts:
-        - asset: assets/fonts/Font/Helvetica.ttf
+        - asset: assets/fonts/helvetica/Helvetica.ttf
           weight: 400
-        - asset: assets/fonts/Font/Helvetica-Bold.ttf
+        - asset: assets/fonts/helvetica/Helvetica-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Font/Helvetica-BoldOblique.ttf
+        - asset: assets/fonts/helvetica/Helvetica-BoldOblique.ttf
           weight: 700
           style: italic
-        - asset: assets/fonts/Font/Helvetica-Oblique.ttf
+        - asset: assets/fonts/helvetica/Helvetica-Oblique.ttf
           weight: 400
           style: italic
-          
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

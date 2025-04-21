@@ -3,7 +3,7 @@ import 'colors.dart';
 
 ThemeData get lightTheme {
   return ThemeData(
-    fontFamily: Font.montserrat,
+    fontFamily: 'Helvetica',
     useMaterial3: true,
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: AppColors.background,
@@ -16,29 +16,44 @@ ThemeData get lightTheme {
     ),
     textTheme: const TextTheme(
       displayLarge: TextStyle(
+          fontFamily: 'Helvetica',
           fontSize: 30,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary),
       headlineLarge: TextStyle(
+          fontFamily: 'Helvetica',
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary),
       headlineMedium: TextStyle(
+          fontFamily: 'Helvetica',
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary),
       headlineSmall: TextStyle(
+          fontFamily: 'Helvetica',
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary),
-      bodyLarge: TextStyle(fontSize: 16, color: AppColors.textPrimary),
-      bodyMedium: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-      bodySmall: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+      bodyLarge: TextStyle(
+          fontFamily: 'Helvetica', fontSize: 16, color: AppColors.textPrimary),
+      bodyMedium: TextStyle(
+          fontFamily: 'Helvetica',
+          fontSize: 14,
+          color: AppColors.textSecondary),
+      bodySmall: TextStyle(
+          fontFamily: 'Helvetica',
+          fontSize: 12,
+          color: AppColors.textSecondary),
       labelLarge: TextStyle(
+          fontFamily: 'Helvetica',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary),
-      labelSmall: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+      labelSmall: TextStyle(
+          fontFamily: 'Helvetica',
+          fontSize: 10,
+          color: AppColors.textSecondary),
     ),
     appBarTheme: const AppBarTheme(
       iconTheme: IconThemeData(color: AppColors.textPrimary),
@@ -48,7 +63,7 @@ ThemeData get lightTheme {
       titleTextStyle: TextStyle(
         color: AppColors.textPrimary,
         fontSize: 20,
-        fontFamily: Font.montserrat,
+        fontFamily: 'Helvetica',
         fontWeight: FontWeight.w600,
       ),
     ),
@@ -60,7 +75,7 @@ ThemeData get lightTheme {
         ),
         textStyle: WidgetStateProperty.all<TextStyle>(
           const TextStyle(
-            fontFamily: Font.montserrat,
+            fontFamily: 'Helvetica',
             fontWeight: FontWeight.w600,
             fontSize: 13,
             color: AppColors.surface,
@@ -88,7 +103,7 @@ ThemeData get lightTheme {
       style: ButtonStyle(
         textStyle: WidgetStateProperty.all<TextStyle>(
           const TextStyle(
-            fontFamily: Font.montserrat,
+            fontFamily: 'Helvetica',
             fontWeight: FontWeight.w600,
             fontSize: 13,
             color: AppColors.primary,
