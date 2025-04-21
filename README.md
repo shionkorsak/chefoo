@@ -5,7 +5,7 @@
 ### Prerequisites
 - Flutter
 - Node.js (v14 or higher)
-- Python 3.x
+- Python
 - Google Maps API key (find it in our notion)
 
 ### Installation steps
@@ -24,6 +24,10 @@ npm i
 3. Install Python dependencies (busyness info):
 ```zsh
 pip3 install --upgrade git+https://github.com/m-wrzr/populartimes
+```
+or, if this doesn't work because you don't have Python3 installed:
+```zsh
+pip install --upgrade git+https://github.com/m-wrzr/populartimes
 ```
 
 4. Create a `.env` file in the *ROOT* directory:
