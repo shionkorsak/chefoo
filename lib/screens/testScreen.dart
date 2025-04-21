@@ -32,11 +32,51 @@ class RestaurantListContainer extends StatefulWidget {
 class _RestaurantListContainerState extends State<RestaurantListContainer> {
   bool _isLoading = false;
   List<Place> _places = [];
+  Position? _lastFetchPosition;
 
   @override
   void initState() {
     super.initState();
-    _fetchNearbyPlaces();
+    // Initialize location updates
+    Provider.of<LocationService>(context, listen: false).startLocationUpdates();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locationService = Provider.of<LocationService>(context);
+    final newPosition = locationService.currentPosition;
+    
+    if (newPosition != null && _shouldFetchNewPlaces(newPosition)) {
+      _lastFetchPosition = newPosition;
+      // Schedule the fetch for after the build
+      Future.microtask(() => _fetchNearbyPlaces());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LocationService>(
+      builder: (context, locationService, _) {
+        return RestaurantList(
+          places: _places,
+          isLoading: _isLoading,
+        );
+      },
+    );
+  }
+
+  bool _shouldFetchNewPlaces(Position newPosition) {
+    if (_lastFetchPosition == null) return true;
+
+    final distance = Geolocator.distanceBetween(
+      _lastFetchPosition!.latitude,
+      _lastFetchPosition!.longitude,
+      newPosition.latitude,
+      newPosition.longitude,
+    );
+
+    return distance > 500;
   }
 
   Future<void> _fetchNearbyPlaces() async {
@@ -52,13 +92,15 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
         throw Exception('Location not available');
       }
 
+      print('Using location: ${position.latitude}, ${position.longitude}'); // Debug log
+
       final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
       final placeService = Provider.of<PlaceService>(context, listen: false);
 
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
-        radius: 1000.0,
+        radius: 1000.0,  // This won't be used but keep it for API compatibility
         apiKey: apiKey,
       );
 
@@ -103,13 +145,5 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
         _isLoading = false;
       });
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RestaurantList(
-      places: _places,
-      isLoading: _isLoading,
-    );
   }
 }

@@ -33,7 +33,8 @@ class RestaurantCard extends StatelessWidget {
                 Icon(Icons.star, size: 16, color: Colors.amber[700]),
                 Text('${place.rating}'),
                 const SizedBox(width: 8),
-                Text(locationService.getDistanceString(place.lat, place.lng)),
+                Icon(Icons.directions_walk, size: 16),
+                Text('${place.walkingDistance.toStringAsFixed(1)}km'),
               ],
             ),
           ],
@@ -132,7 +133,10 @@ class RestaurantCard extends StatelessWidget {
                                     );
                                   },
                                   child: Image.network(
-                                    'http://localhost:3000/photo?maxwidth=400&photo_reference=${place.pictureUrls[index]}',
+                                    'https://maps.googleapis.com/maps/api/place/photo'
+                                    '?maxwidth=400'
+                                    '&photo_reference=${place.pictureUrls[index]}'
+                                    '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
                                     height: 100,
                                     width: 100,
                                     fit: BoxFit.cover,

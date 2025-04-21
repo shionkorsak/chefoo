@@ -5,9 +5,10 @@ import '../models/restaurant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const String proxyBaseUrl = 'http://localhost:3000';
+//const String proxyBaseUrl = 'http://localhost:3000';
 
 class PlaceService {
+  static const String baseUrl = 'https://maps.googleapis.com/maps/api/place';
   final http.Client client;
 
   PlaceService({required this.client});
@@ -20,7 +21,7 @@ class PlaceService {
     required String apiKey,
   }) async {
     final url = Uri.parse(
-      '$proxyBaseUrl/distancematrix'
+      'https://maps.googleapis.com/maps/api/distancematrix/json'
       '?origins=$originLat,$originLng'
       '&destinations=$destLat,$destLng'
       '&key=$apiKey',
@@ -41,9 +42,40 @@ class PlaceService {
     }
   }
 
+  Future<double> getWalkingDistance({
+    required double originLat,
+    required double originLng,
+    required double destLat,
+    required double destLng,
+    required String apiKey,
+  }) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/distancematrix/json'
+      '?origins=$originLat,$originLng'
+      '&destinations=$destLat,$destLng'
+      '&mode=walking'  // Specify walking mode
+      '&key=$apiKey'
+    );
+
+    final response = await client.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      if (jsonData['status'] == 'OK' && 
+          jsonData['rows'][0]['elements'][0]['status'] == 'OK') {
+        final distanceInMeters = jsonData['rows'][0]['elements'][0]['distance']['value'];
+        return distanceInMeters / 1000.0;  // Convert to kilometers
+      }
+    }
+    throw Exception('Failed to calculate walking distance');
+  }
+
   Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
     final url = Uri.parse(
-      '$proxyBaseUrl/details?place_id=$placeId',
+      '$baseUrl/details/json'
+      '?place_id=$placeId'
+      '&fields=formatted_phone_number,opening_hours,reviews,photos,price_level,formatted_address'
+      '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
     );
 
     print('Requesting place details for place_id: $placeId');
@@ -77,34 +109,50 @@ class PlaceService {
     required double radius,
     required String apiKey,
   }) async {
+    // Build URL with specific types and keyword
     final url = Uri.parse(
-      '$proxyBaseUrl/nearbysearch'
+      '$baseUrl/nearbysearch/json'
       '?location=$lat,$lng'
-      '&radius=$radius'
-      '&type=restaurant'
-      '&key=$apiKey',
+      '&rankby=distance'
+      '&type=restaurant|cafe|bakery|meal_takeaway'  // Specific food types
+      '&key=$apiKey'
     );
 
     try {
       print('Making request to: $url');
       final response = await client.get(url);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
+      
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         final results = jsonData['results'] as List;
         final places = <Place>[];
 
-        for (var place in results) {
-          try {
-            final details = await getPlaceDetails(place['place_id']);
-            final placeWithDetails = Place.fromGooglePlace(place, details);
-            places.add(placeWithDetails);
-            print('Added place: ${placeWithDetails.name}');
-          } catch (e) {
-            print('Error processing place: $e');
-            continue;
+        // Add additional filtering for food-related places
+        for (var place in results.take(20)) {
+          // Check if the place types contain at least one food-related type
+          final types = List<String>.from(place['types'] ?? []);
+          if (_isFoodRelatedPlace(types)) {
+            try {
+              final walkingDistance = await getWalkingDistance(
+                originLat: lat,
+                originLng: lng,
+                destLat: place['geometry']['location']['lat'],
+                destLng: place['geometry']['location']['lng'],
+                apiKey: apiKey,
+              );
+
+              if (walkingDistance <= 1.0) {
+                print('Fetching details for food place: ${place['name']}');
+                final details = await getPlaceDetails(place['place_id']);
+                final placeWithDetails = Place.fromGooglePlace(place, details);
+                placeWithDetails.walkingDistance = walkingDistance;
+                places.add(placeWithDetails);
+                print('Added food place: ${placeWithDetails.name} (${walkingDistance}km walking)');
+              }
+            } catch (e) {
+              print('Error processing place: $e');
+              continue;
+            }
           }
         }
 
@@ -124,6 +172,23 @@ class PlaceService {
         error: e.toString(),
       );
     }
+  }
+
+  // Add this helper method to check if a place is food-related
+  bool _isFoodRelatedPlace(List<String> types) {
+    final foodRelatedTypes = {
+      'restaurant',
+      'food',
+      'cafe',
+      'bakery',
+      'meal_takeaway',
+      'meal_delivery',
+      'bar',
+      'supermarket',
+      'grocery_or_supermarket',
+    };
+
+    return types.any((type) => foodRelatedTypes.contains(type));
   }
 }
 

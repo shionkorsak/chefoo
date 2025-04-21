@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class PhotoGrid extends StatelessWidget {
   final List<String> photoRefs;
   final String placeName;
-  static const String proxyBaseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://maps.googleapis.com/maps/api/place/photo';
 
   const PhotoGrid({
     Key? key,
@@ -13,6 +14,7 @@ class PhotoGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
@@ -37,7 +39,10 @@ class PhotoGrid extends StatelessWidget {
               ),
               itemCount: photoRefs.length,
               itemBuilder: (context, index) => Image.network(
-                '$proxyBaseUrl/photo?maxwidth=800&photo_reference=${photoRefs[index]}',
+                'https://maps.googleapis.com/maps/api/place/photo'
+                '?maxwidth=800'
+                '&photo_reference=${photoRefs[index]}'
+                '&key=$apiKey',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   print('Error loading image: $error');
