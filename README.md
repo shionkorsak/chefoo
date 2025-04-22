@@ -1,4 +1,4 @@
-# Chefoo
+# chefoo
 
 ## How to set up
 

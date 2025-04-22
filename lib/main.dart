@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-
 import 'constants.dart';
 import 'services/location.dart';
 import 'services/maps.dart';
 import 'providers/restaurant.dart';
 import 'screens/testScreen.dart';
-import 'screens.dart';
+
+import 'package:flutter_skeleton/screens/login/login_screen.dart';
+import 'package:flutter_skeleton/screens/welcome_screen.dart';
+import 'package:flutter_skeleton/screens/widget_screens/widgets_onboarding_screen.dart';
+
 import 'commons.dart';
 
 Future<void> initializeApp() async {
@@ -97,12 +100,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
-      initialRoute: Screens.testScreen,
-      routes: {
-        Screens.testScreen: (_) => TestScreen(),
-      },
-    );
+        theme: lightTheme,
+        navigatorKey: navigatorKey,
+
+        ///Screen names used from file screens.dart
+
+        // routes: {Screens.profile: (_) => const ProfileScreen()},
+        home: WidgetsOnboardingScreen());
   }
 }

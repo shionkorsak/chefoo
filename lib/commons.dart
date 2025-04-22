@@ -1,6 +1,7 @@
 ///List of all packages used
 
 export 'package:flutter/material.dart';
+
 ///List of all files used as helpers
 export 'package:flutter_skeleton/constants.dart';
 export 'package:flutter_skeleton/screens.dart';
@@ -11,6 +12,7 @@ export 'styles/colors.dart';
 export 'styles/sizes.dart';
 export 'styles/styles.dart';
 export 'styles/themes.dart';
+export 'styles/text_style.dart';
 
 /// Packages
 export 'package:flutter/material.dart';
@@ -38,3 +40,4 @@ export 'widgets/photo_grid.dart';
 export 'widgets/popular_times_chart.dart';
 export 'widgets/restaurant_elements.dart';
 export 'widgets/base_layout.dart';
+
