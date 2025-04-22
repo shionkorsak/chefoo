@@ -4,17 +4,19 @@ import 'dart:async';
 
 class LocationService with ChangeNotifier {
   static const bool debugMode = true;  // Set to true for emulator testing
-  static const debugLat = 24.795653;   // NTHU coordinates
+  static const debugLat = 24.795653;   // delta building coordinates
   static const debugLng = 120.991744;
 
   Position? _currentPosition;
+  Position? _lastFetchPosition;
   bool _isLoading = false;
   String? _error;
   StreamSubscription<Position>? _positionStreamSubscription;
   bool _isRequestingPermission = false;
-  bool _useDebugLocation = false;  // New flag for runtime control
+  bool _useDebugLocation = false; 
 
   Position? get currentPosition => _currentPosition;
+  Position? get lastFetchPosition => _lastFetchPosition;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get useDebugLocation => _useDebugLocation;
@@ -81,6 +83,7 @@ class LocationService with ChangeNotifier {
       if (_useDebugLocation) {
         print('Using debug location: $debugLat, $debugLng');
         _setDebugLocation();
+        _lastFetchPosition = _currentPosition;
         return;
       }
 
@@ -96,12 +99,14 @@ class LocationService with ChangeNotifier {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           _setDebugLocation(); // Fallback to debug location
+          _lastFetchPosition = _currentPosition;
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
         _setDebugLocation(); // Fallback to debug location
+        _lastFetchPosition = _currentPosition;
         return;
       }
 
@@ -111,13 +116,15 @@ class LocationService with ChangeNotifier {
         timeLimit: const Duration(seconds: 20),
       );
       
+      _lastFetchPosition = _currentPosition;
       print('Got GPS location: ${_currentPosition?.latitude}, ${_currentPosition?.longitude}');
       _error = null;
 
     } catch (e) {
       print('Error getting location: $e');
       _error = e.toString();
-      _setDebugLocation(); // Fallback to debug location
+      _setDebugLocation();
+      _lastFetchPosition = _currentPosition;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -153,6 +160,11 @@ class LocationService with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setLastFetchPosition(Position position) {
+    _lastFetchPosition = position;
+    notifyListeners();
   }
 
   @override

@@ -1,4 +1,4 @@
-# chefoo
+# Chefoo
 
 ## How to set up
 
@@ -35,22 +35,19 @@ pip install --upgrade git+https://github.com/m-wrzr/populartimes
 GOOGLE_MAPS_API_KEY=key_here
 ```
 
+you can find the key in our notion
+
 5. Install Flutter dependencies:
 ```bash
 flutter pub get
 ```
 
-6. Start the proxy server:
-```bash
-node proxy.js
-```
-
-7. In a new terminal, start the backend server:
+6. In a new terminal, start the backend server:
 ```bash
 node server.js
 ```
 
-8. Run the Flutter app:
+7. Run the Flutter app:
 ```bash
 flutter run
 ```
@@ -58,49 +55,45 @@ flutter run
 ## Component documentation
 Feel free to edit anything you want. All the frontend-esque stuff I have is because I was testing to see if I was importing info correctly etc!
 
+!!! for anything you wanna import, just import commons because i put everything there (so far...)
+```dart
+import 'package:chefoo/widgets/popular_times_chart.dart';
+```
+
 ### Widgets
 
-#### 1. BaseLayout
-A wrapper widget that provides common functionality:
-- App bar with title (you maybe should delete this?)
-- Location service initialization
-- Loading states
-- Error handling
+#### 1. Popular Times Widget
 
-Usage:
+Shows restaurant busy hours in a chart:
+- Day-by-day view with navigation arrows
+- Hour-by-hour popularity data
+- Automatic adjustment to restaurant opening hours
+- Shows "Closed" message on closed days
+
+Basic usage:
 ```dart
-BaseLayout(
-  title: 'Screen Title',
-  child: YourWidget(),
+import 'package:chefoo/widgets/popular_times_chart.dart';
+
+PopularTimesChart(
+  popularTimes: place.popularTimes!, 
+  openingHours: place.openingHours,
 )
 ```
 
-#### 2. RestaurantCard
-Displays detailed information about a restaurant:
-- Name, rating, and distance
-- Opening hours
-- Popular times chart
-- Reviews
-- Photos with grid view
-- Phone number and directions buttons
+The widget expects:
+- `popularTimes`: List of daily popularity data
+- `openingHours`: List of opening hours strings (optional)
 
-Usage:
+Example usage:
 ```dart
-RestaurantCard(place: placeObject)
+if (place.popularTimes != null && place.popularTimes!.isNotEmpty) 
+  PopularTimesChart(
+    popularTimes: place.popularTimes!,
+    openingHours: place.openingHours,
+  ),
 ```
 
-#### 3. PopularTimesChart
-Shows restaurant busy times in a graph:
-- Day-by-day view with navigation
-- Hour-by-hour popularity data
-- Interactive time selection
-
-Usage:
-```dart
-PopularTimesChart(popularTimes: placeObject.popularTimes!)
-```
-
-#### 4. PhotoGrid
+#### 2. PhotoGrid
 Displays restaurant photos in a grid layout:
 - Fullscreen view
 - 2-column grid
@@ -114,6 +107,26 @@ PhotoGrid(
 )
 ```
 
+## UI Components Guide
+
+### Restaurant Elements
+Ready-to-use UI components for restaurant information:
+
+```dart
+import 'package:chefoo/commons.dart';
+
+// Basic Info Components
+RestaurantName(place.name)                              // Restaurant name with styling
+RestaurantAddress(place.address)                        // Formatted address
+RestaurantRating(rating: place.rating)                  // Star rating display
+RestaurantDistance(distanceKm: place.walkingDistance)   // Walking distance with icon
+OpenStatusBadge(isOpen: place.isOpenNow ?? false)      // Open/Closed status badge
+
+// Action Components
+PhoneButton(phoneNumber: place.phone!)                  // Call button with formatting
+DirectionsButton(lat: place.lat, lng: place.lng)        // Google Maps directions
+```
+
 ### Services
 
 #### 1. LocationService
@@ -121,7 +134,6 @@ Handles location-related functionality:
 - Get current location
 - Calculate distances
 - Location permissions
-- Error handling
 
 Usage:
 ```dart
@@ -133,7 +145,6 @@ final position = locationService.currentPosition;
 Fetches real-time popularity data:
 - Get current popularity
 - Day-by-day predictions
-- Error handling
 
 Usage:
 ```dart
@@ -161,20 +172,8 @@ Place place = Place.fromGooglePlace(placeData, detailsData);
 
 ## API Routes
 
-### Proxy Server (port 3000)
-- `/nearbysearch` - Get nearby restaurants
-- `/details` - Get restaurant details
-- `/photo` - Get restaurant photos
-
 ### Backend Server (port 3001)
 - `/api/populartimes/:placeId` - Get popularity data
-
-## Important notes
-
-1. State Management:
-   - Location state is managed via Provider
-   - Restaurant data is managed in RestaurantListContainer
-   - Popular times use local state in their widget
 
 ## Troubleshooting
 

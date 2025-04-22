@@ -6,12 +6,15 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'services/location.dart';
 import 'services/maps.dart';
+import 'providers/restaurant.dart';
 import 'screens/testScreen.dart';
 import 'screens.dart';
 import 'commons.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'services/location.dart';
+
+Future<void> initializeApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+}
 
 class BaseLayout extends StatefulWidget {
   final Widget child;
@@ -65,6 +68,7 @@ class _BaseLayoutState extends State<BaseLayout> {
     );
   }
 }
+
 void main() async {
   await MapsConstants.init();
   await initializeApp();
@@ -73,12 +77,13 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<PlaceService>(
-          create: (_) => PlaceService(
-            client: http.Client(),
-          ),
+          create: (_) => PlaceService(client: http.Client()),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProvider<LocationService>(
           create: (_) => LocationService(),
+        ),
+        ChangeNotifierProvider<RestaurantProvider>(
+          create: (_) => RestaurantProvider(),
         ),
       ],
       child: const MyApp(),
@@ -94,11 +99,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      initialRoute: Screens.testScreen,  // Set the initial route to Screens.testScreen
+      initialRoute: Screens.testScreen,
       routes: {
-        Screens.testScreen: (_) => const TestScreen(),
-        //Screens.profile: (_) => const ProfileScreen(),
-        // You can add more routes here as needed.
+        Screens.testScreen: (_) => TestScreen(),
       },
     );
   }

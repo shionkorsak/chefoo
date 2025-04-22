@@ -1,22 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_skeleton/constants.dart';
+import 'package:flutter_skeleton/screens/map_view.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
-import '../services/location.dart';
-import '../services/maps.dart';
-import '../services/popular_times.dart';  // Add this import
-import '../models/restaurant.dart';
-import '../widgets/base_layout.dart'; 
-import '../widgets/restaurant_list.dart';
-import 'map_view_screen.dart';
+import '../providers/restaurant.dart';
+import '../commons.dart';
 
 class TestScreen extends StatelessWidget {
-  const TestScreen({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return BaseLayout(
@@ -33,9 +28,7 @@ class RestaurantListContainer extends StatefulWidget {
 
 class _RestaurantListContainerState extends State<RestaurantListContainer> {
   bool _isLoading = false;
-  List<Place> _places = [];
-  Position? _lastFetchPosition;
-  bool _mounted = true;
+  static const double _minDistanceToRefresh = 500.0; // meters
 
   @override
   void initState() {
@@ -64,22 +57,27 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     final newPosition = locationService.currentPosition;
     
     if (newPosition != null && _shouldFetchNewPlaces(newPosition)) {
-      _lastFetchPosition = newPosition;
       Future.microtask(() => _fetchNearbyPlaces());
     }
   }
 
   bool _shouldFetchNewPlaces(Position newPosition) {
-    if (_lastFetchPosition == null) return true;
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final lastFetchPosition = locationService.lastFetchPosition;
+    
+    // If no last fetch position, we should fetch
+    if (lastFetchPosition == null) return true;
 
+    // Calculate distance moved since last fetch
     final distance = Geolocator.distanceBetween(
-      _lastFetchPosition!.latitude,
-      _lastFetchPosition!.longitude,
+      lastFetchPosition.latitude,
+      lastFetchPosition.longitude,
       newPosition.latitude,
       newPosition.longitude,
     );
 
-    return distance > 500;  // Fetch new places if moved more than 500m
+    // Fetch new places if moved more than minimum distance
+    return distance > _minDistanceToRefresh;
   }
 
   Future<void> _fetchNearbyPlaces() async {
@@ -97,12 +95,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
         throw Exception('Location not available');
       }
 
-      await Future.delayed(const Duration(milliseconds: 100)); // Add small delay
-      if (!mounted) return;
-
-      print('Using location: ${position.latitude}, ${position.longitude}');
-
-      final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
+      final apiKey = MapsConstants.mapsKey;
       final placeService = Provider.of<PlaceService>(context, listen: false);
 
       final response = await placeService.getNearbyPlaces(
@@ -113,32 +106,10 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
       );
 
       if (response.success && response.data != null) {
-        final updatedPlaces = [...response.data!];
-        
-        for (var place in updatedPlaces) {
-          try {
-            final popularTimesResponse = await http.get(
-              Uri.parse('${PopularTimesService.baseUrl}/api/populartimes/${place.id}'),
-            );
-
-            if (popularTimesResponse.statusCode == 200) {
-              final data = json.decode(popularTimesResponse.body);
-              if (data['populartimes'] != null) {
-                place.updatePopularTimes(
-                  List<Map<String, dynamic>>.from(data['populartimes'])
-                );
-              }
-            }
-          } catch (e) {
-            print('Error fetching popular times for ${place.name}: $e');
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _places = updatedPlaces;
-          });
-        }
+        final provider = Provider.of<RestaurantProvider>(context, listen: false);
+        provider.setPlaces(response.data!);
+        // Update last fetch position using the proper setter method
+        locationService.setLastFetchPosition(position);
       }
     } catch (e) {
       print('Error fetching nearby places: $e');
@@ -153,17 +124,16 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
 
   @override
   void dispose() {
-    _mounted = false;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LocationService>(
-      builder: (context, locationService, _) {
+    return Consumer2<LocationService, RestaurantProvider>(
+      builder: (context, locationService, restaurantProvider, _) {
         return Scaffold(
           body: RestaurantList(
-            places: _places,
+            places: restaurantProvider.places, // Use places from provider instead of _places
             isLoading: _isLoading,
           ),
           floatingActionButton: FloatingActionButton(
@@ -173,7 +143,9 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapViewScreen(places: _places),
+                  builder: (context) => MapViewScreen(
+                    places: restaurantProvider.places, // Use provider's places here too
+                  ),
                 ),
               );
             },

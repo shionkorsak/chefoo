@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';  // Add this for SocketException
 import 'dart:async';  // Add this for TimeoutException
+import 'package:flutter_skeleton/constants.dart';
+import 'package:flutter_skeleton/services/popular_times.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/restaurant.dart';
@@ -77,28 +79,34 @@ class PlaceService {
       '$baseUrl/details/json'
       '?place_id=$placeId'
       '&fields=formatted_phone_number,opening_hours,reviews,photos,price_level,formatted_address'
-      '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
+      '&key=${MapsConstants.mapsKey}',
     );
-
-    print('Requesting place details for place_id: $placeId');
 
     try {
       final response = await client.get(url);
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
+      print('Place details response for $placeId: ${response.statusCode}');
+      
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         if (jsonData['status'] == 'OK') {
-          return jsonData['result'];
-        } else {
-          print('API Error: ${jsonData['error_message']}');
-          throw Exception(jsonData['error_message']);
+          final details = jsonData['result'];
+          
+          // Fetch popular times separately
+          final popularTimesService = PopularTimesService();
+          try {
+            final popularTimes = await popularTimesService.getPopularTimes(placeId);
+            if (popularTimes != null) {
+              details['populartimes'] = popularTimes;
+              print('Added popular times data for $placeId');
+            }
+          } catch (e) {
+            print('Error fetching popular times: $e');
+          }
+          
+          return details;
         }
-      } else {
-        throw Exception('Failed to load place details');
       }
+      throw Exception('Failed to load place details');
     } catch (e) {
       print('Error in getPlaceDetails: $e');
       throw e;

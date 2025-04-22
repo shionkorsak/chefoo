@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_skeleton/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -6,6 +7,7 @@ import '../models/restaurant.dart';
 import '../services/location.dart';
 import 'popular_times_chart.dart';
 import 'photo_grid.dart';
+import 'restaurant_elements.dart';
 
 class RestaurantCard extends StatelessWidget {
   final Place place;
@@ -22,40 +24,19 @@ class RestaurantCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.all(8.0),
       child: ExpansionTile(
-        title: Text(place.name),
+        title: RestaurantName(place.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(place.address),
+            RestaurantAddress(place.address),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.star, size: 16, color: Colors.amber[700]),
-                Text('${place.rating}'),
+                RestaurantRating(rating: place.rating),
                 const SizedBox(width: 8),
-                Icon(Icons.directions_walk, size: 16),
-                Text('${place.walkingDistance.toStringAsFixed(1)}km'),
+                RestaurantDistance(distanceKm: place.walkingDistance),
                 const SizedBox(width: 8),
-                // Add open/closed indicator
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: place.isOpenNow == true 
-                      ? Colors.green[100] 
-                      : Colors.red[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    place.isOpenNow == true ? 'OPEN' : 'CLOSED',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: place.isOpenNow == true 
-                        ? Colors.green[900]
-                        : Colors.red[900],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                OpenStatusBadge(isOpen: place.isOpenNow ?? false),
               ],
             ),
           ],
@@ -67,18 +48,7 @@ class RestaurantCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (place.phone != null) ...[
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        final uri = Uri.parse('tel:${place.phone}');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri);
-                        }
-                      },
-                      icon: const Icon(Icons.phone),
-                      label: Text(place.phone!),
-                    ),
-                  ),
+                  Center(child: PhoneButton(phoneNumber: place.phone!)),
                   const SizedBox(height: 16),
                 ],
                 if (place.openingHours != null && place.openingHours!.isNotEmpty) ...[
@@ -91,7 +61,30 @@ class RestaurantCard extends StatelessWidget {
                   const SizedBox(height: 16),
                 ],
                 if (place.popularTimes != null && place.popularTimes!.isNotEmpty) ...[
-                  PopularTimesChart(popularTimes: place.popularTimes!),
+                  FutureBuilder<void>(
+                    future: Future(() {
+                      print('Popular times data for ${place.name}:');
+                      print('Length: ${place.popularTimes?.length}');
+                      print('Content: ${place.popularTimes}');
+                      return;
+                    }),
+                    builder: (context, snapshot) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Popular Times',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          PopularTimesChart(
+                            popularTimes: place.popularTimes!,
+                            openingHours: place.openingHours,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                   const SizedBox(height: 16),
                 ],
                 if (place.reviews.isNotEmpty) ...[
@@ -99,24 +92,39 @@ class RestaurantCard extends StatelessWidget {
                     'Reviews',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   ...place.reviews.map(
                     (review) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      padding: const EdgeInsets.only(bottom: 12.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                review.authorName,
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      review.authorName,
+                                      style: const TextStyle(fontWeight: FontWeight.w500),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text('${review.rating}'),
+                                    const Icon(Icons.star, size: 16),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(width: 8),
-                              Text('${review.rating}'),
-                              const Icon(Icons.star, size: 16),
+                              Text(
+                                review.formattedTime,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
+                          const SizedBox(height: 4),
                           Text(review.text),
                         ],
                       ),
@@ -157,7 +165,7 @@ class RestaurantCard extends StatelessWidget {
                                     'https://maps.googleapis.com/maps/api/place/photo'
                                     '?maxwidth=400'
                                     '&photo_reference=${place.pictureUrls[index]}'
-                                    '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
+                                    '&key=${MapsConstants.mapsKey}',
                                     height: 100,
                                     width: 100,
                                     fit: BoxFit.cover,
@@ -209,20 +217,7 @@ class RestaurantCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                 ],
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(
-                        'https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}&travelmode=walking'
-                      );
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: const Icon(Icons.directions_walk),
-                    label: const Text('Directions'),
-                  ),
-                ),
+                Center(child: DirectionsButton(lat: place.lat, lng: place.lng)),
               ],
             ),
           ),

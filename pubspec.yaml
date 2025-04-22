@@ -11,6 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^2.0.7
   google_maps_flutter_web: ^0.3.3 
   google_maps_flutter: ^2.2.3 
   flutter_dotenv: ^5.1.0
@@ -31,6 +32,8 @@ dev_dependencies:
 flutter:
   assets:
     - .env
+    - assets/images/fork-knife.png
+    - assets/images/marker.png
 
   uses-material-design: true
 

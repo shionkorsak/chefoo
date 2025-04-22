@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class PopularTimesChart extends StatefulWidget {
   final List<Map<String, dynamic>> popularTimes;
+  final List<String>? openingHours;
 
   const PopularTimesChart({
     Key? key,
     required this.popularTimes,
+    this.openingHours,
   }) : super(key: key);
 
   @override
@@ -14,6 +16,20 @@ class PopularTimesChart extends StatefulWidget {
 
 class _PopularTimesChartState extends State<PopularTimesChart> {
   int _currentDayIndex = DateTime.now().weekday - 1;
+
+  int _convertTo24Hour(String time) {
+    final isPM = time.toLowerCase().contains('pm');
+    final hourMin = time.toLowerCase().replaceAll(' am', '').replaceAll(' pm', '').split(':');
+    var hour = int.parse(hourMin[0]);
+    
+    if (isPM && hour != 12) {
+      hour += 12;
+    } else if (!isPM && hour == 12) {
+      hour = 0;
+    }
+    
+    return hour;
+  }
 
   void _previousDay() {
     setState(() {
@@ -31,15 +47,64 @@ class _PopularTimesChartState extends State<PopularTimesChart> {
   Widget build(BuildContext context) {
     final dayData = widget.popularTimes[_currentDayIndex];
     final List<int> hourlyData = List<int>.from(dayData['data']);
+    
+    final String dayName = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][_currentDayIndex];
+    final String? todayHours = widget.openingHours?.firstWhere(
+      (hour) => hour.startsWith(dayName),
+      orElse: () => '',
+    );
+
+    Widget buildChartContent() {
+      // If closed or no hours available, show "Closed" message
+      if (todayHours == null || todayHours.contains('Closed') || todayHours.isEmpty) {
+        return Container(
+          height: 150,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Closed on ${dayData['name']}',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+            ),
+          ),
+        );
+      }
+
+      // Parse opening hours for open days
+      final timeRange = todayHours!.split(': ')[1];
+      final times = timeRange.split('–');
+      if (times.length != 2) {
+        return const SizedBox.shrink();
+      }
+
+      final openHour = _convertTo24Hour(times[0].trim());
+      final closeHour = _convertTo24Hour(times[1].trim());
+
+      final startIndex = openHour.clamp(0, hourlyData.length - 1);
+      final endIndex = closeHour.clamp(0, hourlyData.length - 1);
+      final trimmedData = hourlyData.sublist(startIndex, endIndex + 1);
+
+      return SizedBox(
+        height: 150,
+        child: CustomPaint(
+          painter: _PopularTimesPainter(
+            trimmedData,
+            showAxis: true,
+            startHour: openHour,
+            endHour: closeHour,
+          ),
+          size: const Size(double.infinity, 150),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Popular Times',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -62,18 +127,7 @@ class _PopularTimesChartState extends State<PopularTimesChart> {
           ],
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 150,
-          child: CustomPaint(
-            painter: _PopularTimesPainter(
-              hourlyData,
-              showAxis: true,
-              openingHour: 6,
-              closingHour: 22,
-            ),
-            size: const Size(double.infinity, 150),
-          ),
-        ),
+        buildChartContent(),
       ],
     );
   }
@@ -82,14 +136,14 @@ class _PopularTimesChartState extends State<PopularTimesChart> {
 class _PopularTimesPainter extends CustomPainter {
   final List<int> hourlyData;
   final bool showAxis;
-  final int openingHour;
-  final int closingHour;
+  final int startHour;
+  final int endHour;
 
   _PopularTimesPainter(
     this.hourlyData, {
     this.showAxis = true,
-    this.openingHour = 6,
-    this.closingHour = 22,
+    required this.startHour,
+    required this.endHour,
   });
 
   @override
@@ -104,12 +158,12 @@ class _PopularTimesPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     if (showAxis) {
+      // Draw axes
       canvas.drawLine(
         Offset(40, 10),
         Offset(40, size.height - 20),
         axisPaint,
       );
-
       canvas.drawLine(
         Offset(40, size.height - 20),
         Offset(size.width - 10, size.height - 20),
@@ -121,47 +175,67 @@ class _PopularTimesPainter extends CustomPainter {
         textAlign: TextAlign.center,
       );
 
-      for (var hour = openingHour; hour <= closingHour; hour += 3) {
-        final text = hour.toString();
+      final hoursRange = endHour - startHour;
+      
+      // Calculate minimum step size to prevent label overlap
+      // First, measure the width of a sample label
+      textPainter.text = TextSpan(
+        text: '00:00',
+        style: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 10,
+        ),
+      );
+      textPainter.layout();
+      final labelWidth = textPainter.width + 10; // Add some padding
+      
+      // Calculate how many labels can fit without overlapping
+      final availableWidth = size.width - 50;  // Total width minus padding
+      final possibleLabels = (availableWidth / labelWidth).floor();
+      final stepSize = ((hoursRange + 1) / possibleLabels).ceil();
+
+      // Draw hour labels with calculated step size
+      for (var hour = startHour; hour <= endHour; hour += stepSize) {
         textPainter.text = TextSpan(
-          text: text,
+          text: '${hour.toString().padLeft(2, '0')}:00',
           style: TextStyle(
             color: Colors.grey[600],
             fontSize: 10,
           ),
         );
         textPainter.layout();
+
+        final x = 40 + (hour - startHour) * (size.width - 50) / hoursRange;
         textPainter.paint(
           canvas,
           Offset(
-            40 + (hour - openingHour) * (size.width - 50) / (closingHour - openingHour) - textPainter.width / 2,
+            x - textPainter.width / 2,
             size.height - 15,
           ),
         );
       }
-    }
 
-    final width = (size.width - 50) / hourlyData.length;
-    final maxValue = hourlyData.reduce((curr, next) => curr > next ? curr : next).toDouble();
-    final height = size.height - 30;
+      // Draw popularity data for opening hours only
+      final width = (size.width - 50) / hoursRange;
+      final maxValue = hourlyData.reduce((curr, next) => curr > next ? curr : next).toDouble();
+      final height = size.height - 30;
 
-    Path path = Path();
-    path.moveTo(40, size.height - 20);
+      final path = Path();
+      path.moveTo(40, size.height - 20);
 
-    for (var i = 0; i < hourlyData.length; i++) {
-      final x = 40 + i * width;
-      final y = size.height - 20 - (hourlyData[i] / maxValue * height);
-      
-      if (i == 0) {
-        path.moveTo(x, size.height - 20);
+      for (var i = 0; i < hourlyData.length; i++) {
+        final x = 40 + i * width;
+        final y = size.height - 20 - (hourlyData[i] / maxValue * height);
+        
+        if (i == 0) {
+          path.moveTo(x, y);
+        } else {
+          path.lineTo(x, y);
+        }
       }
-      path.lineTo(x, y);
+
+      canvas.drawPath(path, paint..style = PaintingStyle.stroke);
     }
-
-    path.lineTo(40 + (hourlyData.length - 1) * width, size.height - 20);
-    path.close();
-
-    canvas.drawPath(path, paint);
   }
 
   @override

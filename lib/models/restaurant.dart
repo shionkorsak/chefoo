@@ -100,6 +100,22 @@ class Place {
       );
     }).toList() ?? [];
 
+    // Parse popular times data
+    List<Map<String, dynamic>>? popularTimesData;
+    if (details['populartimes'] != null) {
+      try {
+        popularTimesData = (details['populartimes'] as List).map((day) {
+          return {
+            'name': day['name'],
+            'data': List<int>.from(day['data']),
+          };
+        }).toList();
+        print('Parsed popular times for ${place['name']}: ${popularTimesData.length} days');
+      } catch (e) {
+        print('Error parsing popular times: $e');
+      }
+    }
+
     return Place(
       id: place['place_id'] as String,
       name: place['name'] as String,
@@ -114,9 +130,7 @@ class Place {
       lat: place['geometry']['location']['lat'] as double,
       lng: place['geometry']['location']['lng'] as double,
       isOpenNow: details['opening_hours']?['open_now'] as bool?,
-      popularTimes: (details['popular_times'] as List?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList(),
+      popularTimes: popularTimesData,
       walkingDistance: 0.0, // Will be updated after creation
     );
   }
@@ -152,6 +166,29 @@ class Review {
   final String text;
   final String? time;
   final String? photoReference;
+
+  String get formattedTime {
+    if (time == null) return '';
+    final timestamp = int.tryParse(time!);
+    if (timestamp == null) return '';
+    
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays >= 30) {
+      final months = (difference.inDays / 30).floor();
+      return months > 1 ? '$months months ago' : 'a month ago';
+    } else if (difference.inDays > 0) {
+      return difference.inDays > 1 ? '${difference.inDays} days ago' : 'yesterday';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'just now';
+    }
+  }
 
   Review({
     required this.authorName,
