@@ -183,3 +183,7 @@ Place place = Place.fromGooglePlace(placeData, detailsData);
    - Check location permissions
    - Verify GPS is enabled
    - Try refreshing?
+    
+4. If you just ran the app, it asked for location, but no places are loaded:
+   - Hot Reload and everything should be fine
+     - Go to the terminal where the app is running, and press R (capitalized!!)
