@@ -1,5 +1,6 @@
 import 'package:flutter_skeleton/commons.dart';
 import 'colors.dart';
+import 'text_style.dart'; // Import the text styles
 
 ThemeData get lightTheme {
   return ThemeData(
@@ -7,64 +8,39 @@ ThemeData get lightTheme {
     useMaterial3: true,
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: AppColors.background,
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(16.0)),
       ),
       color: AppColors.surface,
     ),
-    textTheme: const TextTheme(
-      displayLarge: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 30,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary),
-      headlineLarge: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary),
-      headlineMedium: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary),
-      headlineSmall: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary),
-      bodyLarge: TextStyle(
-          fontFamily: 'Helvetica', fontSize: 16, color: AppColors.textPrimary),
-      bodyMedium: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 14,
-          color: AppColors.textSecondary),
-      bodySmall: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 12,
-          color: AppColors.textSecondary),
-      labelLarge: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary),
-      labelSmall: TextStyle(
-          fontFamily: 'Helvetica',
-          fontSize: 10,
-          color: AppColors.textSecondary),
+    textTheme: TextTheme(
+      // Use the AppTextStyles as base styles and enhance with colors
+      displayLarge: AppTextStyles.title.copyWith(color: AppColors.textPrimary),
+      headlineLarge:
+          AppTextStyles.headline1.copyWith(color: AppColors.textPrimary),
+      headlineMedium:
+          AppTextStyles.headline2.copyWith(color: AppColors.textPrimary),
+      headlineSmall:
+          AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
+      bodyLarge: AppTextStyles.body.copyWith(color: AppColors.textPrimary),
+      bodyMedium: AppTextStyles.body.copyWith(
+        fontSize: 14,
+        color: AppColors.textSecondary,
+      ),
+      bodySmall: AppTextStyles.detail.copyWith(color: AppColors.textSecondary),
+      labelLarge: AppTextStyles.button.copyWith(color: AppColors.textPrimary),
+      labelSmall:
+          AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
     ),
-    appBarTheme: const AppBarTheme(
-      iconTheme: IconThemeData(color: AppColors.textPrimary),
+    appBarTheme: AppBarTheme(
+      iconTheme: const IconThemeData(color: AppColors.textPrimary),
       backgroundColor: AppColors.surface,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(
+      titleTextStyle: AppTextStyles.headline3.copyWith(
         color: AppColors.textPrimary,
-        fontSize: 20,
-        fontFamily: 'Helvetica',
-        fontWeight: FontWeight.w600,
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -74,12 +50,7 @@ ThemeData get lightTheme {
           RoundedRectangleBorder(borderRadius: kRadius30),
         ),
         textStyle: WidgetStateProperty.all<TextStyle>(
-          const TextStyle(
-            fontFamily: 'Helvetica',
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: AppColors.surface,
-          ),
+          AppTextStyles.button.copyWith(color: AppColors.surface),
         ),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
@@ -90,21 +61,14 @@ ThemeData get lightTheme {
         foregroundColor: WidgetStateProperty.all<Color>(AppColors.surface),
         overlayColor: WidgetStateProperty.all<Color>(AppColors.secondary),
         padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
-          const EdgeInsets.only(
-            left: 35,
-            right: 35,
-            top: 15,
-            bottom: 15,
-          ),
+          const EdgeInsets.symmetric(horizontal: 35, vertical: 15),
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
         textStyle: WidgetStateProperty.all<TextStyle>(
-          const TextStyle(
-            fontFamily: 'Helvetica',
-            fontWeight: FontWeight.w600,
+          AppTextStyles.button.copyWith(
             fontSize: 13,
             color: AppColors.primary,
           ),
@@ -132,5 +96,6 @@ ThemeData get lightTheme {
 
 ///Expand darkTheme to meet your needs
 ThemeData get darkTheme {
+  // You can follow the same pattern for dark theme
   return ThemeData();
 }
