@@ -27,3 +27,15 @@ class MyColors {
   static const yellowDark = Color(0xffF7B02B);
   static const blueIce = Color(0xff85d4e0);
 }
+
+class AppColors {
+  static const primary = Color(0xFFF16614);
+  static const secondary = Color(0xFFF59D51);
+  static const background = Color(0xFFFCE0CC);
+  static const surface = Color(0xFFFFFFFF); // Example
+  static const textPrimary = Color(0xFF1D1616); // Example
+  static const textSecondary = Color(0xFF707070); // Example
+  static const error = Color(0xFFF44336); // Example
+  static const success = Color(0xFF4CAF50); // Example
+  static const warning = Color(0xFFFFC107); // Example
+}
