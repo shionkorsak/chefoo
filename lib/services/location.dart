@@ -3,20 +3,21 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 
 class LocationService with ChangeNotifier {
-  static const bool debugMode = true; // Set to false for production
-  static const debugLat = 24.795653; 
+  static const bool debugMode = true;  // Set to true for emulator testing
+  static const debugLat = 24.795653;   // NTHU coordinates
   static const debugLng = 120.991744;
 
   Position? _currentPosition;
   bool _isLoading = false;
   String? _error;
   StreamSubscription<Position>? _positionStreamSubscription;
-  Timer? _locationUpdateTimer;
   bool _isRequestingPermission = false;
+  bool _useDebugLocation = false;  // New flag for runtime control
 
   Position? get currentPosition => _currentPosition;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get useDebugLocation => _useDebugLocation;
 
   LocationService() {
     _initializeLocation();
@@ -25,7 +26,7 @@ class LocationService with ChangeNotifier {
   Future<void> _initializeLocation() async {
     try {
       await _checkLocationPermissions();
-      await startLocationUpdates();
+      await getCurrentLocation();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -61,78 +62,10 @@ class LocationService with ChangeNotifier {
     }
   }
 
-  Future<void> startLocationUpdates() async {
-    if (_positionStreamSubscription != null) {
-      await _positionStreamSubscription!.cancel();
-    }
-
-    try {
-      if (debugMode) {
-        // Use debug location
-        _currentPosition = Position(
-          latitude: debugLat,
-          longitude: debugLng,
-          timestamp: DateTime.now(),
-          accuracy: 0,
-          altitude: 0,
-          heading: 0,
-          speed: 0,
-          speedAccuracy: 0,
-          altitudeAccuracy: 0,
-          headingAccuracy: 0,
-        );
-        notifyListeners();
-        return;
-      }
-
-      // First get a single position
-      _currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 5),
-      );
-      notifyListeners();
-
-      // Then start listening to position stream
-      _positionStreamSubscription = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 10,
-          timeLimit: Duration(seconds: 3),
-        ),
-      ).listen(
-        (Position position) {
-          print('New location: ${position.latitude}, ${position.longitude}');
-          _currentPosition = position;
-          _error = null;
-          notifyListeners();
-        },
-        onError: (e) {
-          print('Location stream error: $e');
-          _error = e.toString();
-          notifyListeners();
-        },
-      );
-
-    } catch (e) {
-      print('Error starting location updates: $e');
-      _error = e.toString();
-      notifyListeners();
-    }
-  }
-
-  Future<void> refreshLocation() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _checkLocationPermissions();
-      await startLocationUpdates();
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+  // New method to toggle between debug and real GPS
+  void toggleDebugMode(bool enabled) {
+    _useDebugLocation = enabled;
+    getCurrentLocation();  // Refresh location with new mode
   }
 
   Future<void> getCurrentLocation() async {
@@ -145,8 +78,75 @@ class LocationService with ChangeNotifier {
     notifyListeners();
 
     try {
+      if (_useDebugLocation) {
+        print('Using debug location: $debugLat, $debugLng');
+        _setDebugLocation();
+        return;
+      }
+
+      // Check location service first
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled. Please enable GPS.');
+      }
+
+      // Then check permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _setDebugLocation(); // Fallback to debug location
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _setDebugLocation(); // Fallback to debug location
+        return;
+      }
+
+      print('Getting GPS location...');
+      _currentPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 20),
+      );
+      
+      print('Got GPS location: ${_currentPosition?.latitude}, ${_currentPosition?.longitude}');
+      _error = null;
+
+    } catch (e) {
+      print('Error getting location: $e');
+      _error = e.toString();
+      _setDebugLocation(); // Fallback to debug location
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void _setDebugLocation() {
+    _currentPosition = Position(
+      latitude: debugLat,
+      longitude: debugLng,
+      timestamp: DateTime.now(),
+      accuracy: 0,
+      altitude: 0,
+      heading: 0,
+      speed: 0,
+      speedAccuracy: 0,
+      altitudeAccuracy: 0,
+      headingAccuracy: 0,
+    );
+    _error = null;
+  }
+
+  Future<void> refreshLocation() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
       await _checkLocationPermissions();
-      await startLocationUpdates();
+      await getCurrentLocation();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -158,7 +158,6 @@ class LocationService with ChangeNotifier {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
-    _locationUpdateTimer?.cancel();
     super.dispose();
   }
 

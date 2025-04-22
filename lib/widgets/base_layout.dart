@@ -18,17 +18,23 @@ class BaseLayout extends StatefulWidget {
 
 class _BaseLayoutState extends State<BaseLayout> {
   @override
-  void initState() {
-    super.initState();
-    Provider.of<LocationService>(context, listen: false).getCurrentLocation();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
+          // Add debug mode toggle
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () {
+              final locationService = Provider.of<LocationService>(
+                context, 
+                listen: false
+              );
+              // Toggle debug mode
+              locationService.toggleDebugMode(!locationService.useDebugLocation);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {

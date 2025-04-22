@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';  // Add this for SocketException
+import 'dart:async';  // Add this for TimeoutException
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/restaurant.dart';
@@ -109,19 +111,29 @@ class PlaceService {
     required double radius,
     required String apiKey,
   }) async {
-    // Build URL with specific types and keyword
-    final url = Uri.parse(
-      '$baseUrl/nearbysearch/json'
-      '?location=$lat,$lng'
-      '&rankby=distance'
-      '&type=restaurant|cafe|bakery|meal_takeaway'  // Specific food types
-      '&key=$apiKey'
-    );
-
     try {
+      final url = Uri.parse(
+        '$baseUrl/nearbysearch/json'
+        '?location=$lat,$lng'
+        '&rankby=distance'
+        '&type=restaurant|cafe|bakery|meal_takeaway'
+        '&key=$apiKey'
+      );
+
       print('Making request to: $url');
-      final response = await client.get(url);
       
+      final response = await client.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      );
+
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         final results = jsonData['results'] as List;
@@ -164,6 +176,13 @@ class PlaceService {
       } else {
         throw Exception('Failed to load places');
       }
+    } on SocketException catch (e) {
+      print('Network error: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Network error. Check your internet connection.',
+        error: e.toString(),
+      );
     } catch (e) {
       print('Error fetching places: $e');
       return ApiResponse(

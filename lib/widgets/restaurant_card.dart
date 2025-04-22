@@ -35,6 +35,27 @@ class RestaurantCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(Icons.directions_walk, size: 16),
                 Text('${place.walkingDistance.toStringAsFixed(1)}km'),
+                const SizedBox(width: 8),
+                // Add open/closed indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: place.isOpenNow == true 
+                      ? Colors.green[100] 
+                      : Colors.red[100],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    place.isOpenNow == true ? 'OPEN' : 'CLOSED',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: place.isOpenNow == true 
+                        ? Colors.green[900]
+                        : Colors.red[900],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
