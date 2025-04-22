@@ -187,3 +187,7 @@ Place place = Place.fromGooglePlace(placeData, detailsData);
 4. If you just ran the app, it asked for location, but no places are loaded:
    - Hot Reload and everything should be fine
      - Go to the terminal where the app is running, and press R (capitalized!!)
+
+5. I just ran the app and I am in San Francisco???:
+   - No such thing as live GPS, this next thing only works on Android Studio:
+     - Press the ... on the right -> location -> choose location or save a new point
