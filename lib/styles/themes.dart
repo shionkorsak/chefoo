@@ -7,7 +7,7 @@ ThemeData get lightTheme {
     useMaterial3: true,
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: AppColors.background,
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(16.0)),
