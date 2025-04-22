@@ -21,6 +21,6 @@ class MyApp extends StatelessWidget {
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
-        home: LoginScreen());
+        home: WelcomeScreen());
   }
 }
