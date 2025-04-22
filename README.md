@@ -84,14 +84,6 @@ The widget expects:
 - `popularTimes`: List of daily popularity data
 - `openingHours`: List of opening hours strings (optional)
 
-Example usage:
-```dart
-if (place.popularTimes != null && place.popularTimes!.isNotEmpty) 
-  PopularTimesChart(
-    popularTimes: place.popularTimes!,
-    openingHours: place.openingHours,
-  ),
-```
 
 #### 2. PhotoGrid
 Displays restaurant photos in a grid layout:
