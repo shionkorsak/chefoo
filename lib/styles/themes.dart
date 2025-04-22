@@ -81,6 +81,14 @@ ThemeData get lightTheme {
     switchTheme: SwitchThemeData(
       trackColor: WidgetStateProperty.all<Color>(AppColors.secondary),
     ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      borderRadius: kRadius30,
+      color: AppColors.primary, // The primary color of the indicator
+      linearTrackColor:
+          AppColors.surface, // Background color for linear indicators
+      refreshBackgroundColor: AppColors.surface,
+      linearMinHeight: 5.0, // Make the progress bar taller
+    ),
     colorScheme: ColorScheme.light(
       primary: AppColors.primary,
       secondary: AppColors.secondary,

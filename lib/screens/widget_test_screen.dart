@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_skeleton/commons.dart';
 import 'package:flutter_skeleton/widgets/border_text_field.dart';
 import 'package:flutter_skeleton/widgets/buttons/glowing_button.dart';
-import 'package:flutter_skeleton/widgets/buttons/google_import_button.dart';
-import 'package:flutter_skeleton/widgets/buttons/google_login_button.dart';
+import 'package:flutter_skeleton/widgets/buttons/google_buttons/google_import_button.dart';
+import 'package:flutter_skeleton/widgets/buttons/google_buttons/google_login_button.dart';
 import 'package:flutter_skeleton/widgets/tag.dart';
 import 'package:flutter_skeleton/widgets/tag_map.dart';
 
@@ -32,7 +32,13 @@ class WidgetTestScreen extends StatelessWidget {
             height: 32,
           ),
           GoogleLoginButton(),
-          GoogleImportButton()
+          GoogleImportButton(),
+          SizedBox(
+            height: 32,
+          ),
+          LinearProgressIndicator(
+            value: 0.5, // 70% progress (0.0 to 1.0)
+          )
         ],
       ),
     )));
