@@ -8,10 +8,10 @@ class Font {
 
 ///Styles used for Text around the app
 const activityLikes =
-    TextStyle(color: MyColors.grey, fontWeight: FontWeight.w700, fontSize: 13);
+    TextStyle(color: Colors.grey, fontWeight: FontWeight.w700, fontSize: 13);
 
 const activityDate =
-    TextStyle(color: MyColors.black, fontWeight: FontWeight.w600, fontSize: 11);
+    TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 11);
 
 const userCardPoints =
     TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20);
