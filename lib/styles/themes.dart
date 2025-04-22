@@ -31,6 +31,8 @@ ThemeData get lightTheme {
       ),
       bodySmall: AppTextStyles.detail.copyWith(color: AppColors.textSecondary),
       labelLarge: AppTextStyles.button.copyWith(color: AppColors.textPrimary),
+      labelMedium:
+          AppTextStyles.detail.copyWith(color: AppColors.textSecondary),
       labelSmall:
           AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
     ),
