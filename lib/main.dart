@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-import 'constants.dart';
-import 'services/location.dart';
-import 'services/maps.dart';
-import 'providers/restaurant.dart';
 import 'screens/testScreen.dart';
 
 import 'package:flutter_skeleton/screens/login/login_screen.dart';
@@ -15,66 +10,21 @@ import 'package:flutter_skeleton/screens/widget_screens/widgets_onboarding_scree
 import 'commons.dart';
 
 Future<void> initializeApp() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-}
-
-class BaseLayout extends StatefulWidget {
-  final Widget child;
-  final String title;
-
-  const BaseLayout({
-    super.key,
-    required this.child,
-    required this.title,
-  });
-
-  @override
-  State<BaseLayout> createState() => _BaseLayoutState();
-}
-
-class _BaseLayoutState extends State<BaseLayout> {
-  @override
-  void initState() {
-    super.initState();
-    Provider.of<LocationService>(context, listen: false).getCurrentLocation();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              Provider.of<LocationService>(context, listen: false)
-                  .getCurrentLocation();
-            },
-          ),
-        ],
-      ),
-      body: Consumer<LocationService>(
-        builder: (context, locationService, child) {
-          if (locationService.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          if (locationService.error != null) {
-            return Center(child: Text(locationService.error!));
-          }
-          
-          return widget.child;
-        },
-      ),
-    );
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load();
+    await MapsConstants.init();
+  } catch (e) {
+    print('Error initializing app: $e');
   }
 }
 
 void main() async {
-  await MapsConstants.init();
-  await initializeApp();
+  try {
+    await initializeApp();
+  } catch (e) {
+    print('Error in main: $e'); // we should leave this here in case my sutff throws error, sorry
+  }
 
   runApp(
     MultiProvider(
@@ -107,5 +57,9 @@ class MyApp extends StatelessWidget {
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         home: WidgetsOnboardingScreen());
+        // **** if you wanna test/see maps, uncomment the next line and comment the above one
+        // home: TestScreen(),
+
   }
+
 }
