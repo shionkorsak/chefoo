@@ -1,6 +1,6 @@
 import 'package:flutter_skeleton/screens/login/login_screen.dart';
 import 'package:flutter_skeleton/screens/welcome_screen.dart';
-import 'package:flutter_skeleton/screens/widget_test_screen.dart';
+import 'package:flutter_skeleton/screens/widget_screens/widgets_onboarding.dart';
 
 import 'commons.dart';
 
