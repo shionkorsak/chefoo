@@ -170,7 +170,6 @@ Place place = Place.fromGooglePlace(placeData, detailsData);
 ## Troubleshooting
 
 1. If images don't load:
-   - Check if proxy server is running
    - Verify photo references are valid
    - Check console for error messages
 
