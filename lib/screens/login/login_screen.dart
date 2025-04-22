@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_skeleton/commons.dart';
 import 'package:flutter_skeleton/widgets/google_login_button.dart';
 

@@ -77,7 +77,7 @@ ThemeData get lightTheme {
           const TextStyle(
             fontFamily: 'Helvetica',
             fontWeight: FontWeight.w600,
-            fontSize: 13,
+            fontSize: 18,
             color: AppColors.surface,
           ),
         ),
