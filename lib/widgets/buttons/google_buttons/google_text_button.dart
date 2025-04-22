@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_skeleton/commons.dart';
 
-class GoogleLoginButton extends StatelessWidget {
+class GoogleTextButton extends StatelessWidget {
   final VoidCallback? onPressed;
+  final String text;
 
-  const GoogleLoginButton({Key? key, this.onPressed}) : super(key: key);
+  const GoogleTextButton(
+      {Key? key, required this.onPressed, required this.text})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.surface,
         side: const BorderSide(
@@ -22,7 +25,7 @@ class GoogleLoginButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Login with',
+            text,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(width: 8),
