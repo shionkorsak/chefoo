@@ -23,7 +23,7 @@ class GoogleLoginButton extends StatelessWidget {
         children: [
           Text(
             'Login with',
-            style: AppTextStyles.button.copyWith(color: AppColors.textPrimary),
+            style: TextStyle(color: AppColors.textPrimary),
           ),
           const SizedBox(width: 8),
           SvgPicture.asset(
