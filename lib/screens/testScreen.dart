@@ -12,6 +12,7 @@ import '../services/popular_times.dart';  // Add this import
 import '../models/restaurant.dart';
 import '../widgets/base_layout.dart'; 
 import '../widgets/restaurant_list.dart';
+import 'map_view_screen.dart';
 
 class TestScreen extends StatelessWidget {
   const TestScreen({Key? key}) : super(key: key);
@@ -160,9 +161,23 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
   Widget build(BuildContext context) {
     return Consumer<LocationService>(
       builder: (context, locationService, _) {
-        return RestaurantList(
-          places: _places,
-          isLoading: _isLoading,
+        return Scaffold(
+          body: RestaurantList(
+            places: _places,
+            isLoading: _isLoading,
+          ),
+          floatingActionButton: FloatingActionButton(
+            heroTag: 'mapView',
+            child: const Icon(Icons.map),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapViewScreen(places: _places),
+                ),
+              );
+            },
+          ),
         );
       },
     );
