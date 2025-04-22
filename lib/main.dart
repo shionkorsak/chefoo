@@ -1,18 +1,52 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'screens/testScreen.dart';
+
 import 'package:flutter_skeleton/screens/login/login_screen.dart';
 import 'package:flutter_skeleton/screens/welcome_screen.dart';
 import 'package:flutter_skeleton/screens/widget_screens/widgets_onboarding_screen.dart';
 
 import 'commons.dart';
 
+Future<void> initializeApp() async {
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load();
+    await MapsConstants.init();
+  } catch (e) {
+    print('Error initializing app: $e');
+  }
+}
+
 void main() async {
-  await initializeApp();
-  runApp(const MyApp());
+  try {
+    await initializeApp();
+  } catch (e) {
+    print('Error in main: $e'); // we should leave this here in case my sutff throws error, sorry
+  }
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<PlaceService>(
+          create: (_) => PlaceService(client: http.Client()),
+        ),
+        ChangeNotifierProvider<LocationService>(
+          create: (_) => LocationService(),
+        ),
+        ChangeNotifierProvider<RestaurantProvider>(
+          create: (_) => RestaurantProvider(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,5 +57,9 @@ class MyApp extends StatelessWidget {
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         home: WidgetsOnboardingScreen());
+        // **** if you wanna test/see maps, uncomment the next line and comment the above one
+        // home: TestScreen(),
+
   }
+
 }
