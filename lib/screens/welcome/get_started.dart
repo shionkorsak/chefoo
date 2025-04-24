@@ -25,77 +25,62 @@ class GetStartedState extends State<GetStarted> {
       },
       child: Center(
         child: Stack(
-          // to keep the logo fixed don't change plsssss
           children: [
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
                 padding: const EdgeInsets.only(top: 120),
                 child: Stack(
-                  alignment: Alignment.topCenter,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 120),
-                      child: OverflowBox(
-                        maxWidth: double.infinity,
-                        maxHeight: double.infinity,
-                        child: AnimatedContainer(
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                          margin: EdgeInsets.zero,
-                          width: state == 1 ? 659 : 119,
-                          height: state == 1 ? 182 : 33,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              AnimatedContainer(
-                                duration: Duration(milliseconds: 300),
-                                width: state == 1 ? 659 : 1.0,
-                                height: state == 1 ? 182 : 1.0,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFFFCBAB)
-                                      .withOpacity(state == 1 ? 1 : 0),
-                                  shape: OvalBorder(),
-                                ),
-                              ),
-                              AnimatedContainer(
-                                duration: Duration(milliseconds: 300),
-                                width: state == 1 ? 464 : 1.0,
-                                height: state == 1 ? 128 : 1.0,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFF8B78F)
-                                      .withOpacity(state == 1 ? 1 : 0),
-                                  shape: OvalBorder(),
-                                ),
-                              ),
-                              AnimatedContainer(
-                                duration: Duration(milliseconds: 300),
-                                width: state == 1 ? 239 : 1.0,
-                                height: state == 1 ? 66 : 1.0,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFF58F51)
-                                      .withOpacity(state == 1 ? 1 : 0),
-                                  shape: OvalBorder(),
-                                ),
-                              ),
-                              AnimatedContainer(
-                                duration: Duration(milliseconds: 300),
-                                width: 119,
-                                height: 33,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFF16614),
-                                  shape: OvalBorder(),
-                                ),
-                              ),
-                            ],
+                    OverflowBox(
+                      alignment: Alignment.center,
+                      //maxHeight: 500,
+                      maxWidth: 1000,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          AnimatedOval(
+                            width: 540,
+                            height: 210,
+                            color: const Color(0xFFFFCBAB),
+                            state: state,
+                            paddingTop: 60,
                           ),
-                        ),
+                          AnimatedOval(
+                            width: 360,
+                            height: 120,
+                            color: const Color(0xFFF8B78F),
+                            state: state,
+                            paddingTop: 75,
+                          ),
+                          AnimatedOval(
+                            width: 240,
+                            height: 60,
+                            color: const Color(0xFFF58F51),
+                            state: state,
+                            paddingTop: 90,
+                          ),
+                          AnimatedOval(
+                            width: 120,
+                            height: 30,
+                            color: const Color(0xFFF16614),
+                            state: 1,
+                            paddingTop: 105,
+                          ),
+                        ],
                       ),
                     ),
-                    SvgPicture.asset(
-                      'assets/svgs/Logo-3.svg',
-                      height: 120,
-                      fit: BoxFit.cover,
+                    Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: SvgPicture.asset(
+                            'assets/svgs/Logo-3.svg',
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -154,5 +139,41 @@ class GetStartedState extends State<GetStarted> {
         ),
       ),
     )));
+  }
+}
+
+class AnimatedOval extends StatelessWidget {
+  final double width;
+  final double height;
+  final Color color;
+  final int state;
+  final double paddingTop;
+
+  const AnimatedOval({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.color,
+    required this.state,
+    required this.paddingTop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: EdgeInsets.only(top: paddingTop),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 300),
+          width: state == 1 ? width : 119,
+          height: state == 1 ? height : 33,
+          decoration: ShapeDecoration(
+            color: color.withOpacity(state == 1 ? 1 : 0),
+            shape: OvalBorder(),
+          ),
+        ),
+      ),
+    );
   }
 }
