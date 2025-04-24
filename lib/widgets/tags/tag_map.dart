@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/widgets/tags/tag.dart';
+import 'package:chefoo/widgets/tags/tag.dart';
 
 class TagMap extends StatefulWidget {
   final List<String> tags;
