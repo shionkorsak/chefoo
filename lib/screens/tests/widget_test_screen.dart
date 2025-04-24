@@ -7,8 +7,8 @@ import 'package:flutter_skeleton/widgets/buttons/google_buttons/google_login_but
 import 'package:flutter_skeleton/widgets/dots_page_indicator.dart';
 import 'package:flutter_skeleton/widgets/tags/tag_map.dart';
 
-class WidgetsOnboardingScreen extends StatelessWidget {
-  const WidgetsOnboardingScreen({super.key});
+class WidgetTestScreen extends StatelessWidget {
+  const WidgetTestScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
