@@ -1,11 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_skeleton/screens/tests/widget_test_screen.dart';
 import 'package:http/http.dart' as http;
-import 'screens/testScreen.dart';
-
-import 'package:flutter_skeleton/screens/login/login_screen.dart';
-import 'package:flutter_skeleton/screens/welcome_screen.dart';
-import 'package:flutter_skeleton/screens/widget_screens/widgets_onboarding_screen.dart';
 
 import 'commons.dart';
 
@@ -23,7 +18,8 @@ void main() async {
   try {
     await initializeApp();
   } catch (e) {
-    print('Error in main: $e'); // we should leave this here in case my sutff throws error, sorry
+    print(
+        'Error in main: $e'); // we should leave this here in case my sutff throws error, sorry
   }
 
   runApp(
@@ -56,10 +52,6 @@ class MyApp extends StatelessWidget {
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
-        home: WidgetsOnboardingScreen());
-        // **** if you wanna test/see maps, uncomment the next line and comment the above one
-        // home: TestScreen(),
-
+        home: WidgetTestScreen());
   }
-
 }
