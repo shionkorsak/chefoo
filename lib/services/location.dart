@@ -31,7 +31,6 @@ class LocationService with ChangeNotifier {
       await getCurrentLocation();
     } catch (e) {
       _error = e.toString();
-      notifyListeners();
     }
   }
 
@@ -76,14 +75,16 @@ class LocationService with ChangeNotifier {
       return;
     }
 
+    // Set loading without notification
     _isLoading = true;
-    notifyListeners();
 
     try {
       if (_useDebugLocation) {
         print('Using debug location: $debugLat, $debugLng');
         _setDebugLocation();
         _lastFetchPosition = _currentPosition;
+        _isLoading = false;
+        notifyListeners();
         return;
       }
 
@@ -100,6 +101,8 @@ class LocationService with ChangeNotifier {
         if (permission == LocationPermission.denied) {
           _setDebugLocation(); // Fallback to debug location
           _lastFetchPosition = _currentPosition;
+          _isLoading = false;
+          notifyListeners();
           return;
         }
       }
@@ -107,6 +110,8 @@ class LocationService with ChangeNotifier {
       if (permission == LocationPermission.deniedForever) {
         _setDebugLocation(); // Fallback to debug location
         _lastFetchPosition = _currentPosition;
+        _isLoading = false;
+        notifyListeners();
         return;
       }
 
@@ -127,6 +132,7 @@ class LocationService with ChangeNotifier {
       _lastFetchPosition = _currentPosition;
     } finally {
       _isLoading = false;
+      // Single notification at the end
       notifyListeners();
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_skeleton/screens/login/login_screen.dart';
+import 'package:flutter_skeleton/screens/testScreen.dart';
 import 'package:flutter_skeleton/screens/welcome/get_started.dart';
 import 'package:flutter_skeleton/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
-        home: GetStarted());
+        //home: GetStarted());
+        home: TestScreen());
   }
 }
