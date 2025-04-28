@@ -57,5 +57,7 @@ class MyApp extends StatelessWidget {
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         home: TestScreen());
+          // testScreen is just to visualize google map's info and the widgets
+          // ive done so far
   }
 }
