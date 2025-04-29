@@ -1,3 +1,4 @@
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:marquee/marquee.dart';
 import 'package:flutter_skeleton/commons.dart';
 import 'package:flutter_skeleton/widgets/buttons/like_button.dart';
@@ -47,6 +48,26 @@ class RestaurantCardVertical extends StatelessWidget {
               decelerationCurve: Curves.easeOut,
             ),
           ),
+          SizedBox(height: 6),
+          Row(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.star,
+                    size: 10,
+                    color: AppColors.primary,
+                  ),
+                  Text(
+                    place.rating.toString(),
+                    style: AppTextStyles.detail.copyWith(height: 1),
+                  )
+                ],
+              ),
+              Text(place.tags.first) //TODO: fix error 
+            ],
+          )
         ],
       ),
     );

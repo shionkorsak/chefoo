@@ -19,15 +19,13 @@ class _LikeButtonState extends State<LikeButton> {
     return GestureDetector(
       onTap: () {}, // TODO: implement add-favorite function here
       child: Container(
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(6),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.primary,
         ),
-        child: Icon(
-            widget.isLiked ? IconsaxPlusBold.heart : IconsaxPlusLinear.heart,
-            color: AppColors.surface,
-            size: 16),
+        child: Icon(widget.isLiked ? Icons.favorite : Icons.favorite_border,
+            color: AppColors.surface, size: 16),
       ),
     );
   }
