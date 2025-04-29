@@ -1,9 +1,7 @@
-import 'package:chefoo/screens/login/login_screen.dart';
-import 'package:chefoo/screens/welcome_screen.dart';
+import 'package:chefoo/commons.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'commons.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,2 +1,2 @@
-export {createUserDocument} from "./auth/userAuth";
-export {deleteUserDocument} from "./auth/userAuth";
+export {createUserAccount} from "./auth/userAuth";
+export {deleteUserAccount} from "./auth/userAuth";

@@ -2,7 +2,6 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/widget_screens/widgets_onboarding_screen.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   PlaceholderScreen({super.key});
@@ -17,7 +16,9 @@ class PlaceholderScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundColor: Color.fromARGB(255, 0, 0, 0),
-            backgroundImage: NetworkImage(authService.getCurrentUserPhotoURL() ?? 'https://commons.wikimedia.org/wiki/File:Profile_avatar_placeholder_large.png'),
+            backgroundImage: NetworkImage(
+              authService.getCurrentUserPhotoURL() ?? 
+              'https://commons.wikimedia.org/wiki/File:Profile_avatar_placeholder_large.png'),
           ),
           SizedBox(height: 30),
           ElevatedButton(
@@ -37,7 +38,6 @@ class PlaceholderScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async { 
               await authService.deleteAccount();
-              print("lala");
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(

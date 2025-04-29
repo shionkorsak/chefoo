@@ -1,35 +1,82 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
+import { UserAccount, userAccountSchema } from "../schema";
 
 admin.initializeApp();
+const db = admin.firestore();
 
-export const createUserDocument =
+export const createUserAccount =
     functions.auth.user().onCreate(async (user) => {
-      const userRef = admin.firestore().collection("users").doc(user.uid);
+        const { uid, displayName, email, photoURL } = user;
 
-      const userData = {
-        uid: user.uid,
-        email: user.email ?? null,
-        displayName: user.displayName ?? "",
-        photoURL: user.photoURL ?? "",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      const userAccount : UserAccount = {
+        profile: {
+            uid: uid ?? '',
+            email: email ?? '',
+            displayName: displayName ?? 'Unnamed',
+            photoURL: photoURL ?? '',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
+          preferences: {
+            dietaryPreferences: [],
+            allergies: [],
+          },
+          healthInsight: {
+            healthScore: 0,
+            weeklyData: [],
+          },
+          gpsStatus: false,
+          notificationStatus: true,
+          restaurantRatings: [],
+          restaurantHistory: [],
+          favoriteRestaurant: [],
       };
 
       try {
-        await userRef.set(userData);
-        console.log(`User document created for UID: ${user.uid}`);
+        userAccountSchema.parse(userAccount);
+        const userRef = db.collection('users').doc(uid);
+
+        await userRef.set({
+            profile: userAccount.profile,
+            preferences: userAccount.preferences,
+            healthInsights: userAccount.healthInsight,
+            gpsStatus: userAccount.gpsStatus,
+            notificationStatus: userAccount.notificationStatus
+        });
+
+        console.log(`Created user doc and subcollections (empty for favorites & history) for UID ${uid}`);
       } catch (error) {
-        console.error("Error creating user document: ", error);
+        console.error('User creation failed:', error);
       }
     });
 
-export const deleteUserDocument =
+export const deleteUserAccount =
     functions.auth.user().onDelete(async (user) => {
-      const userRef = admin.firestore().collection("users").doc(user.uid);
+      const userRef = admin.firestore().collection('users').doc(user.uid);
 
       try {
         await userRef.delete();
         console.log(`User document deleted for UID: ${user.uid}`);
+
+        const subcollections = ['favorite', 'history', 'ratings'];
+
+        await Promise.all(
+            subcollections.map(async (subcollection) => {
+                const subcollectionRef = userRef.collection(subcollection);
+                const snapshot = await subcollectionRef.get();
+
+                if(!snapshot.empty) {
+                    const batch = admin.firestore().batch();
+                    snapshot.docs.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    console.log(`Subcollection "${subcollection}" deleted for UID: ${user.uid}`);
+                }
+            })
+        );
+
+        console.log(`User account deletion completed for UID: ${user.uid}`);
       } catch (error) {
         console.error("Error deleting user document: ", error);
       }
