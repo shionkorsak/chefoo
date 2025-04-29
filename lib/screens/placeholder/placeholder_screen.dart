@@ -1,5 +1,6 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
+import 'package:chefoo/screens/placeholder/update_preference.dart';
 import 'package:chefoo/screens/widget_screens/widgets_onboarding_screen.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 
@@ -48,7 +49,13 @@ class PlaceholderScreen extends StatelessWidget {
             child: Text("Delete account"),
           ),
           SizedBox(height: 30),
-
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (BuildContext context) => PreferencesScreen()));
+            }, 
+            child: Text("Update Preference"))
         ],
       ),);
   }

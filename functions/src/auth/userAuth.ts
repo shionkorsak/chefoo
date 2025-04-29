@@ -1,9 +1,7 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { UserAccount, userAccountSchema } from "../schema";
-
-admin.initializeApp();
-const db = admin.firestore();
+import { db } from "../admin";
 
 export const createUserAccount =
     functions.auth.user().onCreate(async (user) => {
@@ -52,7 +50,7 @@ export const createUserAccount =
 
 export const deleteUserAccount =
     functions.auth.user().onDelete(async (user) => {
-      const userRef = admin.firestore().collection('users').doc(user.uid);
+      const userRef = db.collection('users').doc(user.uid);
 
       try {
         await userRef.delete();

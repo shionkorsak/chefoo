@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // TODO: user's route
 
-const userProfileSchema = z.object({ // TODO: google calendar link
+export const userProfileSchema = z.object({ // TODO: google calendar link
     uid: z.string(),
     email: z.string().email(),
     displayName: z.string(),
@@ -10,12 +10,12 @@ const userProfileSchema = z.object({ // TODO: google calendar link
     createdAt: z.any()
 })
 
-const userPreferenceSchema = z.object({
+export const userPreferenceSchema = z.object({
     dietaryPreferences: z.array(z.string()),
     allergies: z.array(z.string()),
 })
 
-const healthInsightSchema = z.object({
+export const healthInsightSchema = z.object({
     healthScore: z.number().min(0).max(100),
     weeklyData: z.array(
         z.object({
@@ -25,13 +25,13 @@ const healthInsightSchema = z.object({
     )
 })
 
-const restaurantRatingSchema = z.object({
+export const restaurantRatingSchema = z.object({
     rating: z.number().min(1).max(5),
     feedback: z.string().max(1000),
     mealImageUrl: z.string().url().optional(),
 })
 
-const restaurantSchema = z.object({
+export const restaurantSchema = z.object({
     id: z.any(),
     favorite: z.boolean(),
 })
@@ -54,3 +54,4 @@ export const userAccountSchema = z.object({
 })
 
 export type UserAccount = z.infer<typeof userAccountSchema>;
+export type Preference = z.infer<typeof userPreferenceSchema>;
