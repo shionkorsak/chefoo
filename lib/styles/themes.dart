@@ -1,4 +1,4 @@
-import 'package:flutter_skeleton/commons.dart';
+import 'package:chefoo/commons.dart';
 import 'colors.dart';
 import 'text_style.dart'; // Import the text styles
 

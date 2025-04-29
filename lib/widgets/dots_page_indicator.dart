@@ -1,4 +1,4 @@
-import 'package:flutter_skeleton/commons.dart';
+import 'package:chefoo/commons.dart';
 
 class DotsPageIndicator extends StatelessWidget {
   final int pageCount;

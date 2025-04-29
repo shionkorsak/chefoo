@@ -1,4 +1,4 @@
-import 'package:flutter_skeleton/commons.dart';
+import 'package:chefoo/commons.dart';
 
 part 'profile_controller.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/commons.dart';
+import 'package:chefoo/commons.dart';
 
 class Tag extends StatelessWidget {
   final String label;

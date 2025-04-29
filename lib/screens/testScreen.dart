@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_skeleton/constants.dart';
-import 'package:flutter_skeleton/screens/map_view.dart';
+import 'package:chefoo/constants.dart';
+import 'package:chefoo/screens/map_view.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';

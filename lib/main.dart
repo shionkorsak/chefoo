@@ -1,7 +1,7 @@
-import 'package:flutter_skeleton/screens/login/login_screen.dart';
-import 'package:flutter_skeleton/screens/testScreen.dart';
-import 'package:flutter_skeleton/screens/welcome/get_started.dart';
-import 'package:flutter_skeleton/screens/welcome_screen.dart';
+import 'package:chefoo/screens/login/login_screen.dart';
+import 'package:chefoo/screens/testScreen.dart';
+import 'package:chefoo/screens/welcome/get_started.dart';
+import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
