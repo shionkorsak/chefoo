@@ -51,16 +51,27 @@ class AuthService {
     final user = getCurrentUser();
     if (user == null) throw Exception("No user logged in.");
 
-    // Re-authenticate for credentials in case of security breach
-    final googleUser = await _googleSignIn.signIn();
-    final googleAuth = await googleUser!.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken
-    );
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) throw Exception("User cancelled re-authentication");
 
-    await user.reauthenticateWithCredential(credential);
-    await _googleSignIn.signOut();
-    await user.delete();
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Reauthenticate
+      await user.reauthenticateWithCredential(credential);
+
+      // Sign out from Google
+      await _googleSignIn.signOut();
+      // Delete the account
+      await user.delete();
+      print("User account deleted.");
+    } catch (e) {
+      print("Error deleting account: $e");
+      rethrow;
+    }
   }
 }

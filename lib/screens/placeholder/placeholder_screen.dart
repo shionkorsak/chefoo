@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/widget_screens/widgets_onboarding_screen.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   PlaceholderScreen({super.key});
@@ -10,6 +11,7 @@ class PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.all(60),
       alignment: Alignment.center,
       child: Column(
         children: [
@@ -34,8 +36,8 @@ class PlaceholderScreen extends StatelessWidget {
           SizedBox(height: 30),
           ElevatedButton(
             onPressed: () async { 
-              await authService.deleteAccount;
-
+              await authService.deleteAccount();
+              print("lala");
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(
@@ -43,8 +45,10 @@ class PlaceholderScreen extends StatelessWidget {
                 )
               );
             },
-            child: Text("Delete account")
+            child: Text("Delete account"),
           ),
+          SizedBox(height: 30),
+
         ],
       ),);
   }
