@@ -57,7 +57,7 @@ class PlaceService {
       'https://maps.googleapis.com/maps/api/distancematrix/json'
       '?origins=$originLat,$originLng'
       '&destinations=$destLat,$destLng'
-      '&mode=walking'  // Specify walking mode
+      '&mode=walking' 
       '&key=$apiKey'
     );
 
@@ -68,7 +68,7 @@ class PlaceService {
       if (jsonData['status'] == 'OK' && 
           jsonData['rows'][0]['elements'][0]['status'] == 'OK') {
         final distanceInMeters = jsonData['rows'][0]['elements'][0]['distance']['value'];
-        return distanceInMeters / 1000.0;  // Convert to kilometers
+        return distanceInMeters / 1000.0; 
       }
     }
     throw Exception('Failed to calculate walking distance');
@@ -91,7 +91,6 @@ class PlaceService {
         if (jsonData['status'] == 'OK') {
           final details = jsonData['result'];
           
-          // Fetch popular times separately
           final popularTimesService = PopularTimesService();
           try {
             final popularTimes = await popularTimesService.getPopularTimes(placeId);
@@ -144,43 +143,50 @@ class PlaceService {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        final results = jsonData['results'] as List;
-        final places = <Place>[];
 
-        // Add additional filtering for food-related places
-        for (var place in results.take(20)) {
-          // Check if the place types contain at least one food-related type
-          final types = List<String>.from(place['types'] ?? []);
-          if (_isFoodRelatedPlace(types)) {
-            try {
-              final walkingDistance = await getWalkingDistance(
-                originLat: lat,
-                originLng: lng,
-                destLat: place['geometry']['location']['lat'],
-                destLng: place['geometry']['location']['lng'],
-                apiKey: apiKey,
-              );
+        if (jsonData['status'] == 'OK') {
+          final results = jsonData['results'] as List;
+          print('Found ${results.length} places, limiting to ${AppConfig.MAX_PLACES_TO_LOAD}');
+          
+          final limitedResults = results.take(AppConfig.MAX_PLACES_TO_LOAD).toList();
+          
+          final places = <Place>[];
 
-              if (walkingDistance <= 1.0) {
-                print('Fetching details for food place: ${place['name']}');
-                final details = await getPlaceDetails(place['place_id']);
-                final placeWithDetails = Place.fromGooglePlace(place, details);
-                placeWithDetails.walkingDistance = walkingDistance;
-                places.add(placeWithDetails);
-                print('Added food place: ${placeWithDetails.name} (${walkingDistance}km walking)');
+          for (var place in limitedResults) {
+            final types = List<String>.from(place['types'] ?? []);
+            if (_isFoodRelatedPlace(types)) {
+              try {
+                final walkingDistance = await getWalkingDistance(
+                  originLat: lat,
+                  originLng: lng,
+                  destLat: place['geometry']['location']['lat'],
+                  destLng: place['geometry']['location']['lng'],
+                  apiKey: apiKey,
+                );
+
+                if (walkingDistance <= 1.0) {
+                  print('Fetching details for food place: ${place['name']}');
+                  final details = await getPlaceDetails(place['place_id']);
+                  final placeWithDetails = Place.fromGooglePlace(place, details);
+                  placeWithDetails.walkingDistance = walkingDistance;
+                  places.add(placeWithDetails);
+                  print('Added food place: ${placeWithDetails.name} (${walkingDistance}km walking)');
+                }
+              } catch (e) {
+                print('Error processing place: $e');
+                continue;
               }
-            } catch (e) {
-              print('Error processing place: $e');
-              continue;
             }
           }
-        }
 
-        return ApiResponse(
-          success: true,
-          message: 'Places loaded successfully',
-          data: places,
-        );
+          return ApiResponse(
+            success: true,
+            message: 'Places loaded successfully',
+            data: places,
+          );
+        } else {
+          throw Exception('Failed to load places');
+        }
       } else {
         throw Exception('Failed to load places');
       }
@@ -201,7 +207,6 @@ class PlaceService {
     }
   }
 
-  // Add this helper method to check if a place is food-related
   bool _isFoodRelatedPlace(List<String> types) {
     final foodRelatedTypes = {
       'restaurant',
@@ -216,131 +221,5 @@ class PlaceService {
     };
 
     return types.any((type) => foodRelatedTypes.contains(type));
-  }
-}
-
-class NearbyPlacesScreen extends StatefulWidget {
-  @override
-  _NearbyPlacesScreenState createState() => _NearbyPlacesScreenState();
-}
-
-class _NearbyPlacesScreenState extends State<NearbyPlacesScreen> {
-  bool _isLoading = false;
-  List<Place> _places = [];
-
-  Future<void> _fetchNearbyPlaces() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
-    final placeService = PlaceService(client: http.Client());
-
-    final lat = 37.7749;
-    final lng = -122.4194;
-    final radius = 1000.0;
-
-    try {
-      final response = await placeService.getNearbyPlaces(
-        lat: lat,
-        lng: lng,
-        radius: radius,
-        apiKey: apiKey,
-      );
-
-      print('Nearby places response: ${response.message}');
-
-      setState(() {
-        _isLoading = false;
-        if (response.success && response.data != null) {
-          _places = response.data!;
-          print('Loaded places: ${_places.length}');
-          for (var place in _places) {
-            print('Place: ${place.name}, Reviews: ${place.reviews.length}');
-          }
-        } else {
-          _places = [];
-          print('No places found');
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      print('Error fetching nearby places: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    print('Building UI for ${_places.length} places');
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Nearby Places'),
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _places.isEmpty
-              ? const Center(child: Text("No places found. Please try again."))
-              : ListView.builder(
-                  itemCount: _places.length,
-                  itemBuilder: (context, index) {
-                    final place = _places[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              place.name,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-
-                            Text("Rating: ${place.rating.toStringAsFixed(1)}"),
-
-                            Text("Address: ${place.address}"),
-
-                            Text("Phone: ${place.phone ?? 'Not available'}"),
-
-                            if (place.openingHours?.isNotEmpty ?? false) ...[
-                              const SizedBox(height: 4),
-                              const Text("Opening Hours:", style: TextStyle(fontWeight: FontWeight.bold)),
-                              ...?place.openingHours?.map((h) => Text(h)).toList(),
-                            ],
-
-                            if (place.reviews.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              const Text("Reviews:", style: TextStyle(fontWeight: FontWeight.bold)),
-                              ...place.reviews.map((review) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        review.authorName,
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                      Text("Rating: ${review.rating.toStringAsFixed(1)}"),
-                                      Text(review.text),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _fetchNearbyPlaces,
-        child: Icon(Icons.refresh),
-      ),
-    );
   }
 }
