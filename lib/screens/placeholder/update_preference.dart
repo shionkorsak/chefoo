@@ -3,7 +3,15 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 //! Example, not really like this
 
+//? To update preference
+// Initially, in the user creation, every field is empty,
+// So this is where you update the preference in the onboarding section
+
+// TODO: Try utilizing the screen and then see the Firebase console (Firestore Database)
+// TODO: side by side. And you will see it update in real time after saving it.
+
 class PreferencesScreen extends StatefulWidget {
+  const PreferencesScreen({super.key});
   @override
   _PreferencesScreenState createState() => _PreferencesScreenState();
 }
@@ -25,7 +33,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       });
 
       final data = Map<String, dynamic>.from(result.data as Map);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Preferences updated!')));

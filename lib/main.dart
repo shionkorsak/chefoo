@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
-        home: AuthGate());
+        home: AuthGate()); //? To authenticate the user's authentication state
 
         ///Screen names used from file screens.dart
 

@@ -7,8 +7,19 @@
 - Node.js (v14 or higher)
 - Python
 - Google Maps API key (find it in our notion)
+- Make sure you give your Play Services SHA fingerprints to gladys, how to get:
+```
+keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
+```
+password is
+```
+android
+```
+- google-services.json
+- Better Comments VSCode extension
 
 ### Installation steps
+0. 
 
 1. Clone the repo:
 ```bash
@@ -37,17 +48,32 @@ GOOGLE_MAPS_API_KEY=key_here
 
 you can find the key in our notion
 
-5. Install Flutter dependencies:
+5. Put google-services.json in android/app directory
+find the file in notion
+
+6. Install Cloud Functions dependencies
+```
+cd functions
+npm i
+```
+
+7. Build Cloud Functions, then go back to root
+```
+npm run build
+cd ..
+```
+
+8. Install Flutter dependencies:
 ```bash
 flutter pub get
 ```
 
-6. In a new terminal, start the backend server:
+9. In a new terminal, start the backend server:
 ```bash
 node server.js
 ```
 
-7. Run the Flutter app:
+10. Run the Flutter app:
 ```bash
 flutter run
 ```
@@ -143,6 +169,14 @@ Usage:
 final service = PopularTimesService();
 final times = await service.getPopularTimes(placeId);
 ```
+
+#### 3. Authentication
+Documentaries are in the file services/auth/
+DO NOT TOUCH */functions FOLDER AT ALL COST
+
+#### 4. Updating Preference Database
+Documentaries are in the file screens/update_preference.dart
+This is just for the sake of the visuals, the implementation would be done after front-end has made the screen for onboarding
 
 ### Models
 

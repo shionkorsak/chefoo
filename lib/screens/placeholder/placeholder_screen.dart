@@ -6,7 +6,8 @@ import 'package:chefoo/services/auth/auth_service.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   PlaceholderScreen({super.key});
-  final authService = AuthService();
+  // TODO: do this when you want to get user's data
+  final authService = AuthService(); // Auth instance
 
   @override
   Widget build(BuildContext context) {

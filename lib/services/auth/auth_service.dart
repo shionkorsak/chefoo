@@ -3,25 +3,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
+  //! An instance of the Authentication service,
+  //! When trying to get user's data, just run 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
     signInOption: SignInOption.standard,
   );
 
-  User? getCurrentUser() {
+  User? getCurrentUser() { // Get current user's instance
     return _auth.currentUser;
   }
 
-  String? getCurrentUserDisplayName() {
+  String? getCurrentUserDisplayName() { // Get current user's display name
     return getCurrentUser()?.displayName;
   }
 
-  String? getCurrentUserPhotoURL() {
+  String? getCurrentUserPhotoURL() { // Get current user's photo URL
     return getCurrentUser()?.photoURL;
   }
 
-  Future<UserCredential> signInWithGoogle() async {
+  Future<UserCredential> signInWithGoogle() async { // Sign in with Google
     await _googleSignIn.signOut();
 
     // Trigger the authentication flow
@@ -41,7 +43,7 @@ class AuthService {
     return await _auth.signInWithCredential(credential);
   }
 
-  Future<UserCredential> signUpWithEmail({
+  Future<UserCredential> signUpWithEmail({ // No actual implementation, just for testing
     required String email,
     required String password,
     required String displayName
@@ -62,7 +64,7 @@ class AuthService {
     }
   }
 
-  Future<UserCredential> signInWithEmail ({
+  Future<UserCredential> signInWithEmail ({ // No actual implementation, just for testing
     required String email,
     required String password
   }) async {
@@ -78,14 +80,14 @@ class AuthService {
     }
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut() async { // To sign out
     await _googleSignIn.disconnect();
     await _googleSignIn.signOut();
     await _auth.signOut();
     log("fully sign out\n");
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount() async { // To delete account
     final user = getCurrentUser();
     if (user == null) throw Exception("No user logged in.");
 
@@ -104,6 +106,7 @@ class AuthService {
 
       // Sign out from Google
       await _googleSignIn.signOut();
+      
       // Delete the account
       await user.delete();
       log("User account deleted.");
