@@ -1,7 +1,7 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/placeholder/update_preference.dart';
-import 'package:chefoo/screens/widget_screens/widgets_onboarding_screen.dart';
+import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 
 class PlaceholderScreen extends StatelessWidget {
@@ -42,7 +42,7 @@ class PlaceholderScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(
-                  builder: (BuildContext context) => WidgetsOnboardingScreen()
+                  builder: (BuildContext context) => LoginScreen()
                 )
               );
             },
@@ -55,7 +55,15 @@ class PlaceholderScreen extends StatelessWidget {
                 context, 
                 MaterialPageRoute(builder: (BuildContext context) => PreferencesScreen()));
             }, 
-            child: Text("Update Preference"))
+            child: Text("Update Preference")),
+          SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (BuildContext context) => TestScreen()));
+            }, 
+            child: Text("Maps")),
         ],
       ),);
   }
