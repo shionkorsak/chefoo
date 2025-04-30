@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/commons.dart';
-import 'package:flutter_skeleton/styles/colors.dart';
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/styles/colors.dart';
 
 class GlowingButton extends StatelessWidget {
   final VoidCallback onPressed;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/commons.dart';
-import 'package:flutter_skeleton/widgets/border_text_field.dart';
-import 'package:flutter_skeleton/widgets/buttons/glowing_button.dart';
-import 'package:flutter_skeleton/widgets/buttons/google_buttons/google_import_button.dart';
-import 'package:flutter_skeleton/widgets/buttons/google_buttons/google_login_button.dart';
-import 'package:flutter_skeleton/widgets/cards/auth_card.dart';
-import 'package:flutter_skeleton/widgets/dots_page_indicator.dart';
-import 'package:flutter_skeleton/widgets/tags/tag_map.dart';
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/widgets/border_text_field.dart';
+import 'package:chefoo/widgets/buttons/glowing_button.dart';
+import 'package:chefoo/widgets/buttons/google_buttons/google_import_button.dart';
+import 'package:chefoo/widgets/buttons/google_buttons/google_login_button.dart';
+import 'package:chefoo/widgets/cards/auth_card.dart';
+import 'package:chefoo/widgets/dots_page_indicator.dart';
+import 'package:chefoo/widgets/tags/tag_map.dart';
 
 class WidgetTestScreen extends StatelessWidget {
   const WidgetTestScreen({super.key});

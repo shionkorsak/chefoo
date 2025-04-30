@@ -1,7 +1,7 @@
-import 'package:flutter_skeleton/screens/login/login_screen.dart';
-import 'package:flutter_skeleton/screens/testScreen.dart';
-import 'package:flutter_skeleton/screens/welcome/get_started.dart';
-import 'package:flutter_skeleton/screens/welcome_screen.dart';
+import 'package:chefoo/screens/login/login_screen.dart';
+import 'package:chefoo/screens/testScreen.dart';
+import 'package:chefoo/screens/welcome/get_started.dart';
+import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         home: TestScreen());
-          // testScreen is just to visualize google map's info and the widgets
-          // ive done so far
+          // this testScreen is only to visualize google maps info
+          // which we are importing, and related widgets
   }
 }

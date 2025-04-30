@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:async';
-import 'package:flutter_skeleton/constants.dart';
-import 'package:flutter_skeleton/services/popular_times.dart';
+import 'dart:io';  // Add this for SocketException
+import 'dart:async';  // Add this for TimeoutException
+import 'package:chefoo/constants.dart';
+import 'package:chefoo/services/popular_times.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/restaurant.dart';

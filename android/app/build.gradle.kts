@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flutter_skeleton"
+    namespace = "com.example.chefoo"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -20,13 +20,13 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.flutter_skeleton"
+        applicationId = "com.example.chefoo"
         minSdk = 21
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.flutter_skeleton"
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.chefoo"
         manifestPlaceholders["GOOGLE_CALENDAR_CLIENT_ID"] = "537923017808-cqegih2bhcb2cqpg50o3m70nfsbg5660.apps.googleusercontent.com"
     }
 

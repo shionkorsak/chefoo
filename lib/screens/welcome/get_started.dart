@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/commons.dart';
-import 'package:flutter_skeleton/widgets/buttons/glowing_button.dart';
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/widgets/buttons/glowing_button.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class GetStarted extends StatefulWidget {
