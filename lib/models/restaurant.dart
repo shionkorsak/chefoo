@@ -6,7 +6,7 @@ class Place {
   final double rating;
   final String address;
   final double distance;
-  List<String> tags; // Change this from final to allow updating
+  List<String> tags;
   final String? phone;
   final List<String>? openingHours;
   final List<Review> reviews;
@@ -39,23 +39,18 @@ class Place {
     return Place(
       id: json['id'] as String,
       name: json['name'] as String,
-      rating: (json['rating'] as num).toDouble(),
+      rating: json['rating'] as double,
       address: json['address'] as String,
-      distance: (json['distance'] as num).toDouble(),
-      tags: (json['tags'] as List).cast<String>(),
+      distance: json['distance'] as double,
+      tags: List<String>.from(json['tags'] ?? []),
       phone: json['phone'] as String?,
-      openingHours: (json['opening_hours'] as List?)?.cast<String>(),
-      reviews: (json['reviews'] as List)
-          .map((reviewJson) => Review.fromJson(reviewJson))
-          .toList(),
-      pictureUrls: (json['pictures'] as List).cast<String>(),
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
-      isOpenNow: json['is_open_now'] as bool?,
-      popularTimes: (json['popular_times'] as List?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList(),
-      walkingDistance: (json['walking_distance'] as num?)?.toDouble() ?? 0.0,
+      lat: json['lat'] as double,
+      lng: json['lng'] as double,
+      isOpenNow: json['isOpenNow'] as bool?,
+      pictureUrls: List<String>.from(json['pictureUrls'] ?? []),
+      reviews: [],
+      openingHours: null,
+      walkingDistance: json['walkingDistance'] as double? ?? 0.0,
     );
   }
 
@@ -148,14 +143,10 @@ class Place {
       'distance': distance,
       'tags': tags,
       'phone': phone,
-      'opening_hours': openingHours,
-      'reviews': reviews.map((review) => review.toJson()).toList(),
-      'pictures': pictureUrls,
       'lat': lat,
       'lng': lng,
-      'is_open_now': isOpenNow,
-      'popular_times': popularTimes,
-      'walking_distance': walkingDistance,
+      'isOpenNow': isOpenNow,
+      'pictureUrls': pictureUrls,
     };
   }
 

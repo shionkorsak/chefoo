@@ -1,3 +1,4 @@
+import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
@@ -37,6 +38,9 @@ void main() async {
         ChangeNotifierProvider<RestaurantProvider>(
           create: (_) => RestaurantProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => FavoritesProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -48,6 +52,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // location monitoring after app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<LocationService>(context, listen: false)
+          .startLocationUpdates(context);
+    });
+
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,

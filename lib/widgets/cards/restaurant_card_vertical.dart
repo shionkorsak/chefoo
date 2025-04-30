@@ -10,6 +10,17 @@ class RestaurantCardVertical extends StatelessWidget {
     required this.place,
   }) : super(key: key);
 
+  // Define a safer way to check URLs
+  bool isValidImageUrl(String? url) {
+    if (url == null || url.isEmpty) return false;
+    try {
+      final uri = Uri.parse(url);
+      return uri.hasScheme && (uri.scheme == 'http' || uri.scheme == 'https');
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pictureUrl = place.pictureUrls.isNotEmpty ? place.pictureUrls.first : null;
@@ -31,7 +42,8 @@ class RestaurantCardVertical extends StatelessWidget {
       ),
       child: Column(
         children: [
-          LikeButton(isLiked: false),
+          //LikeButton(isLiked: false),
+          LikeButton(place: place),
           SizedBox(
             height: 24,
             width: double.infinity,
@@ -72,11 +84,12 @@ class RestaurantCardVertical extends StatelessWidget {
           ),
           SizedBox(height: 6),
           Expanded(
-            child: pictureUrl != null
+            child: isValidImageUrl(pictureUrl)
                 ? Image.network(
-                    pictureUrl,
+                    pictureUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
+                      print('Error loading image: $error');
                       return Image.asset('assets/images/placeholder.png', fit: BoxFit.cover);
                     },
                   )

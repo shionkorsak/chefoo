@@ -1,6 +1,8 @@
+import 'package:chefoo/providers/restaurant.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
 
 class LocationService with ChangeNotifier {
   static const bool debugMode = true;  // Set to true for emulator testing
@@ -15,11 +17,15 @@ class LocationService with ChangeNotifier {
   bool _isRequestingPermission = false;
   bool _useDebugLocation = false; 
 
+  // Flag to indicate whether the location has changed significantly
+  bool _locationChangedSignificantly = false;
+
   Position? get currentPosition => _currentPosition;
   Position? get lastFetchPosition => _lastFetchPosition;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get useDebugLocation => _useDebugLocation;
+  bool get locationChangedSignificantly => _locationChangedSignificantly;
 
   LocationService() {
     _initializeLocation();
@@ -194,5 +200,50 @@ class LocationService with ChangeNotifier {
     } else {
       return '${(distance / 1000).toStringAsFixed(1)}km';
     }
+  }
+
+  Stream<Position> get locationStream => Geolocator.getPositionStream(
+        locationSettings: LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 100, // Only notify when moved 100 meters
+        ),
+      );
+
+  void startLocationUpdates(BuildContext context) {
+    locationStream.listen((position) {
+      // Update current position
+      _currentPosition = position;
+      print('Location updated: ${position.latitude}, ${position.longitude}');
+      
+      // If moved significantly from last fetch position (>0.2km)
+      if (_lastFetchPosition == null || 
+          _calculateDistance(_lastFetchPosition!, position) > 0.2) {
+        
+        print('Location changed significantly');
+        _lastFetchPosition = position;
+        _locationChangedSignificantly = true; // Set the flag
+        
+        // Notify listeners
+        notifyListeners();
+      }
+    });
+  }
+
+  void resetLocationChangedFlag() {
+    _locationChangedSignificantly = false;
+  }
+
+  double _calculateDistance(Position pos1, Position pos2) {
+    return Geolocator.distanceBetween(
+      pos1.latitude, 
+      pos1.longitude, 
+      pos2.latitude, 
+      pos2.longitude
+    ) / 1000; // Convert meters to kilometers
+  }
+
+  // Make a public version of the distance calculation method
+  double calculateDistance(Position pos1, Position pos2) {
+    return _calculateDistance(pos1, pos2);
   }
 }

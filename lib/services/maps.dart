@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';  // Add this for SocketException
-import 'dart:async';  // Add this for TimeoutException
+import 'dart:io';
+import 'dart:async';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/services/popular_times.dart';
 import 'package:http/http.dart' as http;
@@ -155,7 +155,6 @@ class PlaceService {
           for (var place in limitedResults) {
             final types = List<String>.from(place['types'] ?? []);
             
-            // Add this debug printing to see raw types from the API
             print('Restaurant "${place['name']}" has these types: $types');
             
             if (_isFoodRelatedPlace(types)) {
@@ -172,14 +171,11 @@ class PlaceService {
                   print('Fetching details for food place: ${place['name']}');
                   final details = await getPlaceDetails(place['place_id']);
                   
-                  // Convert Google API types to human-readable tags
                   final tags = _convertTypesToTags(types);
                   
-                  // After converting to tags, add another debug print
                   print('Converted to these tags: $tags');
                   
                   final placeWithDetails = Place.fromGooglePlace(place, details);
-                  // Make sure you set the tags 
                   placeWithDetails.tags = tags;
                   
                   placeWithDetails.walkingDistance = walkingDistance;
