@@ -1,4 +1,4 @@
-import 'package:flutter_skeleton/commons.dart';
+import 'package:chefoo/commons.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 class LikeButton extends StatefulWidget {

@@ -154,6 +154,10 @@ class PlaceService {
 
           for (var place in limitedResults) {
             final types = List<String>.from(place['types'] ?? []);
+            
+            // Add this debug printing to see raw types from the API
+            print('Restaurant "${place['name']}" has these types: $types');
+            
             if (_isFoodRelatedPlace(types)) {
               try {
                 final walkingDistance = await getWalkingDistance(
@@ -167,7 +171,17 @@ class PlaceService {
                 if (walkingDistance <= 1.0) {
                   print('Fetching details for food place: ${place['name']}');
                   final details = await getPlaceDetails(place['place_id']);
+                  
+                  // Convert Google API types to human-readable tags
+                  final tags = _convertTypesToTags(types);
+                  
+                  // After converting to tags, add another debug print
+                  print('Converted to these tags: $tags');
+                  
                   final placeWithDetails = Place.fromGooglePlace(place, details);
+                  // Make sure you set the tags 
+                  placeWithDetails.tags = tags;
+                  
                   placeWithDetails.walkingDistance = walkingDistance;
                   places.add(placeWithDetails);
                   print('Added food place: ${placeWithDetails.name} (${walkingDistance}km walking)');
@@ -221,5 +235,38 @@ class PlaceService {
     };
 
     return types.any((type) => foodRelatedTypes.contains(type));
+  }
+
+  List<String> _convertTypesToTags(List<String> types) {
+    final Map<String, String> typeToTag = {
+      'restaurant': 'Restaurant',
+      'cafe': 'Cafe',
+      'bakery': 'Bakery',
+      'bar': 'Bar',
+      'meal_takeaway': 'Takeout',
+      'food': 'Food',
+      'meal_delivery': 'Delivery',
+      'supermarket': 'Grocery',
+      'convenience_store': 'Convenience',
+      'grocery_or_supermarket': 'Grocery',
+      'fast_food': 'Fast Food',
+      'pizza': 'Pizza',
+      'burger': 'Burger',
+      'sushi': 'Sushi',
+      'italian': 'Italian',
+    };
+    
+    final tags = <String>[];
+    for (final type in types) {
+      if (typeToTag.containsKey(type)) {
+        tags.add(typeToTag[type]!);
+      }
+    }
+    
+    if (tags.isEmpty) {
+      tags.add('NoTag');
+    }
+    
+    return tags;
   }
 }

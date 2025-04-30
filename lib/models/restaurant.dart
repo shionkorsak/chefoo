@@ -6,7 +6,7 @@ class Place {
   final double rating;
   final String address;
   final double distance;
-  final List<String> tags;
+  List<String> tags; // Change this from final to allow updating
   final String? phone;
   final List<String>? openingHours;
   final List<Review> reviews;
@@ -23,7 +23,7 @@ class Place {
     required this.rating,
     required this.address,
     required this.distance,
-    required this.tags,
+    required this.tags, // Keep this required
     this.phone,
     this.openingHours,
     required this.reviews,
@@ -115,13 +115,18 @@ class Place {
       }
     }
 
+    final List<String> types = [];
+    if (place['types'] != null) {
+      types.addAll(List<String>.from(place['types']));
+    }
+
     return Place(
       id: place['place_id'] as String,
       name: place['name'] as String,
       rating: (place['rating'] ?? 0.0).toDouble(),
       address: place['vicinity'] as String,
       distance: 0.0,
-      tags: [],
+      tags: [], // Initialize with empty list, will be updated later
       phone: details['formatted_phone_number'] as String?,
       openingHours: details['opening_hours']?['weekday_text']?.cast<String>(),
       reviews: reviews,
