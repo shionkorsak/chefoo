@@ -26,7 +26,6 @@ class LikeButton extends StatelessWidget {
           final provider = Provider.of<FavoritesProvider>(context, listen: false);
           provider.toggleFavorite(place!);
           
-          // Add a visual feedback
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

@@ -23,7 +23,7 @@ class Place {
     required this.rating,
     required this.address,
     required this.distance,
-    required this.tags, // Keep this required
+    required this.tags,
     this.phone,
     this.openingHours,
     required this.reviews,
@@ -121,7 +121,7 @@ class Place {
       rating: (place['rating'] ?? 0.0).toDouble(),
       address: place['vicinity'] as String,
       distance: 0.0,
-      tags: [], // Initialize with empty list, will be updated later
+      tags: [],
       phone: details['formatted_phone_number'] as String?,
       openingHours: details['opening_hours']?['weekday_text']?.cast<String>(),
       reviews: reviews,

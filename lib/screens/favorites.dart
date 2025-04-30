@@ -19,16 +19,16 @@ class FavoritesScreen extends StatelessWidget {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: const [
                   Icon(Icons.favorite_border, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
                   Text(
-                    'No favorites yet',
+                    'no favorites yet :P',
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Like some restaurants to see them here',
+                    'like some restaurants to see them here!',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ],

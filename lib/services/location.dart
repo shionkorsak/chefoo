@@ -209,7 +209,6 @@ class LocationService with ChangeNotifier {
 
   void startLocationUpdates(BuildContext context) {
     locationStream.listen((position) {
-      // Update current position
       _currentPosition = position;
       print('Location updated: ${position.latitude}, ${position.longitude}');
       
