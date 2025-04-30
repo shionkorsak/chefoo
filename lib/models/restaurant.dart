@@ -15,7 +15,7 @@ class Place {
   final double lng;
   final bool? isOpenNow;
   List<Map<String, dynamic>>? popularTimes;
-  double walkingDistance; // Add this field
+  double walkingDistance;
 
   Place({
     required this.id,
@@ -32,7 +32,7 @@ class Place {
     required this.lng,
     this.isOpenNow,
     this.popularTimes,
-    this.walkingDistance = 0.0, // Add this parameter
+    this.walkingDistance = 0.0,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -55,7 +55,7 @@ class Place {
       popularTimes: (json['popular_times'] as List?)
           ?.map((e) => e as Map<String, dynamic>)
           .toList(),
-      walkingDistance: (json['walking_distance'] as num?)?.toDouble() ?? 0.0, // Add this field
+      walkingDistance: (json['walking_distance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -100,7 +100,6 @@ class Place {
       );
     }).toList() ?? [];
 
-    // Parse popular times data
     List<Map<String, dynamic>>? popularTimesData;
     if (details['populartimes'] != null) {
       try {
@@ -131,7 +130,7 @@ class Place {
       lng: place['geometry']['location']['lng'] as double,
       isOpenNow: details['opening_hours']?['open_now'] as bool?,
       popularTimes: popularTimesData,
-      walkingDistance: 0.0, // Will be updated after creation
+      walkingDistance: 0.0, 
     );
   }
 
@@ -151,7 +150,7 @@ class Place {
       'lng': lng,
       'is_open_now': isOpenNow,
       'popular_times': popularTimes,
-      'walking_distance': walkingDistance, // Add this field
+      'walking_distance': walkingDistance,
     };
   }
 
