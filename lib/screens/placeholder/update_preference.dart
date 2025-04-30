@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
+//! Example, not really like this
+
 class PreferencesScreen extends StatefulWidget {
   @override
   _PreferencesScreenState createState() => _PreferencesScreenState();
 }
 
 class _PreferencesScreenState extends State<PreferencesScreen> {
-  List<String> dietaryOptions = ['Vegetarian', 'Vegan', 'Gluten-Free'];
+  List<String> dietaryOptions = ['Vegetarian', 'Vegan', 'Gluten-Free']; 
   List<String> allergyOptions = ['Peanuts', 'Dairy', 'Shellfish'];
 
   List<String> selectedDietary = [];
@@ -21,11 +23,18 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         'dietaryPreferences': selectedDietary,
         'allergies': selectedAllergies,
       });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(result.data['message'])));
+
+      final data = Map<String, dynamic>.from(result.data as Map);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Preferences updated!')));
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Update failed.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Update failed.')));
+      }
     }
   }
 

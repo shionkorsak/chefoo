@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -40,11 +41,48 @@ class AuthService {
     return await _auth.signInWithCredential(credential);
   }
 
+  Future<UserCredential> signUpWithEmail({
+    required String email,
+    required String password,
+    required String displayName
+  }) async {
+    try {
+      final UserCredential userCredential =
+        await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+
+        await userCredential.user?.updateDisplayName(displayName);
+        await userCredential.user?.reload();
+        log("User signed up with $email and $displayName");
+
+        return userCredential;
+    } on FirebaseAuthException catch (e) {
+      log("Sign up error: ${e.message}", name: "AuthService", error: e);
+      rethrow;
+    }
+  }
+
+  Future<UserCredential> signInWithEmail ({
+    required String email,
+    required String password
+  }) async {
+    try {
+      final UserCredential userCredential =
+        await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
+        log("User signed in with email.", name: "AuthService");
+        return userCredential;
+    } on FirebaseAuthException catch (e) {
+        log("Sign in error: ${e.message}", name: "AuthService", error: e);
+        rethrow;
+    }
+  }
+
   Future<void> signOut() async {
     await _googleSignIn.disconnect();
     await _googleSignIn.signOut();
     await _auth.signOut();
-    print("fully sign out\n");
+    log("fully sign out\n");
   }
 
   Future<void> deleteAccount() async {
@@ -68,9 +106,9 @@ class AuthService {
       await _googleSignIn.signOut();
       // Delete the account
       await user.delete();
-      print("User account deleted.");
+      log("User account deleted.");
     } catch (e) {
-      print("Error deleting account: $e");
+      log("Error deleting account: $e");
       rethrow;
     }
   }
