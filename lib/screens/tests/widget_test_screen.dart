@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/widgets/border_text_field.dart';
+import 'package:chefoo/widgets/buttons/glowing_button.dart';
+import 'package:chefoo/widgets/buttons/google_buttons/google_import_button.dart';
+import 'package:chefoo/widgets/buttons/google_buttons/google_login_button.dart';
+import 'package:chefoo/widgets/cards/auth_card.dart';
+import 'package:chefoo/widgets/dots_page_indicator.dart';
+import 'package:chefoo/widgets/tags/tag_map.dart';
+
+class WidgetTestScreen extends StatelessWidget {
+  const WidgetTestScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(0),
+        child: AuthCard(
+          children: [
+            BorderTextField(label: 'Enter your text here'),
+            SizedBox(
+              height: 32,
+            ),
+            GlowingButton(onPressed: () {}, text: 'Get Started'),
+            SizedBox(
+              height: 32,
+            ),
+            TagMap(tags: ['aaaa', 'bbbb', 'cccc']),
+            SizedBox(
+              height: 32,
+            ),
+            GoogleLoginButton(),
+            SizedBox(
+              height: 32,
+            ),
+            GoogleImportButton(),
+            SizedBox(
+              height: 32,
+            ),
+            LinearProgressIndicator(
+              value: 0.5,
+            ),
+            SizedBox(
+              height: 32,
+            ),
+            DotsPageIndicator(pageCount: 5, currentPage: 4)
+          ],
+        ),
+      ),
+    ));
+  }
+}

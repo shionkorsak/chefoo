@@ -9,5 +9,6 @@ class Screens {
   static const welcome = '/welcome';
   static const login = '/login';
   static const profile = '/profile';
+  static const testScreen = '/testScreen';
   /// ...
 }

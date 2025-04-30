@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.chefoo"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -28,9 +28,12 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 23
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+        
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.chefoo"
+        manifestPlaceholders["GOOGLE_CALENDAR_CLIENT_ID"] = "537923017808-cqegih2bhcb2cqpg50o3m70nfsbg5660.apps.googleusercontent.com"
     }
 
     buildTypes {
