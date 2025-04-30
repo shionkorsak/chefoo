@@ -23,7 +23,13 @@ class WidgetTestScreen extends StatelessWidget {
             SizedBox(
               height: 32,
             ),
-            GlowingButton(onPressed: () {}, text: 'Get Started'),
+            GlowingButton(
+              onPressed: () async {
+                await Future.delayed(Duration(milliseconds: 300));
+                // Add your action here if needed after the delay
+              },
+              text: 'Get Started',
+            ),
             SizedBox(
               height: 32,
             ),

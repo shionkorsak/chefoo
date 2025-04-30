@@ -13,7 +13,7 @@ class GoogleLoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GoogleTextButton(
       text: 'Login with',
-      onPressed: () {},
+      onPressed: onPressed,
     );
   }
 }

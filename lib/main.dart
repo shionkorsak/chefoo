@@ -3,6 +3,7 @@ import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:chefoo/screens/tests/widget_test_screen.dart';
 import 'package:http/http.dart' as http;
 
 import 'commons.dart';
@@ -55,8 +56,8 @@ class MyApp extends StatelessWidget {
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
-        //home: GetStarted());
-        home: TestScreen());
+        home: GetStarted());
+        //home: TestScreen());
           // this testScreen is only to visualize google maps info
           // which we are importing, and related widgets
   }
