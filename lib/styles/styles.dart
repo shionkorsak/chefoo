@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_skeleton/commons.dart';
+import 'package:chefoo/commons.dart';
 
 ///Fonts used in the app. A const is used to avoid String typos
 class Font {

@@ -1,11 +1,9 @@
 ///List of all packages used
 
-export 'package:flutter/material.dart';
-
 ///List of all files used as helpers
-export 'package:flutter_skeleton/constants.dart';
-export 'package:flutter_skeleton/screens.dart';
-export 'package:flutter_skeleton/utils/utils.dart';
+export 'package:chefoo/constants.dart';
+export 'package:chefoo/screens.dart';
+export 'package:chefoo/utils/utils.dart';
 
 ///List of all local files used for style
 export 'styles/colors.dart';
@@ -17,9 +15,6 @@ export 'styles/text_style.dart';
 /// Packages
 export 'package:flutter/material.dart';
 export 'package:provider/provider.dart';
-
-// Constants & Config
-export 'constants.dart';
 
 // Models
 export 'models/restaurant.dart';

@@ -14,3 +14,7 @@ abstract class MapsConstants {
 
   static const String baseUrl = 'https://maps.googleapis.com/maps/api/place';
 }
+
+class AppConfig {
+  static const int MAX_PLACES_TO_LOAD = 5; // TODO: change for final presentation
+}

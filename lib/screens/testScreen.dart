@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_skeleton/constants.dart';
-import 'package:flutter_skeleton/screens/map_view.dart';
+import 'package:chefoo/constants.dart';
+import 'package:chefoo/screens/map_view.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,7 +28,7 @@ class RestaurantListContainer extends StatefulWidget {
 
 class _RestaurantListContainerState extends State<RestaurantListContainer> {
   bool _isLoading = false;
-  static const double _minDistanceToRefresh = 500.0; // meters
+  static const double _minDistanceToRefresh = 500.0;
 
   @override
   void initState() {
@@ -40,12 +40,12 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     if (!mounted) return;
     
     final locationService = Provider.of<LocationService>(context, listen: false);
-    await locationService.getCurrentLocation();  // Changed from startLocationUpdates
+    await locationService.getCurrentLocation(); 
     
     if (mounted) {
       final position = locationService.currentPosition;
       if (position != null) {
-        await _fetchNearbyPlaces();  // Added await
+        await _fetchNearbyPlaces();
       }
     }
   }
@@ -65,10 +65,8 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     final locationService = Provider.of<LocationService>(context, listen: false);
     final lastFetchPosition = locationService.lastFetchPosition;
     
-    // If no last fetch position, we should fetch
     if (lastFetchPosition == null) return true;
 
-    // Calculate distance moved since last fetch
     final distance = Geolocator.distanceBetween(
       lastFetchPosition.latitude,
       lastFetchPosition.longitude,
@@ -76,7 +74,6 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
       newPosition.longitude,
     );
 
-    // Fetch new places if moved more than minimum distance
     return distance > _minDistanceToRefresh;
   }
 
@@ -108,7 +105,6 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
       if (response.success && response.data != null) {
         final provider = Provider.of<RestaurantProvider>(context, listen: false);
         provider.setPlaces(response.data!);
-        // Update last fetch position using the proper setter method
         locationService.setLastFetchPosition(position);
       }
     } catch (e) {
@@ -133,7 +129,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
       builder: (context, locationService, restaurantProvider, _) {
         return Scaffold(
           body: RestaurantList(
-            places: restaurantProvider.places, // Use places from provider instead of _places
+            places: restaurantProvider.places,
             isLoading: _isLoading,
           ),
           floatingActionButton: FloatingActionButton(
@@ -144,7 +140,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => MapViewScreen(
-                    places: restaurantProvider.places, // Use provider's places here too
+                    places: restaurantProvider.places, 
                   ),
                 ),
               );
