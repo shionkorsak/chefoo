@@ -5,6 +5,7 @@ import 'package:chefoo/screens/welcome/get_started.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:chefoo/services/location_handler.dart';
 
 import 'commons.dart';
 
@@ -54,21 +55,24 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // location monitoring after app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LocationService>(context, listen: false)
-          .startLocationUpdates(context);
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      
+      locationService.startLocationUpdates(context);
+      
+      LocationHandler.fetchNearbyPlacesAtCurrentLocation(context);
     });
 
     return MaterialApp(
-        theme: lightTheme,
-        navigatorKey: navigatorKey,
+      theme: lightTheme,
+      navigatorKey: navigatorKey,
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         //home: WidgetTestScreen());
-        home: TestScreen());
-          // this testScreen is only to visualize google maps info
-          // which we are importing, and related widgets
+      home: TestScreen());       
+        // this testScreen is only to visualize google maps info
+        // which we are importing, and related widgets
   }
 }

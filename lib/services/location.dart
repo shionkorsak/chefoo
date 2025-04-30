@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 
 class LocationService with ChangeNotifier {
-  static const bool debugMode = true;  // Set to true for emulator testing
+  static const bool debugMode = true; 
   static const debugLat = 24.795653;   // delta building coordinates
   static const debugLng = 120.991744;
 
@@ -17,8 +17,10 @@ class LocationService with ChangeNotifier {
   bool _isRequestingPermission = false;
   bool _useDebugLocation = false; 
 
-  // Flag to indicate whether the location has changed significantly
   bool _locationChangedSignificantly = false;
+
+  final _locationChangedController = StreamController<Position>.broadcast();
+  Stream<Position> get locationChangedStream => _locationChangedController.stream;
 
   Position? get currentPosition => _currentPosition;
   Position? get lastFetchPosition => _lastFetchPosition;
@@ -69,10 +71,9 @@ class LocationService with ChangeNotifier {
     }
   }
 
-  // New method to toggle between debug and real GPS
   void toggleDebugMode(bool enabled) {
     _useDebugLocation = enabled;
-    getCurrentLocation();  // Refresh location with new mode
+    getCurrentLocation();
   }
 
   Future<void> getCurrentLocation() async {
@@ -81,7 +82,6 @@ class LocationService with ChangeNotifier {
       return;
     }
 
-    // Set loading without notification
     _isLoading = true;
 
     try {
@@ -94,18 +94,16 @@ class LocationService with ChangeNotifier {
         return;
       }
 
-      // Check location service first
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Location services are disabled. Please enable GPS.');
       }
 
-      // Then check permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _setDebugLocation(); // Fallback to debug location
+          _setDebugLocation();
           _lastFetchPosition = _currentPosition;
           _isLoading = false;
           notifyListeners();
@@ -114,7 +112,7 @@ class LocationService with ChangeNotifier {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _setDebugLocation(); // Fallback to debug location
+        _setDebugLocation();
         _lastFetchPosition = _currentPosition;
         _isLoading = false;
         notifyListeners();
@@ -138,7 +136,6 @@ class LocationService with ChangeNotifier {
       _lastFetchPosition = _currentPosition;
     } finally {
       _isLoading = false;
-      // Single notification at the end
       notifyListeners();
     }
   }
@@ -182,6 +179,7 @@ class LocationService with ChangeNotifier {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
+    _locationChangedController.close();
     super.dispose();
   }
 
@@ -205,7 +203,7 @@ class LocationService with ChangeNotifier {
   Stream<Position> get locationStream => Geolocator.getPositionStream(
         locationSettings: LocationSettings(
           accuracy: LocationAccuracy.high,
-          distanceFilter: 100, // Only notify when moved 100 meters
+          distanceFilter: 100,
         ),
       );
 
@@ -215,15 +213,15 @@ class LocationService with ChangeNotifier {
       _currentPosition = position;
       print('Location updated: ${position.latitude}, ${position.longitude}');
       
-      // If moved significantly from last fetch position (>0.2km)
       if (_lastFetchPosition == null || 
           _calculateDistance(_lastFetchPosition!, position) > 0.2) {
         
         print('Location changed significantly');
         _lastFetchPosition = position;
-        _locationChangedSignificantly = true; // Set the flag
+        _locationChangedSignificantly = true;
         
-        // Notify listeners
+        _locationChangedController.add(position);
+        
         notifyListeners();
       }
     });
@@ -239,10 +237,9 @@ class LocationService with ChangeNotifier {
       pos1.longitude, 
       pos2.latitude, 
       pos2.longitude
-    ) / 1000; // Convert meters to kilometers
+    ) / 1000;
   }
 
-  // Make a public version of the distance calculation method
   double calculateDistance(Position pos1, Position pos2) {
     return _calculateDistance(pos1, pos2);
   }
