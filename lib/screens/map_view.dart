@@ -24,7 +24,6 @@ class MapViewScreen extends StatefulWidget {
 }
 
 class _MapViewScreenState extends State<MapViewScreen> {
-  // Keep only necessary constants
   static const double _initialZoom = 15.0;
   static const double _maxZoom = 17.0;
   static const double _mapPadding = 50.0;
@@ -42,7 +41,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
     _createMarkers();
   }
 
-  // Add this method to sort places by walking distance
   List<Place> _sortPlacesByDistance() {
     final places = List<Place>.from(widget.places);
     places.sort((a, b) => a.walkingDistance.compareTo(b.walkingDistance));
@@ -70,7 +68,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     setState(() {
       _selectedPlace = place;
       _selectedIndex = widget.places.indexOf(place);
-      _createMarkers(); // Update marker colors
+      _createMarkers();
     });
     _centerOnLocation(place.lat, place.lng);
   }
@@ -79,7 +77,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     setState(() {
       _selectedIndex = index;
       _selectedPlace = widget.places[index];
-      _createMarkers(); // Update marker colors
+      _createMarkers();
     });
     _centerOnLocation(_selectedPlace!.lat, _selectedPlace!.lng);
   }
@@ -98,7 +96,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
     _centerOnLocation(position.latitude, position.longitude);
   }
 
-  // UI Components
   Widget _buildNavigationArrows() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -107,12 +104,12 @@ class _MapViewScreenState extends State<MapViewScreen> {
         children: [
           _buildNavigationButton(
             icon: Icons.arrow_back_ios,
-            onPressed: _showPreviousPlace, // Always enabled
+            onPressed: _showPreviousPlace,
           ),
           const SizedBox(width: 32),
           _buildNavigationButton(
             icon: Icons.arrow_forward_ios,
-            onPressed: _showNextPlace, // Always enabled
+            onPressed: _showNextPlace,
           ),
         ],
       ),
@@ -152,7 +149,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void _showNextPlace() {
     if (_selectedPlace == null || widget.places.isEmpty) return;
 
-    // Simply move one index right, wrapping around if needed
     final nextIndex = (_selectedIndex + 1) % widget.places.length;
     _updateSelectedPlace(nextIndex);
   }
@@ -160,7 +156,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void _showPreviousPlace() {
     if (_selectedPlace == null || widget.places.isEmpty) return;
 
-    // Move one index left, wrapping around if needed
     final previousIndex = (_selectedIndex - 1 + widget.places.length) % widget.places.length;
     _updateSelectedPlace(previousIndex);
   }
@@ -202,7 +197,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
             markers: _markers,
             onMapCreated: (controller) {
               _mapController = controller;
-              _fitBounds(); // Add this to fit all markers on screen
+              _fitBounds();
             },
             onTap: (_) => _resetMapView(currentPosition),
             myLocationEnabled: true,
@@ -236,7 +231,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 }
 
-// Helper class for calculating map bounds
 class _MapBounds {
   double minLat = double.infinity;
   double maxLat = -double.infinity;
