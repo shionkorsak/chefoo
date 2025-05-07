@@ -6,12 +6,10 @@ class CalendarStateProvider with ChangeNotifier {
   CalendarEvent? _nextEvent;
   LatLng? _eventLocation;
   bool _hasLoadedRoute = false;
-  List<LatLng>? _routePolyline;
   
   CalendarEvent? get nextEvent => _nextEvent;
   LatLng? get eventLocation => _eventLocation;
   bool get hasLoadedRoute => _hasLoadedRoute;
-  List<LatLng>? get routePolyline => _routePolyline;
   
   void setNextEvent(CalendarEvent? event) {
     _nextEvent = event;
@@ -25,11 +23,6 @@ class CalendarStateProvider with ChangeNotifier {
   
   void setHasLoadedRoute(bool value) {
     _hasLoadedRoute = value;
-    notifyListeners();
-  }
-  
-  void setRoutePolyline(List<LatLng>? polylinePoints) {
-    _routePolyline = polylinePoints;
     notifyListeners();
   }
   
