@@ -58,8 +58,6 @@ class MyApp extends StatelessWidget {
       final locationService = Provider.of<LocationService>(context, listen: false);
       
       locationService.startLocationUpdates(context);
-      
-      LocationHandler.fetchNearbyPlacesAtCurrentLocation(context);
     });
 
     return MaterialApp(
