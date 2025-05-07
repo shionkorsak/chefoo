@@ -1,3 +1,7 @@
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/services/auth/auth_gate.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/testScreen.dart';
@@ -20,6 +24,10 @@ Future<void> initializeApp() async {
 }
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   try {
     await initializeApp();
   } catch (e) {
@@ -61,16 +69,16 @@ class MyApp extends StatelessWidget {
     });
 
     return MaterialApp(
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
+        theme: lightTheme,
+        navigatorKey: navigatorKey,
+        home: AuthGate()); //? To authenticate the user's authentication state
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
-        //home: WidgetTestScreen());
-      home: TestScreen());       
-        // this testScreen is only to visualize google maps info
-        // which we are importing, and related widgets
+        //! home: TestScreen());
+          // this testScreen is only to visualize google maps info
+          // which we are importing, and related widgets
   }
 }
