@@ -61,29 +61,17 @@ class RestaurantCard extends StatelessWidget {
                   const SizedBox(height: 16),
                 ],
                 if (place.popularTimes != null && place.popularTimes!.isNotEmpty) ...[
-                  FutureBuilder<void>(
-                    future: Future(() {
-                      print('Popular times data for ${place.name}:');
-                      print('Length: ${place.popularTimes?.length}');
-                      print('Content: ${place.popularTimes}');
-                      return;
-                    }),
-                    builder: (context, snapshot) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Popular Times',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          PopularTimesChart(
-                            popularTimes: place.popularTimes!,
-                            openingHours: place.openingHours,
-                          ),
-                        ],
-                      );
-                    },
+                  ExpansionTile(
+                    title: const Text('Popular Times'),
+                    children: [
+                      SizedBox(
+                        height: 150,
+                        child: PopularTimesChart(
+                          popularTimes: place.popularTimes!,
+                          openingHours: place.openingHours,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                 ],

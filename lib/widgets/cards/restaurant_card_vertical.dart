@@ -10,7 +10,6 @@ class RestaurantCardVertical extends StatelessWidget {
     required this.place,
   }) : super(key: key);
 
-  // Define a safer way to check URLs
   bool isValidImageUrl(String? url) {
     if (url == null || url.isEmpty) return false;
     try {

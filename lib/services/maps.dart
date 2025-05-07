@@ -15,6 +15,8 @@ class PlaceService {
   static const String baseUrl = 'https://maps.googleapis.com/maps/api/place';
   final http.Client client;
 
+  final Map<String, List<Place>> _cachedPlaces = {};
+
   PlaceService({required this.client});
 
   Future<double> getDistance({
@@ -118,6 +120,17 @@ class PlaceService {
     required double radius,
     required String apiKey,
   }) async {
+    final cacheKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}_$radius';
+    
+    if (_cachedPlaces.containsKey(cacheKey)) {
+      print('Using cached places data');
+      return ApiResponse(
+        success: true,
+        message: 'Places loaded from cache',
+        data: _cachedPlaces[cacheKey],
+      );
+    }
+
     try {
       final url = Uri.parse(
         '$baseUrl/nearbysearch/json'
@@ -188,6 +201,8 @@ class PlaceService {
               }
             }
           }
+
+          _cachedPlaces[cacheKey] = places;
 
           return ApiResponse(
             success: true,

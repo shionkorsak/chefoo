@@ -29,6 +29,8 @@ class LocationService with ChangeNotifier {
   bool get useDebugLocation => _useDebugLocation;
   bool get locationChangedSignificantly => _locationChangedSignificantly;
 
+  DateTime _lastLocationUpdate = DateTime.now();
+
   LocationService() {
     _initializeLocation();
   }
@@ -209,8 +211,14 @@ class LocationService with ChangeNotifier {
 
   void startLocationUpdates(BuildContext context) {
     locationStream.listen((position) {
+      // Only update if it's been at least 3 seconds since last update
+      final now = DateTime.now();
+      if (now.difference(_lastLocationUpdate).inSeconds < 3) {
+        return; // Too soon to update
+      }
+      
       _currentPosition = position;
-      print('Location updated: ${position.latitude}, ${position.longitude}');
+      _lastLocationUpdate = now;
       
       if (_lastFetchPosition == null || 
           _calculateDistance(_lastFetchPosition!, position) > 0.2) {
