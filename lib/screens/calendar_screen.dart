@@ -1,18 +1,24 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:chefoo/main.dart';
+import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:chefoo/providers/calendar_state.dart' as provider;
 
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/constants.dart';
-import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/services/calendar_service.dart';
 import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/services/maps.dart';
+import 'package:chefoo/services/location.dart';
+import 'package:chefoo/providers/calendar_state.dart' as provider;
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
@@ -32,7 +38,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _fetchNextEvent();
   }
 
-  Future<void> _fetchNextEvent({bool forceRefresh = false}) async {
+  Future<void> _fetchNextEvent() async {
     if (!mounted) return;
 
     setState(() {
@@ -41,8 +47,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
 
     try {
-      final calendarService = Provider.of<CalendarService>(context, listen: false);
-      final response = await calendarService.getNextEvent(forceRefresh: forceRefresh);
+      final calendarService = CalendarService();
+      final response = await calendarService.getNextEvent();
 
       if (!mounted) return;
 
@@ -51,46 +57,44 @@ class _CalendarScreenState extends State<CalendarScreen> {
           _nextEvent = response.data;
           _isLoading = false;
         });
-      } else {
-        if (response.message == 'User not signed in' ||
-            response.message == 'Google Sign-in required for calendar') {
-          final shouldRefresh = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text('Calendar Access Needed'),
-              content: Text('We need permission to access your calendar. Would you like to grant access now?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text('Grant Access'),
-                ),
-              ],
-            ),
-          ) ?? false;
 
-          if (shouldRefresh && mounted) {
-            await Provider.of<AuthService>(context, listen: false).googleSignIn.signOut();
-            await Provider.of<AuthService>(context, listen: false).googleSignIn.signIn();
-            _fetchNextEvent();
-            return;
+        // Store the next event in the provider
+        if (_nextEvent != null) {
+          final providerInstance = Provider.of<provider.CalendarStateProvider>(context, listen: false);
+          providerInstance.setNextEvent(_nextEvent);
+
+          // If we have a location, geocode it
+          if (_nextEvent!.location.isNotEmpty) {
+            _geocodeAndStoreEventLocation(_nextEvent!.location);
           }
         }
-
+      } else {
         setState(() {
-          _error = response.message;
+          _error = response.error ?? 'Unknown error';
           _isLoading = false;
         });
       }
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
+        _error = e.toString();
         _isLoading = false;
-        _error = 'Error loading calendar: $e';
       });
+    }
+  }
+
+  Future<void> _geocodeAndStoreEventLocation(String address) async {
+    try {
+      final coordinates = await _geocodeAddress(address);
+
+      if (coordinates != null && mounted) {
+        // Store coordinates in provider
+        final providerInstance = Provider.of<provider.CalendarStateProvider>(context, listen: false);
+        providerInstance.setEventLocation(coordinates);
+      }
+    } catch (e) {
+      print('Error geocoding event address: $e');
     }
   }
 
@@ -107,7 +111,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 _isLoading = true;
                 _error = null;
               });
-              _fetchNextEvent(forceRefresh: true);
+              _fetchNextEvent();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Refreshing calendar events...'))
               );
@@ -154,7 +158,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => _fetchNextEvent(forceRefresh: true),
+              onPressed: () => _fetchNextEvent(),
               child: const Text('Refresh Calendar'),
             ),
             const SizedBox(height: 8),
@@ -201,6 +205,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Text('$formattedDate at $formattedTime'),
                   ],
                 ),
+                const SizedBox(height: 16),
+                const Center(
+                  child: Text(
+                    'View this event on your map by going to the Map tab',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -217,14 +232,39 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _findRestaurantsNearEvent(BuildContext context, CalendarEvent event) async {
     try {
       setState(() => _isLoading = true);
-
-      await _geocodeAddressAndFindRestaurants(context, event.location);
-
+      
+      // Geocode the event location to get coordinates
+      LatLng? destination = await _geocodeAddress(event.location);
+      
       if (!mounted) return;
+      
+      if (destination == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not find location on map')),
+        );
+        return;
+      }
 
+      // Load places along the route
+      final response = await _loadPlacesAlongRoute(destination);
+      
+      if (!response.success || response.data == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading restaurants: ${response.message}')),
+        );
+        return;
+      }
+
+      // Navigate to the MapViewScreen with destination and places
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => TestScreen()),
+        MaterialPageRoute(
+          builder: (context) => MapViewScreen(
+            places: response.data!,
+            destination: destination,
+            destinationName: event.title,
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -238,64 +278,113 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  Future<void> _geocodeAddressAndFindRestaurants(BuildContext context, String address) async {
+  Future<ApiResponse<List<Place>>> _loadPlacesAlongRoute(LatLng destination) async {
+    try {
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      
+      final position = locationService.currentPosition;
+      if (position == null) {
+        return ApiResponse(
+          success: false,
+          message: 'Location not available',
+          error: 'Cannot access current location',
+        );
+      }
+      
+      // Create a combined Map to avoid duplicate places
+      final Map<String, Place> allPlaces = {};
+      
+      // 1. Load places near current location
+      final nearCurrentResponse = await placeService.getNearbyPlaces(
+        lat: position.latitude, 
+        lng: position.longitude,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
+      );
+      
+      if (nearCurrentResponse.success && nearCurrentResponse.data != null) {
+        for (var place in nearCurrentResponse.data!) {
+          allPlaces[place.id] = place;
+        }
+      }
+      
+      // 2. Load places near destination
+      final nearDestinationResponse = await placeService.getNearbyPlaces(
+        lat: destination.latitude,
+        lng: destination.longitude,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
+      );
+      
+      if (nearDestinationResponse.success && nearDestinationResponse.data != null) {
+        for (var place in nearDestinationResponse.data!) {
+          allPlaces[place.id] = place;
+        }
+      }
+      
+      // 3. Load places near midpoint of the route
+      final midLat = (position.latitude + destination.latitude) / 2;
+      final midLng = (position.longitude + destination.longitude) / 2;
+      
+      final midpointResponse = await placeService.getNearbyPlaces(
+        lat: midLat,
+        lng: midLng,
+        radius: 1500, // Slightly larger radius
+        apiKey: MapsConstants.mapsKey,
+      );
+      
+      if (midpointResponse.success && midpointResponse.data != null) {
+        for (var place in midpointResponse.data!) {
+          allPlaces[place.id] = place;
+        }
+      }
+      
+      return ApiResponse(
+        success: true,
+        message: 'Places loaded successfully',
+        data: allPlaces.values.toList(),
+      );
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Error loading places: ${e.toString()}',
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<LatLng?> _geocodeAddress(String address) async {
     try {
       final apiKey = MapsConstants.mapsKey;
       if (apiKey.isEmpty) {
         throw Exception('Google Maps API Key not found');
       }
-
+      
       final encodedAddress = Uri.encodeComponent(address);
-
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/geocode/json'
         '?address=$encodedAddress'
         '&key=$apiKey'
       );
-
+      
       final response = await http.get(url);
-
+      
       if (response.statusCode != 200) {
-        throw Exception('Failed to geocode address: ${response.statusCode}');
+        throw Exception('Geocoding API error: ${response.statusCode}');
       }
-
+      
       final data = json.decode(response.body);
-
-      if (data['status'] != 'OK' || (data['results'] as List).isEmpty) {
-        throw Exception('No location found for address: $address');
+      
+      if (data['status'] != 'OK' || data['results'].isEmpty) {
+        throw Exception('No results found for this address');
       }
-
+      
       final location = data['results'][0]['geometry']['location'];
-      final lat = location['lat'] as double;
-      final lng = location['lng'] as double;
-
-      print('Geocoded "$address" to: $lat, $lng');
-
-      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-      final placeService = Provider.of<PlaceService>(context, listen: false);
-
-      restaurantProvider.setLoading(true);
-
-      final restaurantResponse = await placeService.getNearbyPlaces(
-        lat: lat,
-        lng: lng,
-        radius: 1000.0,
-        apiKey: apiKey,
-      );
-
-      if (!restaurantResponse.success) {
-        throw Exception(restaurantResponse.message);
-      }
-
-      restaurantProvider.setPlaces(restaurantResponse.data!);
-
+      return LatLng(location['lat'], location['lng']);
     } catch (e) {
-      print('Error in geocoding: $e');
-      rethrow;
-    } finally {
-      if (context.mounted) {
-        Provider.of<RestaurantProvider>(context, listen: false).setLoading(false);
-      }
+      print('Error geocoding address: $e');
+      return null;
     }
   }
 

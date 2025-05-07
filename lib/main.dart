@@ -3,6 +3,7 @@ import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:chefoo/services/calendar_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'package:chefoo/providers/favorites.dart';
@@ -13,6 +14,7 @@ import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:chefoo/services/location_handler.dart';
+import 'package:chefoo/providers/calendar_state.dart';
 
 import 'commons.dart';
 
@@ -58,6 +60,10 @@ void main() async {
         ),
         Provider<AuthService>(
           create: (_) => AuthService(),
+        ),
+        // Add this new provider
+        ChangeNotifierProvider<CalendarStateProvider>(
+          create: (_) => CalendarStateProvider(),
         ),
       ],
       child: const MyApp(),
