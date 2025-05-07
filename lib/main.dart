@@ -15,6 +15,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:chefoo/services/location_handler.dart';
 import 'package:chefoo/providers/calendar_state.dart';
+import 'package:chefoo/services/preload_service.dart';
 
 import 'commons.dart';
 
@@ -79,8 +80,10 @@ class MyApp extends StatelessWidget {
     // location monitoring after app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationService = Provider.of<LocationService>(context, listen: false);
-      
       locationService.startLocationUpdates(context);
+      
+      // Add this line to preload data after app starts
+      PreloadService.preloadData(context);
     });
 
     return MaterialApp(
