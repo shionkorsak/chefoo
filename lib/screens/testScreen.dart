@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:chefoo/screens/favorites.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:chefoo/constants.dart';
@@ -45,7 +46,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     if (mounted) {
       final position = locationService.currentPosition;
       if (position != null) {
-        await _fetchNearbyPlaces();
+        await _fetchNearbyPlaces(position);
       }
     }
   }
@@ -53,68 +54,51 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final locationService = Provider.of<LocationService>(context);
-    final newPosition = locationService.currentPosition;
     
-    if (newPosition != null && _shouldFetchNewPlaces(newPosition)) {
-      Future.microtask(() => _fetchNearbyPlaces());
+    final locationService = Provider.of<LocationService>(context);
+    
+    if (locationService.locationChangedSignificantly) {
+      print("Location changed significantly, fetching new places");
+      
+      final position = locationService.currentPosition;
+      if (position != null) {
+        _fetchNearbyPlaces(position);
+      }
+      
+      locationService.resetLocationChangedFlag();
     }
   }
 
-  bool _shouldFetchNewPlaces(Position newPosition) {
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    final lastFetchPosition = locationService.lastFetchPosition;
-    
-    if (lastFetchPosition == null) return true;
-
-    final distance = Geolocator.distanceBetween(
-      lastFetchPosition.latitude,
-      lastFetchPosition.longitude,
-      newPosition.latitude,
-      newPosition.longitude,
-    );
-
-    return distance > _minDistanceToRefresh;
-  }
-
-  Future<void> _fetchNearbyPlaces() async {
-    if (!mounted) return;
-
+  Future<void> _fetchNearbyPlaces(Position position) async {
     setState(() {
       _isLoading = true;
     });
-
+    
     try {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      final position = locationService.currentPosition;
-
-      if (position == null) {
-        throw Exception('Location not available');
-      }
-
-      final apiKey = MapsConstants.mapsKey;
+      print('Fetching places for location: ${position.latitude}, ${position.longitude}');
+      
       final placeService = Provider.of<PlaceService>(context, listen: false);
-
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
         radius: 1000.0,
-        apiKey: apiKey,
+        apiKey: MapsConstants.mapsKey,
       );
-
+      
       if (response.success && response.data != null) {
-        final provider = Provider.of<RestaurantProvider>(context, listen: false);
-        provider.setPlaces(response.data!);
-        locationService.setLastFetchPosition(position);
+        print('Successfully loaded ${response.data!.length} places');
+        restaurantProvider.setPlaces(response.data!);
+      } else {
+        print('Failed to load places: ${response.message}');
       }
     } catch (e) {
       print('Error fetching nearby places: $e');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -132,19 +116,38 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
             places: restaurantProvider.places,
             isLoading: _isLoading,
           ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'mapView',
-            child: const Icon(Icons.map),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MapViewScreen(
-                    places: restaurantProvider.places, 
-                  ),
-                ),
-              );
-            },
+          floatingActionButton: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FloatingActionButton(
+                heroTag: 'favorites',
+                child: const Icon(Icons.favorite),
+                backgroundColor: Colors.red,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FavoritesScreen(),
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 16),
+              FloatingActionButton(
+                heroTag: 'mapView',
+                child: const Icon(Icons.map),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MapViewScreen(
+                        places: restaurantProvider.places, 
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         );
       },

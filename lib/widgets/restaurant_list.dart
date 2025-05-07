@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:chefoo/widgets/cards/restaurant_card_vertical.dart';
 import '../models/restaurant.dart';
 import './restaurant_card.dart';
 
@@ -24,7 +25,9 @@ class RestaurantList extends StatelessWidget {
 
     return ListView.builder(
       itemCount: places.length,
-      itemBuilder: (context, index) => RestaurantCard(place: places[index]),
+      // itemBuilder: (context, index) => RestaurantCard(place: places[index]),
+      itemBuilder: (context, index) =>
+          Center(child: RestaurantCardVertical(place: places[index])),
     );
   }
 }

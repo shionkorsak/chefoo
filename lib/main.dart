@@ -2,12 +2,14 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:chefoo/services/location_handler.dart';
 
 import 'commons.dart';
 
@@ -45,6 +47,9 @@ void main() async {
         ChangeNotifierProvider<RestaurantProvider>(
           create: (_) => RestaurantProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => FavoritesProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -56,6 +61,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // location monitoring after app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      
+      locationService.startLocationUpdates(context);
+    });
+
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
