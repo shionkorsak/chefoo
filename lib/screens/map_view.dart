@@ -10,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/restaurant.dart';
 import '../services/location.dart';
 import '../widgets/base_layout.dart';
@@ -50,101 +52,78 @@ class _MapViewScreenState extends State<MapViewScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Load calendar state immediately
-    final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
-    _calendarEvent = calendarState.nextEvent;
-    _eventLocation = calendarState.eventLocation;
-
-    // Create markers first
-    _createMarkersWithDestination();
-
-    // Add a small delay to ensure map is initialized
-    Future.delayed(const Duration(milliseconds: 300), () {
-      // If we have destination from widget props, use that directly
-      if (widget.destination != null) {
-        _drawRouteToDestination(
-          widget.destination!,
-          widget.destinationName ?? 'Event Location',
-        );
-      }
-      // Otherwise check for calendar event
-      else if (_eventLocation != null) {
-        _drawRouteToDestination(
-          _eventLocation!,
-          _calendarEvent?.title ?? 'Event Location',
-        );
-      }
-    });
+    
+    // If we have a specific destination from the widget
+    if (widget.destination != null) {
+      // Load places along this specific route
+      Future.delayed(Duration.zero, () {
+        _loadPlacesAlongRoute(widget.destination!);
+        
+        // Draw the route after a small delay to ensure the map is ready
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _drawRouteToDestination(
+            widget.destination!,
+            widget.destinationName ?? 'Event Location',
+          );
+        });
+      });
+    } 
+    // Otherwise fetch calendar data and use that
+    else {
+      _fetchNextEvent(); // This will handle loading places and drawing the route
+    }
   }
 
-  Future<void> _drawRouteToDestination(LatLng destination, String destinationName) async {
-    if (_mapController == null) return;
-
-    print('STARTING to draw route to $destinationName');
-    print('Polylines count BEFORE: ${_polylines.length}');
-    
-    setState(() {
-      _isLoadingRoute = true;
-      // Clear existing polylines first
-      _polylines.clear();
-    });
-
+  Future<void> _fetchNextEvent() async {
     try {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      final position = locationService.currentPosition;
-
-      if (position == null) {
-        throw Exception('Current location not available');
-      }
-
-      final placeService = Provider.of<PlaceService>(context, listen: false);
-
-      // Get fresh directions every time - don't rely on cache for now
-      final response = await placeService.getDirections(
-        origin: LatLng(position.latitude, position.longitude),
-        destination: destination,
-      );
-
-      print('API Response: ${response.success ? "SUCCESS" : "FAILED"}, Points: ${response.data?.length ?? 0}');
-      if (!response.success) {
-        print('Error: ${response.error}');
-      }
-
-      if (!response.success || response.data == null || response.data!.isEmpty) {
-        throw Exception("Couldn't get directions: ${response.error ?? 'Unknown error'}");
-      }
-
-      // Debug print to verify we have data
-      print('Got route with ${response.data!.length} points');
-
-      // Draw the route
       setState(() {
-        _polylines.add(
-          Polyline(
-            polylineId: const PolylineId('route'),
-            color: Colors.blue,
-            width: 5,
-            points: response.data!,
-          ),
-        );
-        
-        print('Polylines count AFTER: ${_polylines.length}');
+        _isLoadingRoute = true;
       });
-
-      print('Added polyline with ${response.data!.length} points');
-
-      // Add destination marker
-      _addDestinationMarker(destination, destinationName);
-
-      // Fit the map to show the route
-      _fitRouteAndDestination(position, destination);
-
+      
+      // Get calendar service
+      final calendarService = CalendarService();
+      final response = await calendarService.getNextEvent();
+      
+      if (!mounted) return;
+      
+      if (response.success && response.data != null) {
+        // Store the event
+        setState(() {
+          _calendarEvent = response.data;
+        });
+        
+        // If we have an event with location, geocode it
+        if (_calendarEvent != null && _calendarEvent!.location.isNotEmpty) {
+          // Geocode the address to get coordinates
+          final coordinates = await _geocodeAddress(_calendarEvent!.location);
+          
+          if (!mounted) return;
+          
+          if (coordinates != null) {
+            // Store the event location
+            setState(() {
+              _eventLocation = coordinates;
+            });
+            
+            // Load places along the route
+            await _loadPlacesAlongRoute(coordinates);
+            
+            // Draw the route
+            _drawRouteToDestination(coordinates, _calendarEvent!.title);
+            
+            // Store in provider for other screens to use
+            if (mounted) {
+              final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
+              calendarState.setNextEvent(_calendarEvent);
+              calendarState.setEventLocation(coordinates);
+            }
+          }
+        }
+      } else {
+        print('No upcoming events found');
+      }
     } catch (e) {
-      print('ERROR drawing route: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error showing route: ${e.toString()}')),
-      );
+      print('Error fetching next event: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -154,13 +133,161 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
-  Future<void> _loadPlacesAlongRoute(Position position, LatLng destination) async {
+  Future<void> _geocodeAndDrawRoute(CalendarEvent event) async {
     try {
-      final placeService = Provider.of<PlaceService>(context, listen: false);
+      // Geocode the address
+      final coordinates = await _geocodeAddress(event.location);
+      
+      if (!mounted) return;
+      
+      if (coordinates != null) {
+        // Store the location
+        setState(() {
+          _eventLocation = coordinates;
+        });
+        
+        // Draw the route
+        _drawRouteToDestination(
+          coordinates,
+          event.title,
+        );
+        
+        // Store in provider for other screens to use
+        final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
+        calendarState.setNextEvent(event);
+        calendarState.setEventLocation(coordinates);
+      }
+    } catch (e) {
+      print('Error geocoding event address: $e');
+    }
+  }
 
+  Future<LatLng?> _geocodeAddress(String address) async {
+    try {
+      final apiKey = MapsConstants.mapsKey;
+      if (apiKey.isEmpty) {
+        throw Exception('Google Maps API Key not found');
+      }
+      
+      final encodedAddress = Uri.encodeComponent(address);
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json'
+        '?address=$encodedAddress'
+        '&key=$apiKey'
+      );
+      
+      final client = http.Client();
+      final response = await client.get(url);
+      
+      if (response.statusCode != 200) {
+        throw Exception('Geocoding API error: ${response.statusCode}');
+      }
+      
+      final data = json.decode(response.body);
+      
+      if (data['status'] != 'OK' || data['results'].isEmpty) {
+        throw Exception('No results found for this address');
+      }
+      
+      final location = data['results'][0]['geometry']['location'];
+      return LatLng(location['lat'], location['lng']);
+    } catch (e) {
+      print('Error geocoding address: $e');
+      return null;
+    }
+  }
+
+  Future<void> _drawRouteToDestination(LatLng destination, String destinationName) async {
+    print('⭐️ Drawing route to $destinationName');
+    
+    if (_mapController == null) {
+      print('❌ Map controller is null');
+      return;
+    }
+    
+    setState(() {
+      _isLoadingRoute = true;
+      // Clear existing polylines first
+      _polylines.clear();
+      print('🔄 Cleared existing polylines');
+    });
+
+    try {
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final position = locationService.currentPosition;
+
+      if (position == null) {
+        print('❌ Current location not available');
+        throw Exception('Current location not available');
+      }
+
+      print('📍 Getting directions from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      
+      // Get directions
+      final response = await placeService.getDirections(
+        origin: LatLng(position.latitude, position.longitude),
+        destination: destination,
+      );
+      
+      if (!response.success || response.data == null || response.data!.isEmpty) {
+        print('❌ Failed to get directions: ${response.error}');
+        throw Exception("Couldn't get directions: ${response.error ?? 'Unknown error'}");
+      }
+      
+      print('✅ Got route with ${response.data!.length} points');
+
+      // Draw the route
+      setState(() {
+        _polylines.add(
+          Polyline(
+            polylineId: const PolylineId('event_route'),
+            color: Colors.blue,
+            width: 5,
+            points: response.data!,
+          ),
+        );
+        print('🔵 Added polyline with ${response.data!.length} points');
+        print('🔄 Total polylines now: ${_polylines.length}');
+      });
+
+      // Make sure we have a destination marker
+      _addDestinationMarker(destination, destinationName);
+      
+      // Fit the map to show the entire route
+      _fitRouteAndDestination(position, destination);
+      
+    } catch (e) {
+      print('❌ ERROR drawing route: $e');
+      // Don't show error to user unless it's a critical failure
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingRoute = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadPlacesAlongRoute(LatLng destination) async {
+    try {
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final position = locationService.currentPosition;
+      
+      if (position == null) {
+        print('Current location not available');
+        return;
+      }
+      
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      
+      print('📍 Loading places along route from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      
       // Create a combined Map to avoid duplicate places
       final Map<String, Place> allPlaces = {};
-
+      
       // 1. Load places near current location
       final nearCurrentResponse = await placeService.getNearbyPlaces(
         lat: position.latitude, 
@@ -168,13 +295,14 @@ class _MapViewScreenState extends State<MapViewScreen> {
         radius: 1000,
         apiKey: MapsConstants.mapsKey,
       );
-
+      
       if (nearCurrentResponse.success && nearCurrentResponse.data != null) {
         for (var place in nearCurrentResponse.data!) {
           allPlaces[place.id] = place;
         }
+        print('📍 Loaded ${nearCurrentResponse.data!.length} places near current location');
       }
-
+      
       // 2. Load places near destination
       final nearDestinationResponse = await placeService.getNearbyPlaces(
         lat: destination.latitude,
@@ -182,44 +310,106 @@ class _MapViewScreenState extends State<MapViewScreen> {
         radius: 1000,
         apiKey: MapsConstants.mapsKey,
       );
-
+      
       if (nearDestinationResponse.success && nearDestinationResponse.data != null) {
         for (var place in nearDestinationResponse.data!) {
           allPlaces[place.id] = place;
         }
+        print('📍 Loaded ${nearDestinationResponse.data!.length} places near destination');
       }
-
+      
       // 3. Load places near midpoint of the route
       final midLat = (position.latitude + destination.latitude) / 2;
       final midLng = (position.longitude + destination.longitude) / 2;
-
+      
       final midpointResponse = await placeService.getNearbyPlaces(
         lat: midLat,
         lng: midLng,
-        radius: 1500, // Slightly larger radius
+        radius: 1500, // Slightly larger radius for midpoint
         apiKey: MapsConstants.mapsKey,
       );
-
+      
       if (midpointResponse.success && midpointResponse.data != null) {
         for (var place in midpointResponse.data!) {
           allPlaces[place.id] = place;
         }
+        print('📍 Loaded ${midpointResponse.data!.length} places near route midpoint');
       }
-
-      // Update the RestaurantProvider to persist these places
+      
+      // 4. If the distance is significant, add a quarter and three-quarter points
+      final distance = _calculateDistance(
+        position.latitude, position.longitude,
+        destination.latitude, destination.longitude
+      );
+      
+      if (distance > 3000) { // If more than 3km apart
+        // Quarter point
+        final quarterLat = position.latitude + (destination.latitude - position.latitude) * 0.25;
+        final quarterLng = position.longitude + (destination.longitude - position.longitude) * 0.25;
+        
+        final quarterResponse = await placeService.getNearbyPlaces(
+          lat: quarterLat,
+          lng: quarterLng,
+          radius: 1000,
+          apiKey: MapsConstants.mapsKey,
+        );
+        
+        if (quarterResponse.success && quarterResponse.data != null) {
+          for (var place in quarterResponse.data!) {
+            allPlaces[place.id] = place;
+          }
+          print('📍 Loaded ${quarterResponse.data!.length} places at quarter point');
+        }
+        
+        // Three-quarter point
+        final threeQuarterLat = position.latitude + (destination.latitude - position.latitude) * 0.75;
+        final threeQuarterLng = position.longitude + (destination.longitude - position.longitude) * 0.75;
+        
+        final threeQuarterResponse = await placeService.getNearbyPlaces(
+          lat: threeQuarterLat,
+          lng: threeQuarterLng,
+          radius: 1000,
+          apiKey: MapsConstants.mapsKey,
+        );
+        
+        if (threeQuarterResponse.success && threeQuarterResponse.data != null) {
+          for (var place in threeQuarterResponse.data!) {
+            allPlaces[place.id] = place;
+          }
+          print('📍 Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
+        }
+      }
+      
+      print('📍 Total unique places along route: ${allPlaces.length}');
+      
+      // Update the places in the provider
       if (mounted) {
-        final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-        restaurantProvider.setPlaces(allPlaces.values.toList());
-
+        final places = allPlaces.values.toList();
+        restaurantProvider.setPlaces(places);
+        
         // Update our local UI with these places
         setState(() {
-          // Need to update markers with the new places
           _createMarkersWithDestination();
         });
       }
     } catch (e) {
       print('Error loading places along route: $e');
     }
+  }
+
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const r = 6371000; // Earth radius in meters
+    final phi1 = lat1 * (math.pi / 180);
+    final phi2 = lat2 * (math.pi / 180);
+    final deltaPhi = (lat2 - lat1) * (math.pi / 180);
+    final deltaLambda = (lon2 - lon1) * (math.pi / 180);
+    
+    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+             math.cos(phi1) * math.cos(phi2) *
+             math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    
+    return r * c; // Distance in meters
   }
 
   void _addDestinationMarker(LatLng destination, String name) {
@@ -469,24 +659,24 @@ class _MapViewScreenState extends State<MapViewScreen> {
               print('Map created');
               _mapController = controller;
 
-              // Fit bounds based on available destination info
-              if (widget.destination != null || _eventLocation != null) {
-                // Wait a bit longer before drawing the route
-                Future.delayed(const Duration(milliseconds: 1000), () {
-                  if (widget.destination != null) {
-                    print('Drawing route from widget destination (delayed)');
-                    _drawRouteToDestination(
-                      widget.destination!,
-                      widget.destinationName ?? 'Event Location'
-                    );
-                  } else if (_eventLocation != null) {
-                    print('Drawing route from calendar event (delayed)');
-                    _drawRouteToDestination(
-                      _eventLocation!,
-                      _calendarEvent?.title ?? 'Event Location'
-                    );
-                  }
-                });
+              // Fit bounds based on what information we have
+              if (widget.destination != null) {
+                // If we have destination from widget props
+                final locationService = Provider.of<LocationService>(context, listen: false);
+                final position = locationService.currentPosition;
+                if (position != null) {
+                  _fitRouteAndDestination(position, widget.destination!);
+                }
+              } else if (_eventLocation != null) {
+                // If we already fetched the event location
+                final locationService = Provider.of<LocationService>(context, listen: false);
+                final position = locationService.currentPosition;
+                if (position != null) {
+                  _fitRouteAndDestination(position, _eventLocation!);
+                }
+              } else {
+                // Otherwise just fit to current places
+                _fitBounds();
               }
             },
             onTap: (_) => _resetMapView(currentPosition),
