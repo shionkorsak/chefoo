@@ -11,6 +11,10 @@ export const userProfileSchema = z.object({ // TODO: google calendar link
 })
 
 export const userPreferenceSchema = z.object({
+    description: z.array(z.string()),
+    likedFood: z.array(z.string()),
+    dislikedFood: z.array(z.string()),
+    cuisine: z.array(z.string()),
     dietaryPreferences: z.array(z.string()),
     allergies: z.array(z.string()),
 })
@@ -20,7 +24,8 @@ export const healthInsightSchema = z.object({
     weeklyData: z.array(
         z.object({
             week: z.number(),
-            ratio: z.number().min(0).max(1)
+            ratio: z.number().min(0).max(1),
+            comment: z.string()
         })
     )
 })
@@ -28,11 +33,15 @@ export const healthInsightSchema = z.object({
 export const restaurantRatingSchema = z.object({
     rating: z.number().min(1).max(5),
     feedback: z.string().max(1000),
+    meal: z.array(z.string()),
     mealImageUrl: z.string().url().optional(),
 })
 
 export const restaurantSchema = z.object({
     id: z.any(),
+    name: z.string(),
+    address: z.string(),
+    rating: restaurantRatingSchema,
     favorite: z.boolean(),
 })
 
@@ -40,11 +49,6 @@ export const userAccountSchema = z.object({
     profile: userProfileSchema,
     preferences: userPreferenceSchema,
     healthInsight: healthInsightSchema,
-    gpsStatus: z.boolean(),
-    notificationStatus: z.boolean(),
-    restaurantRatings: z.array(
-        restaurantRatingSchema
-    ),
     restaurantHistory: z.array(
         restaurantSchema
     ),

@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:chefoo/screens/login/login_screen.dart';
+import 'package:chefoo/screens/placeholder/playground.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,8 @@ class AuthGate extends StatelessWidget {
         builder: (context, snapshot) {
           if(snapshot.hasData) {
             log("Has logged in.");
-            return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
+            // return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
+            return UserProfileScreen();
           } else {
             log("Has not logged in.");
             return const LoginScreen(); //TODO: will change this to onboarding screens when frontend has made it
