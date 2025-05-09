@@ -1,9 +1,11 @@
+import 'package:chefoo/providers/restaurant.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
 
 class LocationService with ChangeNotifier {
-  static const bool debugMode = true;  // Set to true for emulator testing
+  static const bool debugMode = true; 
   static const debugLat = 24.795653;   // delta building coordinates
   static const debugLng = 120.991744;
 
@@ -15,11 +17,17 @@ class LocationService with ChangeNotifier {
   bool _isRequestingPermission = false;
   bool _useDebugLocation = false; 
 
+  bool _locationChangedSignificantly = false;
+
+  final _locationChangedController = StreamController<Position>.broadcast();
+  Stream<Position> get locationChangedStream => _locationChangedController.stream;
+
   Position? get currentPosition => _currentPosition;
   Position? get lastFetchPosition => _lastFetchPosition;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get useDebugLocation => _useDebugLocation;
+  bool get locationChangedSignificantly => _locationChangedSignificantly;
 
   LocationService() {
     _initializeLocation();
@@ -63,10 +71,9 @@ class LocationService with ChangeNotifier {
     }
   }
 
-  // New method to toggle between debug and real GPS
   void toggleDebugMode(bool enabled) {
     _useDebugLocation = enabled;
-    getCurrentLocation();  // Refresh location with new mode
+    getCurrentLocation();
   }
 
   Future<void> getCurrentLocation() async {
@@ -75,7 +82,6 @@ class LocationService with ChangeNotifier {
       return;
     }
 
-    // Set loading without notification
     _isLoading = true;
 
     try {
@@ -88,18 +94,16 @@ class LocationService with ChangeNotifier {
         return;
       }
 
-      // Check location service first
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Location services are disabled. Please enable GPS.');
       }
 
-      // Then check permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _setDebugLocation(); // Fallback to debug location
+          _setDebugLocation();
           _lastFetchPosition = _currentPosition;
           _isLoading = false;
           notifyListeners();
@@ -108,7 +112,7 @@ class LocationService with ChangeNotifier {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _setDebugLocation(); // Fallback to debug location
+        _setDebugLocation();
         _lastFetchPosition = _currentPosition;
         _isLoading = false;
         notifyListeners();
@@ -132,7 +136,6 @@ class LocationService with ChangeNotifier {
       _lastFetchPosition = _currentPosition;
     } finally {
       _isLoading = false;
-      // Single notification at the end
       notifyListeners();
     }
   }
@@ -176,6 +179,7 @@ class LocationService with ChangeNotifier {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
+    _locationChangedController.close();
     super.dispose();
   }
 
@@ -194,5 +198,48 @@ class LocationService with ChangeNotifier {
     } else {
       return '${(distance / 1000).toStringAsFixed(1)}km';
     }
+  }
+
+  Stream<Position> get locationStream => Geolocator.getPositionStream(
+        locationSettings: LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 100,
+        ),
+      );
+
+  void startLocationUpdates(BuildContext context) {
+    locationStream.listen((position) {
+      _currentPosition = position;
+      print('Location updated: ${position.latitude}, ${position.longitude}');
+      
+      if (_lastFetchPosition == null || 
+          _calculateDistance(_lastFetchPosition!, position) > 0.2) {
+        
+        print('Location changed significantly');
+        _lastFetchPosition = position;
+        _locationChangedSignificantly = true;
+        
+        _locationChangedController.add(position);
+        
+        notifyListeners();
+      }
+    });
+  }
+
+  void resetLocationChangedFlag() {
+    _locationChangedSignificantly = false;
+  }
+
+  double _calculateDistance(Position pos1, Position pos2) {
+    return Geolocator.distanceBetween(
+      pos1.latitude, 
+      pos1.longitude, 
+      pos2.latitude, 
+      pos2.longitude
+    ) / 1000;
+  }
+
+  double calculateDistance(Position pos1, Position pos2) {
+    return _calculateDistance(pos1, pos2);
   }
 }

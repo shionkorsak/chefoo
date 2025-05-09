@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';  // Add this for SocketException
-import 'dart:async';  // Add this for TimeoutException
+import 'dart:io';
+import 'dart:async';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/services/popular_times.dart';
 import 'package:http/http.dart' as http;
@@ -154,6 +154,9 @@ class PlaceService {
 
           for (var place in limitedResults) {
             final types = List<String>.from(place['types'] ?? []);
+            
+            print('Restaurant "${place['name']}" has these types: $types');
+            
             if (_isFoodRelatedPlace(types)) {
               try {
                 final walkingDistance = await getWalkingDistance(
@@ -167,7 +170,14 @@ class PlaceService {
                 if (walkingDistance <= 1.0) {
                   print('Fetching details for food place: ${place['name']}');
                   final details = await getPlaceDetails(place['place_id']);
+                  
+                  final tags = _convertTypesToTags(types);
+                  
+                  print('Converted to these tags: $tags');
+                  
                   final placeWithDetails = Place.fromGooglePlace(place, details);
+                  placeWithDetails.tags = tags;
+                  
                   placeWithDetails.walkingDistance = walkingDistance;
                   places.add(placeWithDetails);
                   print('Added food place: ${placeWithDetails.name} (${walkingDistance}km walking)');
@@ -221,5 +231,38 @@ class PlaceService {
     };
 
     return types.any((type) => foodRelatedTypes.contains(type));
+  }
+
+  List<String> _convertTypesToTags(List<String> types) {
+    final Map<String, String> typeToTag = {
+      'restaurant': 'Restaurant',
+      'cafe': 'Cafe',
+      'bakery': 'Bakery',
+      'bar': 'Bar',
+      'meal_takeaway': 'Takeout',
+      'food': 'Food',
+      'meal_delivery': 'Delivery',
+      'supermarket': 'Grocery',
+      'convenience_store': 'Convenience',
+      'grocery_or_supermarket': 'Grocery',
+      'fast_food': 'Fast Food',
+      'pizza': 'Pizza',
+      'burger': 'Burger',
+      'sushi': 'Sushi',
+      'italian': 'Italian',
+    };
+    
+    final tags = <String>[];
+    for (final type in types) {
+      if (typeToTag.containsKey(type)) {
+        tags.add(typeToTag[type]!);
+      }
+    }
+    
+    if (tags.isEmpty) {
+      tags.add('NoTag');
+    }
+    
+    return tags;
   }
 }
