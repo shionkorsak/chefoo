@@ -1,2 +1,0 @@
-C:/Users/1113r/dev/SoftwareStudio_Flutter/chefoo/android/app/.cxx/Debug/726k451x/armeabi-v7a/CMakeFiles/edit_cache.dir
-C:/Users/1113r/dev/SoftwareStudio_Flutter/chefoo/android/app/.cxx/Debug/726k451x/armeabi-v7a/CMakeFiles/rebuild_cache.dir
