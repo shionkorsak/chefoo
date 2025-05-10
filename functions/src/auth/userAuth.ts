@@ -27,7 +27,6 @@ export const createUserAccount =
             healthScore: 0,
             weeklyData: [],
           },
-          restaurantHistory: [],
           favoriteRestaurant: [],
       };
 
@@ -39,7 +38,6 @@ export const createUserAccount =
             profile: userAccount.profile,
             preferences: userAccount.preferences,
             healthInsights: userAccount.healthInsight,
-            restaurantHistory: userAccount.restaurantHistory,
             favoriteRestaurant: userAccount.favoriteRestaurant
         });
 

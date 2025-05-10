@@ -37,21 +37,40 @@ export const restaurantRatingSchema = z.object({
     mealImageUrl: z.string().url().optional(),
 })
 
-export const restaurantSchema = z.object({
+export const restaurantSchema_ = z.object({
     id: z.any(),
     name: z.string(),
     address: z.string(),
-    rating: restaurantRatingSchema,
+    userFeedback: z.string(restaurantRatingSchema).nullable(),
     favorite: z.boolean(),
+})
+
+export const mealInput = z.object({
+    name: z.string(),
+    comment: z.string(),
+    rating: z.number(),
+})
+
+export const restaurantSchema =  z.object({
+    restaurantId: z.string(),
+    restaurantName: z.string(),
+    location: 
+        z.object({
+            lat: z.number(),
+            lng: z.number(),
+        }),
+    meals: z.array(
+        mealInput
+    ),
+    overallRating: z.number(),
+    tags: z.array(z.string()),
+    notes: z.string()
 })
 
 export const userAccountSchema = z.object({
     profile: userProfileSchema,
     preferences: userPreferenceSchema,
     healthInsight: healthInsightSchema,
-    restaurantHistory: z.array(
-        restaurantSchema
-    ),
     favoriteRestaurant: z.array(
         restaurantSchema
     )
