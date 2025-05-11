@@ -30,21 +30,6 @@ export const healthInsightSchema = z.object({
     )
 })
 
-export const restaurantRatingSchema = z.object({
-    rating: z.number().min(1).max(5),
-    feedback: z.string().max(1000),
-    meal: z.array(z.string()),
-    mealImageUrl: z.string().url().optional(),
-})
-
-export const restaurantSchema_ = z.object({
-    id: z.any(),
-    name: z.string(),
-    address: z.string(),
-    userFeedback: z.string(restaurantRatingSchema).nullable(),
-    favorite: z.boolean(),
-})
-
 export const mealInput = z.object({
     name: z.string(),
     comment: z.string(),
@@ -70,10 +55,12 @@ export const restaurantSchema =  z.object({
 export const userAccountSchema = z.object({
     profile: userProfileSchema,
     preferences: userPreferenceSchema,
-    healthInsight: healthInsightSchema,
-    favoriteRestaurant: z.array(
-        restaurantSchema
-    )
+    healthInsight: healthInsightSchema
+})
+
+export const clientUpdatePreferenceSchema = z.object({
+    dietaryPreferences: z.array(z.string()),
+    allergies: z.array(z.string())
 })
 
 export type UserAccount = z.infer<typeof userAccountSchema>;

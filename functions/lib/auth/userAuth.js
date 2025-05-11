@@ -60,8 +60,6 @@ exports.createUserAccount = functions.auth.user().onCreate(async (user) => {
             healthScore: 0,
             weeklyData: [],
         },
-        restaurantHistory: [],
-        favoriteRestaurant: [],
     };
     try {
         schema_1.userAccountSchema.parse(userAccount);
@@ -70,8 +68,6 @@ exports.createUserAccount = functions.auth.user().onCreate(async (user) => {
             profile: userAccount.profile,
             preferences: userAccount.preferences,
             healthInsights: userAccount.healthInsight,
-            restaurantHistory: userAccount.restaurantHistory,
-            favoriteRestaurant: userAccount.favoriteRestaurant
         });
         console.log(`Created user doc and subcollections (empty for favorites & history) for UID ${uid}`);
     }

@@ -5,6 +5,7 @@ import 'package:chefoo/models/user/user_preference.dart';
 import 'package:chefoo/models/user/user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user/user_account.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 //? ONLY CLIENT SIDE, SERVER (AI) WILL BE DONE BY FUNCTIONS
 class UserAccountService {
@@ -32,16 +33,21 @@ class UserAccountService {
     required List<String> allergies,
   }) async {
     try {
-      final currentUid = uid;
-      if (currentUid == null) throw Exception('No authenticated user.');
-      
-      await _firestore.collection('users').doc(currentUid).update({
-        'preferences.dietaryPreferences': dietaryPreferences,
-        'preferences.allergies': allergies,
+      final callable = FirebaseFunctions.instance.httpsCallable('updateClientPreferences');
+
+      final response = await callable.call({
+        'dietaryPreferences': dietaryPreferences,
+        'allergies': allergies,
       });
-      return true;
+
+      // Optional: check response payload
+      if (response.data['success'] == true) {
+        return true;
+      } else {
+        throw Exception(response.data['message'] ?? 'Unknown error from cloud function.');
+      }
     } catch (e) {
-      log('Failed to update user preferences: $e');
+      print('Failed to update user preferences: $e');
       return false;
     }
   }

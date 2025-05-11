@@ -8,88 +8,76 @@ function mergeUniqueArrays<T = string>(...arrays: T[][]): T[] {
 }
 
 export const updatePreference = ai.defineFlow({
-    name: 'updatePreference',
-    inputSchema: z.object({
-        userId: z.string()
-    })
-},
-    async({userId}) => {
-        const db = firestore();
-        const historySnap = await db.collection(`users/${userId}/history`).get();
-        // console.log(historySnap.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+  name: 'updatePreference',
+  inputSchema: z.object({
+    userId: z.string()
+  })
+}, async ({ userId }) => {
+  const db = firestore();
+  const historySnap = await db.collection(`users/${userId}/history`).get();
+  if (historySnap.empty) return;
 
-        const data = historySnap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
-        if(historySnap.empty) return;
-        
-        const parsedResults = data.map(doc => restaurantSchema.safeParse(doc.data));
+  const historyData = historySnap.docs.map(doc => doc.data());
+  const parsedResults = historyData.map(data => restaurantSchema.safeParse(data));
 
-        const validEntries = parsedResults
-            .filter(res => res.success)
-            .map(res => res.data);
-        const failedEntries = parsedResults
-            .filter(res => !res.success)
-        
-        if(failedEntries.length > 0) {
-            console.log(`Skipped ${failedEntries.length} invalid history entries`);
-        }
-        const historyText = validEntries.map(entry => {
-            const meals = (entry.meals || []).map(
-                (m: any) => `- ${m.name}: ${m.rating}/5 - "${m.comment}"`
-            ).join('\n');
-            return `Restaurant: ${entry.restaurantName}\nMeals:\n${meals}\nOverall: ${entry.overallRating}/5\nNotes: ${entry.notes}`;
-        }).join(`\n\n`);
+  const validEntries = parsedResults.filter(r => r.success).map(r => r.data);
+  const invalidCount = parsedResults.length - validEntries.length;
+  if (invalidCount > 0) {
+    console.log(`Skipped ${invalidCount} invalid history entries`);
+  }
 
-        const prompt = `
-            Based on the following restaurant history, return a JSON object with these fields:
-            - description: string, user's food personality
-            - likedFood: array of strings, based on the meal input, decide which meal is liked by user
-            - dislikedFood: array of strings, based on the meal input, decide which meal is disliked by user
-            - cuisine: array of strings, based on the meal input, decide whether the user prefer which country of cuisine they like, this can be left empty
+  const historyText = validEntries.map(entry => {
+    const meals = (entry.meals || []).map(
+      (m: any) => `- ${m.name}: ${m.rating}/5 - "${m.comment}"`
+    ).join('\n');
 
-            History:
-            ${historyText}
+    return `Restaurant: ${entry.restaurantName}\nMeals:\n${meals}\nOverall: ${entry.overallRating}/5\nNotes: ${entry.notes}`;
+  }).join('\n\n');
 
-            JSON:
-        `;
+  const prompt = `
+    Based on the following restaurant history, return a JSON object with these fields:
+    - description: string, user's food personality
+    - likedFood: array of strings, based on the meal input, decide which meal is liked by user
+    - dislikedFood: array of strings, based on the meal input, decide which meal is disliked by user
+    - cuisine: array of strings, based on the meal input, decide whether the user prefer which country of cuisine they like, this can be left empty
 
-        const result = await ai.generate({
-            prompt
-        });
+    History:
+    ${historyText}
 
-        let parsed;
-        try {
-            const cleanedResponse = result.text.replace(/^```json\n/, '').replace(/```$/, '').trim();
-            parsed = JSON.parse(cleanedResponse);
-        } catch (e) {
-            console.error('Failed to parse AI response as JSON:', result.text);
-            throw new Error('AI response was not valid JSON');
-        }
+    JSON:
+  `;
 
-        const userRef = db.collection('users').doc(`${userId}`);
-        const userDoc = await userRef.get();
-        const current = userDoc.exists ? userDoc.data()?.preference || {} : {};
+  const result = await ai.generate({ prompt });
 
-        const updatedPreference = {
-            description: mergeUniqueArrays([parsed.description], current.description ?? []),
-            likedFood: mergeUniqueArrays(parsed.likedFood, current.likedFood ?? []),
-            dislikedFood: mergeUniqueArrays(parsed.dislikedFood, current.dislikedFood ?? []),
-            cuisine: mergeUniqueArrays(parsed.cuisine, current.cuisine ?? [])
-        };
+  let parsed;
+  try {
+    const cleaned = result.text.replace(/^```json\n/, '').replace(/```$/, '').trim();
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    console.error('Failed to parse AI response as JSON:', result.text);
+    throw new Error('AI response was not valid JSON');
+  }
 
-        await userRef.set({ preference: updatedPreference }, { merge: true});
-        console.log(`Updating user at path: users/${userId}`);
+  const userRef = db.collection('users').doc(userId);
+  const userDoc = await userRef.get();
+  const currentPref = userDoc.exists ? userDoc.data()?.preference || {} : {};
 
-        const updatedUserDoc = await userRef.get();
-        if (updatedUserDoc.exists) {
-            const updatedData = updatedUserDoc.data();
-            if (updatedData?.preference) {
-                console.log('Preference successfully updated:', updatedData.preference);
-            } else {
-                console.error('Failed to update preferences.');
-            }
-        } else {
-            console.error('User document not found after update.');
-        }
-        return result.text;
-    }
-)
+  const updatedPreference = {
+    description: mergeUniqueArrays([parsed.description], currentPref.description ?? []),
+    likedFood: mergeUniqueArrays(parsed.likedFood, currentPref.likedFood ?? []),
+    dislikedFood: mergeUniqueArrays(parsed.dislikedFood, currentPref.dislikedFood ?? []),
+    cuisine: mergeUniqueArrays(parsed.cuisine, currentPref.cuisine ?? [])
+  };
+
+  await userRef.set({ preference: updatedPreference }, { merge: true });
+  console.log(`Updated preferences for user: ${userId}`);
+
+  const updatedUserDoc = await userRef.get();
+  if (updatedUserDoc.exists && updatedUserDoc.data()?.preference) {
+    console.log('Preference successfully updated:', updatedUserDoc.data()?.preference);
+  } else {
+    console.error('Failed to update or retrieve preferences.');
+  }
+
+  return result.text;
+});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import '../commons.dart';
-import '../constants.dart';
+import '../../commons.dart';
+import '../../constants.dart';
 
 class LocationHandler {
   static Future<void> initializeLocation(BuildContext context) async {

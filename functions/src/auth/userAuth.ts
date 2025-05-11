@@ -27,7 +27,6 @@ export const createUserAccount =
             healthScore: 0,
             weeklyData: [],
           },
-          favoriteRestaurant: [],
       };
 
       try {
@@ -38,7 +37,6 @@ export const createUserAccount =
             profile: userAccount.profile,
             preferences: userAccount.preferences,
             healthInsights: userAccount.healthInsight,
-            favoriteRestaurant: userAccount.favoriteRestaurant
         });
 
         console.log(`Created user doc and subcollections (empty for favorites & history) for UID ${uid}`);
