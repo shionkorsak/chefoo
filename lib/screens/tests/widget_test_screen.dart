@@ -1,3 +1,4 @@
+import 'package:chefoo/widgets/buttons/arrow_button.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/border_text_field.dart';
@@ -50,15 +51,16 @@ class WidgetTestScreen extends StatelessWidget {
                 SizedBox(
                   height: 32,
                 ),
-                DotsPageIndicator(pageCount: 5, currentPage: 4)
+                DotsPageIndicator(pageCount: 5, currentPage: 4),
+                SizedBox(
+                  height: 32,
+                ),
+                ArrowButton(
+                  onPressed: () {},
+                )
               ],
             ),
-            SizedBox(
-              height: 32,
-            ),
-            SizedBox(
-              height: 32,
-            ),
+
             // RestaurantCardVertical()
           ],
         ),
