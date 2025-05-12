@@ -63,7 +63,7 @@ void main() async {
         Provider<AuthService>(
           create: (_) => AuthService(),
         ),
-        // Add this new provider
+
         ChangeNotifierProvider<CalendarStateProvider>(
           create: (_) => CalendarStateProvider(),
         ),
@@ -79,6 +79,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // location monitoring after app starts
+    // dont touch pls
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationService = Provider.of<LocationService>(context, listen: false);
       locationService.startLocationUpdates(context);
@@ -89,14 +90,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
-        //home: AuthGate());
+        home: AuthGate());
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         // home: WidgetTestScreen());
-        home: TestScreen());
+        //home: TestScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }

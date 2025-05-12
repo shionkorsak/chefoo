@@ -19,14 +19,14 @@ import '../widgets/restaurant_card.dart';
 
 class MapViewScreen extends StatefulWidget {
   final List<Place> places;
-  final LatLng? destination; // Add this parameter
-  final String? destinationName; // Add this parameter
+  final LatLng? destination;
+  final String? destinationName;
 
   const MapViewScreen({
     Key? key,
     required this.places,
-    this.destination, // Add this parameter
-    this.destinationName, // Add this parameter
+    this.destination,
+    this.destinationName,
   }) : super(key: key);
 
   @override
@@ -34,9 +34,9 @@ class MapViewScreen extends StatefulWidget {
 }
 
 class _MapViewScreenState extends State<MapViewScreen> {
-  static const double _initialZoom = 18.0;
-  static const double _maxZoom = 20.0; // Initial + 2 levels
-  static const double _minZoom = 16.0; // Initial - 2 levels
+  static const double _initialZoom = 20.0;
+  static const double _maxZoom = 21.0;
+  static const double _minZoom = 17.0;
   static const double _mapPadding = 50.0;
   static const double _boundsPadding = 0.001;
 
@@ -48,15 +48,14 @@ class _MapViewScreenState extends State<MapViewScreen> {
   CalendarEvent? _calendarEvent;
   LatLng? _eventLocation;
   bool _isLoadingRoute = false;
+  bool _hasActiveRoute = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Create markers from preloaded data
     _createMarkersWithDestination();
 
-    // If we have a specific destination from navigation, use it
     if (widget.destination != null) {
       Future.delayed(const Duration(milliseconds: 300), () {
         _drawRouteToDestination(
@@ -65,7 +64,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
         );
       });
     }
-    // Otherwise check if we have a preloaded event destination
     else {
       final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
       if (calendarState.eventLocation != null) {
@@ -82,44 +80,121 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
+  CameraPosition _getInitialCameraPosition() {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
+
+    if (calendarState.nextEvent != null &&
+        calendarState.eventLocation != null &&
+        locationService.currentPosition != null) {
+      _hasActiveRoute = true;
+
+      final LatLngBounds bounds = LatLngBounds(
+        southwest: LatLng(
+          math.min(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
+          math.min(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
+        ),
+        northeast: LatLng(
+          math.max(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
+          math.max(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
+        ),
+      );
+
+      return CameraPosition(
+        target: LatLng(
+          (bounds.southwest.latitude + bounds.northeast.latitude) / 2,
+          (bounds.southwest.longitude + bounds.northeast.longitude) / 2,
+        ),
+        zoom: 14.0,
+      );
+    }
+
+    return CameraPosition(
+      target: LatLng(
+        locationService.currentPosition?.latitude ?? 0.0,
+        locationService.currentPosition?.longitude ?? 0.0,
+      ),
+      zoom: 15.0,
+    );
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
+
+  void _centerOnRoute() {
+    if (!_hasActiveRoute || _mapController == null) return;
+
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
+
+    if (calendarState.eventLocation != null && locationService.currentPosition != null) {
+      final LatLngBounds bounds = LatLngBounds(
+        southwest: LatLng(
+          math.min(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
+          math.min(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
+        ),
+        northeast: LatLng(
+          math.max(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
+          math.max(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
+        ),
+      );
+
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngBounds(bounds, 50.0),
+      );
+    }
+  }
+
+  @override
+  void didUpdateWidget(MapViewScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_hasActiveRoute) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _centerOnRoute();
+      });
+    }
+    
+    if (oldWidget.places != widget.places && _hasActiveRoute) {
+      _createMarkersWithDestination();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _centerOnRoute();
+      });
+    }
+  }
+
   Future<void> _fetchNextEvent() async {
     try {
       setState(() {
         _isLoadingRoute = true;
       });
 
-      // Get calendar service
       final calendarService = CalendarService();
       final response = await calendarService.getNextEvent();
 
       if (!mounted) return;
 
       if (response.success && response.data != null) {
-        // Store the event
         setState(() {
           _calendarEvent = response.data;
         });
 
-        // If we have an event with location, geocode it
         if (_calendarEvent != null && _calendarEvent!.location.isNotEmpty) {
-          // Geocode the address to get coordinates
           final coordinates = await _geocodeAddress(_calendarEvent!.location);
 
           if (!mounted) return;
 
           if (coordinates != null) {
-            // Store the event location
             setState(() {
               _eventLocation = coordinates;
             });
 
-            // Load places along the route
             await _loadPlacesAlongRoute(coordinates);
 
-            // Draw the route
             _drawRouteToDestination(coordinates, _calendarEvent!.title);
 
-            // Store in provider for other screens to use
             if (mounted) {
               final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
               calendarState.setNextEvent(_calendarEvent);
@@ -143,24 +218,20 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
   Future<void> _geocodeAndDrawRoute(CalendarEvent event) async {
     try {
-      // Geocode the address
       final coordinates = await _geocodeAddress(event.location);
 
       if (!mounted) return;
 
       if (coordinates != null) {
-        // Store the location
         setState(() {
           _eventLocation = coordinates;
         });
 
-        // Draw the route
         _drawRouteToDestination(
           coordinates,
           event.title,
         );
 
-        // Store in provider for other screens to use
         final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
         calendarState.setNextEvent(event);
         calendarState.setEventLocation(coordinates);
@@ -209,15 +280,14 @@ class _MapViewScreenState extends State<MapViewScreen> {
     print('⭐️ Drawing route to $destinationName');
 
     if (_mapController == null) {
-      print('❌ Map controller is null');
+      print('Map controller is null');
       return;
     }
 
     setState(() {
       _isLoadingRoute = true;
-      // Clear existing polylines first
       _polylines.clear();
-      print('🔄 Cleared existing polylines');
+      print('Cleared existing polylines');
     });
 
     try {
@@ -225,28 +295,26 @@ class _MapViewScreenState extends State<MapViewScreen> {
       final position = locationService.currentPosition;
 
       if (position == null) {
-        print('❌ Current location not available');
+        print('Current location not available');
         throw Exception('Current location not available');
       }
 
-      print('📍 Getting directions from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      print('Getting directions from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
 
       final placeService = Provider.of<PlaceService>(context, listen: false);
 
-      // Get directions
       final response = await placeService.getDirections(
         origin: LatLng(position.latitude, position.longitude),
         destination: destination,
       );
 
       if (!response.success || response.data == null || response.data!.isEmpty) {
-        print('❌ Failed to get directions: ${response.error}');
+        print('Failed to get directions: ${response.error}');
         throw Exception("Couldn't get directions: ${response.error ?? 'Unknown error'}");
       }
 
-      print('✅ Got route with ${response.data!.length} points');
+      print('Got route with ${response.data!.length} points');
 
-      // Draw the route
       setState(() {
         _polylines.add(
           Polyline(
@@ -256,19 +324,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
             points: response.data!,
           ),
         );
-        print('🔵 Added polyline with ${response.data!.length} points');
-        print('🔄 Total polylines now: ${_polylines.length}');
+        print('Added polyline with ${response.data!.length} points');
+        print('Total polylines now: ${_polylines.length}');
       });
 
-      // Make sure we have a destination marker
       _addDestinationMarker(destination, destinationName);
 
-      // Fit the map to show the entire route
       _fitRouteAndDestination(position, destination);
 
     } catch (e) {
-      print('❌ ERROR drawing route: $e');
-      // Don't show error to user unless it's a critical failure
+      print('ERROR drawing route: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -291,12 +356,10 @@ class _MapViewScreenState extends State<MapViewScreen> {
       final placeService = Provider.of<PlaceService>(context, listen: false);
       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
-      print('📍 Loading places along route from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      print('Loading places along route from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
 
-      // Create a combined Map to avoid duplicate places
       final Map<String, Place> allPlaces = {};
 
-      // 1. Load places near current location
       final nearCurrentResponse = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
@@ -308,10 +371,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
         for (var place in nearCurrentResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('📍 Loaded ${nearCurrentResponse.data!.length} places near current location');
+        print('Loaded ${nearCurrentResponse.data!.length} places near current location');
       }
 
-      // 2. Load places near destination
       final nearDestinationResponse = await placeService.getNearbyPlaces(
         lat: destination.latitude,
         lng: destination.longitude,
@@ -323,17 +385,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
         for (var place in nearDestinationResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('📍 Loaded ${nearDestinationResponse.data!.length} places near destination');
+        print('Loaded ${nearDestinationResponse.data!.length} places near destination');
       }
 
-      // 3. Load places near midpoint of the route
       final midLat = (position.latitude + destination.latitude) / 2;
       final midLng = (position.longitude + destination.longitude) / 2;
 
       final midpointResponse = await placeService.getNearbyPlaces(
         lat: midLat,
         lng: midLng,
-        radius: 1500, // Slightly larger radius for midpoint
+        radius: 1500,
         apiKey: MapsConstants.mapsKey,
       );
 
@@ -341,17 +402,15 @@ class _MapViewScreenState extends State<MapViewScreen> {
         for (var place in midpointResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('📍 Loaded ${midpointResponse.data!.length} places near route midpoint');
+        print('Loaded ${midpointResponse.data!.length} places near route midpoint');
       }
 
-      // 4. If the distance is significant, add a quarter and three-quarter points
       final distance = _calculateDistance(
         position.latitude, position.longitude,
         destination.latitude, destination.longitude
       );
 
-      if (distance > 3000) { // If more than 3km apart
-        // Quarter point
+      if (distance > 3000) {
         final quarterLat = position.latitude + (destination.latitude - position.latitude) * 0.25;
         final quarterLng = position.longitude + (destination.longitude - position.longitude) * 0.25;
 
@@ -366,10 +425,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
           for (var place in quarterResponse.data!) {
             allPlaces[place.id] = place;
           }
-          print('📍 Loaded ${quarterResponse.data!.length} places at quarter point');
+          print('Loaded ${quarterResponse.data!.length} places at quarter point');
         }
 
-        // Three-quarter point
         final threeQuarterLat = position.latitude + (destination.latitude - position.latitude) * 0.75;
         final threeQuarterLng = position.longitude + (destination.longitude - position.longitude) * 0.75;
 
@@ -384,18 +442,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
           for (var place in threeQuarterResponse.data!) {
             allPlaces[place.id] = place;
           }
-          print('📍 Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
+          print('Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
         }
       }
 
-      print('📍 Total unique places along route: ${allPlaces.length}');
+      print('Total unique places along route: ${allPlaces.length}');
 
-      // Update the places in the provider
       if (mounted) {
         final places = allPlaces.values.toList();
         restaurantProvider.setPlaces(places);
 
-        // Update our local UI with these places
         setState(() {
           _createMarkersWithDestination();
         });
@@ -417,7 +473,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
              math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
 
-    return r * c; // Distance in meters
+    return r * c;
   }
 
   void _addDestinationMarker(LatLng destination, String name) {
@@ -462,17 +518,15 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 
   void _createMarkersWithDestination() {
-    // Get places from provider or widget
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final places = restaurantProvider.places.isNotEmpty 
         ? restaurantProvider.places 
         : widget.places;
         
-    // Sort places by distance
     final sortedPlaces = List<Place>.from(places)
       ..sort((a, b) => a.walkingDistance.compareTo(b.walkingDistance));
       
-    print('📍 Creating ${sortedPlaces.length} place markers');
+    print('Creating ${sortedPlaces.length} place markers');
       
     final Set<Marker> markers = sortedPlaces.map((place) {
       final isSelected = place.id == _selectedPlace?.id;
@@ -488,7 +542,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
       );
     }).toSet();
 
-    // Add destination marker from widget.destination
     if (widget.destination != null) {
       markers.add(
         Marker(
@@ -503,7 +556,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
         ),
       );
     }
-    // Or add destination marker from calendar provider
     else if (_eventLocation != null && _calendarEvent != null) {
       markers.add(
         Marker(
@@ -587,19 +639,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
     final bounds = _MapBounds();
 
-    // Add all place markers to bounds
     for (final marker in _markers) {
       bounds.extend(marker.position);
     }
 
-    // Add current location to bounds
     final locationService = Provider.of<LocationService>(context, listen: false);
     final position = locationService.currentPosition;
     if (position != null) {
       bounds.extend(LatLng(position.latitude, position.longitude));
     }
 
-    // Add padding to create some margin
     _mapController?.animateCamera(
       CameraUpdate.newLatLngBounds(bounds.toBounds(), _mapPadding),
     );
@@ -617,25 +666,27 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void _resetMapView(Position? currentPosition) {
     if (_mapController == null || currentPosition == null) return;
     
-    // Clear any selected place
     setState(() {
       _selectedPlace = null;
       _selectedIndex = -1;
       _createMarkersWithDestination();
     });
     
-    // Return to user's position
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(currentPosition.latitude, currentPosition.longitude),
-        _initialZoom,
-      ),
-    );
+    if (_hasActiveRoute) {
+      _centerOnRoute();
+    } else {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(currentPosition.latitude, currentPosition.longitude),
+          _initialZoom,
+        ),
+      );
+    }
   }
 
   Widget _buildRestaurantCard() {
     if (_selectedPlace == null) {
-      return const SizedBox.shrink(); // Return an empty widget if no place is selected
+      return const SizedBox.shrink();
     }
     
     return Card(
@@ -646,7 +697,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Restaurant name and status
             Row(
               children: [
                 Expanded(
@@ -662,7 +712,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
             ),
             const SizedBox(height: 8),
             
-            // Address
             Text(
               _selectedPlace!.address,
               style: Theme.of(context).textTheme.bodyMedium,
@@ -671,7 +720,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
             ),
             const SizedBox(height: 8),
             
-            // Rating and distance
             Row(
               children: [
                 RestaurantRating(rating: _selectedPlace!.rating),
@@ -681,7 +729,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
             ),
             const SizedBox(height: 16),
             
-            // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -708,7 +755,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
       );
     }
 
-    // Choose the most relevant title based on available destination info
     String pageTitle = 'Restaurant Map';
     if (widget.destinationName != null) {
       pageTitle = 'Route to ${widget.destinationName}';
@@ -721,47 +767,31 @@ class _MapViewScreenState extends State<MapViewScreen> {
       child: Stack(
         children: [
           GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: LatLng(currentPosition.latitude, currentPosition.longitude),
-              zoom: _initialZoom,
-            ),
+            initialCameraPosition: _getInitialCameraPosition(),
             markers: _markers,
             polylines: _polylines,
-            onMapCreated: (controller) {
-              print('Map created');
-              _mapController = controller;
-
-              // Fit bounds based on what information we have
-              if (widget.destination != null) {
-                // If we have destination from widget props
-                final locationService = Provider.of<LocationService>(context, listen: false);
-                final position = locationService.currentPosition;
-                if (position != null) {
-                  _fitRouteAndDestination(position, widget.destination!);
-                }
-              } else if (_eventLocation != null) {
-                // If we already fetched the event location
-                final locationService = Provider.of<LocationService>(context, listen: false);
-                final position = locationService.currentPosition;
-                if (position != null) {
-                  _fitRouteAndDestination(position, _eventLocation!);
-                }
-              } else {
-                // Otherwise just fit to current places
-                _fitBounds();
+            onMapCreated: _onMapCreated,
+            onTap: (LatLng position) {
+              setState(() {
+                _selectedPlace = null;
+                _selectedIndex = -1;
+                _createMarkersWithDestination();
+              });
+              
+              if (_hasActiveRoute) {
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  _centerOnRoute();
+                });
               }
             },
-            onTap: (_) => _resetMapView(currentPosition),
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: true,
-            // Disable all gestures except zoom
-            scrollGesturesEnabled: false, // Prevent moving the map
-            zoomGesturesEnabled: true, // Allow pinch-to-zoom
-            rotateGesturesEnabled: false, // Prevent rotation
-            tiltGesturesEnabled: false, // Prevent tilt
-            compassEnabled: false, // Hide compass since rotation is disabled
-            // Apply zoom restrictions
+            scrollGesturesEnabled: false,
+            zoomGesturesEnabled: true,
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            compassEnabled: false,
             minMaxZoomPreference: MinMaxZoomPreference(_minZoom, _maxZoom),
           ),
           Positioned(

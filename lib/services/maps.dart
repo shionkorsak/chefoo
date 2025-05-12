@@ -93,24 +93,58 @@ class PlaceService {
         final jsonData = jsonDecode(response.body);
         if (jsonData['status'] == 'OK') {
           final details = jsonData['result'];
-          
-          final popularTimesService = PopularTimesService();
-          try {
-            final popularTimes = await popularTimesService.getPopularTimes(placeId);
-            if (popularTimes != null) {
-              details['populartimes'] = popularTimes;
-              print('Added popular times data for $placeId');
-            }
-          } catch (e) {
-            print('Error fetching popular times: $e');
-          }
-          
           return details;
         }
       }
       throw Exception('Failed to load place details');
     } catch (e) {
       print('Error in getPlaceDetails: $e');
+      throw e;
+    }
+  }
+
+  Future<void> loadPlaceDetails(Place place) async {
+    if (place.detailsLoaded) return;
+    
+    try {
+      final details = await getPlaceDetails(place.id);
+      
+      if (details['formatted_phone_number'] != null) {
+        place.phone = details['formatted_phone_number'];
+      }
+      
+      if (details['opening_hours'] != null && 
+          details['opening_hours']['weekday_text'] != null) {
+        place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
+      }
+      
+      if (details['reviews'] != null) {
+        final reviews = (details['reviews'] as List).map((r) {
+          return Review(
+            authorName: r['author_name'] ?? 'Anonymous',
+            rating: (r['rating'] ?? 0).toDouble(),
+            text: r['text'] ?? '',
+            time: r['time']?.toString(),
+            photoReference: r['profile_photo_url'],
+          );
+        }).toList();
+        
+        place.reviews = reviews;
+      }
+      
+      if (details['photos'] != null) {
+        final photos = details['photos'] as List;
+        for (var photo in photos) {
+          if (photo['photo_reference'] != null && 
+              !place.pictureUrls.contains(photo['photo_reference'])) {
+            place.pictureUrls.add(photo['photo_reference']);
+          }
+        }
+      }
+      
+      place.markDetailsLoaded();
+    } catch (e) {
+      print('Error getting place details: $e');
       throw e;
     }
   }
@@ -284,7 +318,6 @@ class PlaceService {
         );
       }
       
-      // Parse the polyline points
       final points = _decodePolyline(
         data['routes'][0]['overview_polyline']['points']
       );
@@ -315,7 +348,6 @@ class PlaceService {
       while (index < len) {
         int b, shift = 0, result = 0;
         
-        // Decode latitude
         do {
           b = encoded.codeUnitAt(index++) - 63;
           result |= (b & 0x1f) << shift;
@@ -325,7 +357,6 @@ class PlaceService {
         int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
         lat += dlat;
         
-        // Decode longitude
         shift = 0;
         result = 0;
         do {
@@ -337,14 +368,13 @@ class PlaceService {
         int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
         lng += dlng;
         
-        // Convert to actual latitude/longitude values
         double latitude = lat / 1e5;
         double longitude = lng / 1e5;
         
         points.add(LatLng(latitude, longitude));
       }
     } catch (e) {
-      print('❌ Error decoding polyline: $e');
+      print('Error decoding polyline: $e');
     }
     
     return points;
@@ -397,5 +427,24 @@ class PlaceService {
     }
     
     return tags;
+  }
+
+  Future<bool> fetchPopularTimes(Place place) async {
+    if (place.popularTimesLoaded) {
+      return place.popularTimes != null;
+    }
+    
+    try {
+      final popularTimesService = PopularTimesService();
+      final popularTimes = await popularTimesService.getPopularTimes(place.id);
+      
+      place.setPopularTimes(popularTimes);
+      
+      return popularTimes != null;
+    } catch (e) {
+      print('Error fetching popular times: $e');
+      place.setPopularTimes(null);
+      return false;
+    }
   }
 }

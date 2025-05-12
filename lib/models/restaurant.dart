@@ -7,15 +7,17 @@ class Place {
   final String address;
   final double distance;
   List<String> tags;
-  final String? phone;
-  final List<String>? openingHours;
-  final List<Review> reviews;
+  String? phone;
+  List<String>? openingHours;
+  List<Review> reviews;
   final List<String> pictureUrls;
   final double lat;
   final double lng;
   final bool? isOpenNow;
-  List<Map<String, dynamic>>? popularTimes;
+  List<Map<String, dynamic>>? _popularTimes;
+  bool _popularTimesLoaded = false;
   double walkingDistance;
+  bool _detailsLoaded = false;
 
   Place({
     required this.id,
@@ -31,9 +33,9 @@ class Place {
     required this.lat,
     required this.lng,
     this.isOpenNow,
-    this.popularTimes,
+    List<Map<String, dynamic>>? popularTimes,
     this.walkingDistance = 0.0,
-  });
+  }) : _popularTimes = popularTimes;
 
   factory Place.fromJson(Map<String, dynamic> json) {
     return Place(
@@ -55,6 +57,11 @@ class Place {
   }
 
   factory Place.fromGooglePlace(Map<String, dynamic> place, Map<String, dynamic> details) {
+    final List<String> allTypes = [
+      ...List<String>.from(place['types'] ?? []),
+      ...List<String>.from(details['types'] ?? []),
+    ].toSet().toList();
+
     final Set<String> photoRefs = <String>{};
     
     if (place['photos'] != null) {
@@ -150,8 +157,19 @@ class Place {
     };
   }
 
-  void updatePopularTimes(List<Map<String, dynamic>> times) {
-    popularTimes = times;
+  List<Map<String, dynamic>>? get popularTimes => _popularTimes;
+
+  bool get popularTimesLoaded => _popularTimesLoaded;
+
+  bool get detailsLoaded => _detailsLoaded;
+
+  void setPopularTimes(List<Map<String, dynamic>>? data) {
+    _popularTimes = data;
+    _popularTimesLoaded = true;
+  }
+
+  void markDetailsLoaded() {
+    _detailsLoaded = true;
   }
 }
 
