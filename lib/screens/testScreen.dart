@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:chefoo/screens/favorites.dart';
+import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:chefoo/constants.dart';
@@ -24,7 +25,8 @@ class TestScreen extends StatelessWidget {
 
 class RestaurantListContainer extends StatefulWidget {
   @override
-  _RestaurantListContainerState createState() => _RestaurantListContainerState();
+  _RestaurantListContainerState createState() =>
+      _RestaurantListContainerState();
 }
 
 class _RestaurantListContainerState extends State<RestaurantListContainer> {
@@ -39,10 +41,11 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
 
   Future<void> _initializeLocation() async {
     if (!mounted) return;
-    
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    await locationService.getCurrentLocation(); 
-    
+
+    final locationService =
+        Provider.of<LocationService>(context, listen: false);
+    await locationService.getCurrentLocation();
+
     if (mounted) {
       final position = locationService.currentPosition;
       if (position != null) {
@@ -54,17 +57,17 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
+
     final locationService = Provider.of<LocationService>(context);
-    
+
     if (locationService.locationChangedSignificantly) {
       print("Location changed significantly, fetching new places");
-      
+
       final position = locationService.currentPosition;
       if (position != null) {
         _fetchNearbyPlaces(position);
       }
-      
+
       locationService.resetLocationChangedFlag();
     }
   }
@@ -73,20 +76,22 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
-      print('Fetching places for location: ${position.latitude}, ${position.longitude}');
-      
+      print(
+          'Fetching places for location: ${position.latitude}, ${position.longitude}');
+
       final placeService = Provider.of<PlaceService>(context, listen: false);
-      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-      
+      final restaurantProvider =
+          Provider.of<RestaurantProvider>(context, listen: false);
+
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
         radius: 1000.0,
         apiKey: MapsConstants.mapsKey,
       );
-      
+
       if (response.success && response.data != null) {
         print('Successfully loaded ${response.data!.length} places');
         restaurantProvider.setPlaces(response.data!);
@@ -112,10 +117,12 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     return Consumer2<LocationService, RestaurantProvider>(
       builder: (context, locationService, restaurantProvider, _) {
         return Scaffold(
-          body: RestaurantList(
-            places: restaurantProvider.places,
-            isLoading: _isLoading,
-          ),
+          // body: RestaurantList(
+          //   places: restaurantProvider.places,
+          //   isLoading: _isLoading,
+          // ),
+          body: RestaurantCardListHorizontal(
+              places: restaurantProvider.places, isLoading: _isLoading),
           floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -141,7 +148,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => MapViewScreen(
-                        places: restaurantProvider.places, 
+                        places: restaurantProvider.places,
                       ),
                     ),
                   );
@@ -154,4 +161,3 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     );
   }
 }
-
