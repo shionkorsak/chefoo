@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/services/popular_times.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/restaurant.dart';
@@ -14,6 +15,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class PlaceService {
   static const String baseUrl = 'https://maps.googleapis.com/maps/api/place';
   final http.Client client;
+
+  final Map<String, List<Place>> _cachedPlaces = {};
 
   PlaceService({required this.client});
 
@@ -118,6 +121,17 @@ class PlaceService {
     required double radius,
     required String apiKey,
   }) async {
+    final cacheKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}_$radius';
+    
+    if (_cachedPlaces.containsKey(cacheKey)) {
+      print('Using cached places data');
+      return ApiResponse(
+        success: true,
+        message: 'Places loaded from cache',
+        data: _cachedPlaces[cacheKey],
+      );
+    }
+
     try {
       final url = Uri.parse(
         '$baseUrl/nearbysearch/json'
@@ -189,6 +203,8 @@ class PlaceService {
             }
           }
 
+          _cachedPlaces[cacheKey] = places;
+
           return ApiResponse(
             success: true,
             message: 'Places loaded successfully',
@@ -215,6 +231,123 @@ class PlaceService {
         error: e.toString(),
       );
     }
+  }
+
+  Future<ApiResponse<List<LatLng>>> getDirections({
+    required LatLng origin,
+    required LatLng destination,
+  }) async {
+    try {
+      print('Getting directions from (${origin.latitude}, ${origin.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      
+      final apiKey = MapsConstants.mapsKey;
+      print('Using API key: ${apiKey.isEmpty ? "MISSING!" : "Present"}');
+      
+      if (apiKey.isEmpty) {
+        return ApiResponse(
+          success: false,
+          message: 'API key not found',
+          error: 'Missing Google Maps API key',
+        );
+      }
+    
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json'
+        '?origin=${origin.latitude},${origin.longitude}'
+        '&destination=${destination.latitude},${destination.longitude}'
+        '&mode=driving'
+        '&key=$apiKey'
+      );
+      
+      print('Directions URL: $url');
+      final response = await client.get(url);
+      
+      print('API Response Status: ${response.statusCode}');
+      
+      if (response.statusCode != 200) {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to get directions',
+          error: 'API returned ${response.statusCode}',
+        );
+      }
+      
+      final data = json.decode(response.body);
+      
+      print('API Status: ${data['status']}');
+      
+      if (data['status'] != 'OK') {
+        return ApiResponse(
+          success: false,
+          message: 'Route not found',
+          error: data['status'],
+        );
+      }
+      
+      // Parse the polyline points
+      final points = _decodePolyline(
+        data['routes'][0]['overview_polyline']['points']
+      );
+      
+      print('Decoded ${points.length} route points');
+      
+      return ApiResponse(
+        success: true,
+        message: 'Route loaded successfully',
+        data: points,
+      );
+    } catch (e) {
+      print('Error in getDirections: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to get directions',
+        error: e.toString(),
+      );
+    }
+  }
+
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> points = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+    
+    try {
+      while (index < len) {
+        int b, shift = 0, result = 0;
+        
+        // Decode latitude
+        do {
+          b = encoded.codeUnitAt(index++) - 63;
+          result |= (b & 0x1f) << shift;
+          shift += 5;
+        } while (b >= 0x20);
+        
+        int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+        lat += dlat;
+        
+        // Decode longitude
+        shift = 0;
+        result = 0;
+        do {
+          b = encoded.codeUnitAt(index++) - 63;
+          result |= (b & 0x1f) << shift;
+          shift += 5;
+        } while (b >= 0x20);
+        
+        int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+        lng += dlng;
+        
+        // Convert to actual latitude/longitude values
+        double latitude = lat / 1e5;
+        double longitude = lng / 1e5;
+        
+        points.add(LatLng(latitude, longitude));
+      }
+    } catch (e) {
+      print('❌ Error decoding polyline: $e');
+    }
+    
+    return points;
   }
 
   bool _isFoodRelatedPlace(List<String> types) {

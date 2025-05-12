@@ -1,0 +1,2 @@
+C:/Users/User/Desktop/university/2025 spring/software studio/chefoo/android/app/.cxx/Debug/1s5p561f/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/User/Desktop/university/2025 spring/software studio/chefoo/android/app/.cxx/Debug/1s5p561f/x86_64/CMakeFiles/rebuild_cache.dir
