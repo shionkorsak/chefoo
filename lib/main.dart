@@ -56,24 +56,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // location monitoring after app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      
+      final locationService =
+          Provider.of<LocationService>(context, listen: false);
+
       locationService.startLocationUpdates(context);
-      
+
       LocationHandler.fetchNearbyPlacesAtCurrentLocation(context);
     });
 
     return MaterialApp(
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
+        theme: lightTheme,
+        navigatorKey: navigatorKey,
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
-        home: WidgetTestScreen());
-      // home: TestScreen());       
-        // this testScreen is only to visualize google maps info
-        // which we are importing, and related widgets
+        // home: WidgetTestScreen());
+        home: TestScreen());
+    // this testScreen is only to visualize google maps info
+    // which we are importing, and related widgets
   }
 }

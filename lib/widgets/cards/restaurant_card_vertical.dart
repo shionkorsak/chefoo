@@ -34,8 +34,8 @@ class RestaurantCardVertical extends StatelessWidget {
         borderRadius: kRadius15,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 6,
             offset: const Offset(0, 4),
           ),
         ],
@@ -43,23 +43,27 @@ class RestaurantCardVertical extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
+          Container(
             height: 116,
             width: 116,
             child: Stack(
               children: [
                 Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: kRadius10, // Use your existing border radius
                     child: Image.network(
-                  'https://maps.googleapis.com/maps/api/place/photo'
-                  '?maxwidth=400'
-                  '&photo_reference=${pictureUrl}'
-                  '&key=${MapsConstants.mapsKey}',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    print('Error loading image: $error');
-                    return Placeholder();
-                  },
-                )),
+                      'https://maps.googleapis.com/maps/api/place/photo'
+                      '?maxwidth=400'
+                      '&photo_reference=${pictureUrl}'
+                      '&key=${MapsConstants.mapsKey}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Error loading image: $error');
+                        return Placeholder();
+                      },
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: 6,
                   right: 6,
@@ -69,7 +73,7 @@ class RestaurantCardVertical extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 24,
+            height: 28,
             width: double.infinity,
             child: Marquee(
               text: place.name,
