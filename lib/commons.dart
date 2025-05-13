@@ -30,7 +30,6 @@ export 'providers/favorites.dart';
 /// Services
 export 'services/maps.dart';
 export 'services/location.dart';
-export 'services/location_handler.dart';
 export 'services/calendar_service.dart';
 
 // Widgets
