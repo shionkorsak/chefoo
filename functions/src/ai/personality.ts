@@ -60,21 +60,23 @@ export const updatePreference = ai.defineFlow({
 
   const userRef = db.collection('users').doc(userId);
   const userDoc = await userRef.get();
-  const currentPref = userDoc.exists ? userDoc.data()?.preference || {} : {};
+  const currentPref = userDoc.exists ? userDoc.data()?.preferences || {} : {};
 
-  const updatedPreference = {
-    description: mergeUniqueArrays([parsed.description], currentPref.description ?? []),
+  const updatedPreferences = {
+    description: mergeUniqueArrays(parsed.description, currentPref.description ?? []),
     likedFood: mergeUniqueArrays(parsed.likedFood, currentPref.likedFood ?? []),
     dislikedFood: mergeUniqueArrays(parsed.dislikedFood, currentPref.dislikedFood ?? []),
-    cuisine: mergeUniqueArrays(parsed.cuisine, currentPref.cuisine ?? [])
+    cuisine: mergeUniqueArrays(parsed.cuisine, currentPref.cuisine ?? []),
+    dietaryPreferences: currentPref.dietaryPreferences,
+    allergies: currentPref.allergies,
   };
 
-  await userRef.set({ preference: updatedPreference }, { merge: true });
+  await userRef.set({ preferences: updatedPreferences }, { merge: true });
   console.log(`Updated preferences for user: ${userId}`);
 
   const updatedUserDoc = await userRef.get();
-  if (updatedUserDoc.exists && updatedUserDoc.data()?.preference) {
-    console.log('Preference successfully updated:', updatedUserDoc.data()?.preference);
+  if (updatedUserDoc.exists && updatedUserDoc.data()?.preferences) {
+    console.log('Preference successfully updated:', updatedUserDoc.data()?.preferences);
   } else {
     console.error('Failed to update or retrieve preferences.');
   }

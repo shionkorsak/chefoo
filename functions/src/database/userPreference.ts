@@ -19,17 +19,17 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         })
 
         const userSnap = await userRef.get();
-        const currentPref = userSnap.exists ? userSnap.data()?.preference || {} : {};
+        const currentPref = userSnap.exists ? userSnap.data()?.preferences || {} : {};
 
         const prompt = `
-        You are a dietary AI assistant. Based on the user's new dietary preferences and allergies, review their existing food profile and remove or modify any items that conflict with the new restrictions.
+        You are a dietary AI assistant. Based on the user's new dietary preferences and allergies, review their existing food profile and modify any items that conflict with the new restrictions.
 
         Rules:
-        - If any item in "likedFood", "dislikedFood", or "description" contradicts the user's dietary preferences (e.g., cheeseburgers for a vegetarian), it must be removed.
+        - If any item in "likedFood", "dislikedFood", or "description" contradicts the user's dietary preferences (e.g., cheeseburgers for a vegetarian), it must be modified.
         - The response must fully respect the dietary preferences and allergies provided.
 
         Return a JSON object with the following fields:
-        - description: array of strings, rewritten or removed if it contradicts dietary limits.
+        - description: array of strings, rewritten if it contradicts dietary limits.
         - likedFood: array of strings, must NOT include restricted items.
         - dislikedFood: array of strings, cleaned if needed.
         - cuisine: array of strings, optionally revised.
@@ -43,6 +43,8 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         Respond with a clean and valid JSON object only. Do not include items that conflict with the dietary preferences or allergies.
         `
 
+        console.log(currentPref);
+
         const res = await ai.generate({ prompt });
 
         let parsed;
@@ -54,6 +56,8 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
             throw new functions.https.HttpsError("internal", "AI response was not valid JSON.");
         }
 
+        console.log("AI raw response:", res.text);
+
         await userRef.set({
         preferences: {
             description: parsed.description,
@@ -64,7 +68,6 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
             allergies: validatedData.allergies,
         }
         }, { merge: true });
-
         return { success: true, message: "Preferences updated and validated successfully." };
 
     } catch (error) {

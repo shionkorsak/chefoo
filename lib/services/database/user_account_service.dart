@@ -33,7 +33,8 @@ class UserAccountService {
     required List<String> allergies,
   }) async {
     try {
-      final callable = FirebaseFunctions.instance.httpsCallable('updateClientPreferences');
+      final callable = 
+        FirebaseFunctions.instance.httpsCallable('updateClientPreferences');
 
       final response = await callable.call({
         'dietaryPreferences': dietaryPreferences,

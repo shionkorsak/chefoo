@@ -6,7 +6,7 @@ firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-user_id = "lNJjg1lo61VsCrpBbyx26w26HU53"
+user_id = "xCzmnw5RgnUXwkefe0SfNlIjL9T2"
 
 history_entries = [
     {
