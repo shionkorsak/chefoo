@@ -7,7 +7,12 @@ export const userProfileSchema = z.object({ // TODO: google calendar link
     email: z.string().email(),
     displayName: z.string(),
     photoURL: z.string().url().optional(),
-    createdAt: z.any()
+    createdAt: z.any(),
+    calendarIntegration: z.object({
+        enabled: z.boolean().default(false),
+        lastSyncTime: z.any().optional(),
+        primaryCalendarId: z.string().optional()
+    }).optional()
 })
 
 export const userPreferenceSchema = z.object({

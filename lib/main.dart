@@ -1,7 +1,11 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
+import 'package:chefoo/services/auth/auth_service.dart';
+import 'package:chefoo/services/calendar_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
@@ -12,6 +16,8 @@ import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:chefoo/services/database/location_handler.dart';
+import 'package:chefoo/providers/calendar_state.dart';
+import 'package:chefoo/services/preload_service.dart';
 
 import 'commons.dart';
 
@@ -54,7 +60,16 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => UserAccountProvider(),
-        )
+        ),
+        Provider<CalendarService>(
+          create: (_) => CalendarService(),
+        ),
+        Provider<AuthService>(
+          create: (_) => AuthService(),
+        ),
+        ChangeNotifierProvider<CalendarStateProvider>(
+          create: (_) => CalendarStateProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -67,28 +82,30 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // location monitoring after app starts
+    // dont touch pls
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final locationService =
-          Provider.of<LocationService>(context, listen: false);
-
+      final locationService = Provider.of<LocationService>(context, listen: false);
       locationService.startLocationUpdates(context);
-      LocationHandler.fetchNearbyPlacesAtCurrentLocation(context);
+      
+      PreloadService.preloadData(context);
     });
 
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
+
         home: AuthGate()); //? To authenticate the user's authentication state
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
+
         //! home: TestScreen());
           // this testScreen is only to visualize google maps info
           // which we are importing, and related widgets
         // home: WidgetTestScreen());
-    // this testScreen is only to visualize google maps info
-    // which we are importing, and related widgets
+
+        // home: WidgetTestScreen());
   }
 }

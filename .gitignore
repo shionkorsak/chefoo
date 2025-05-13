@@ -55,3 +55,4 @@ windows/flutter/generated_plugins.cmake
 .env
 node_modules
 /functions/node_modules
+android/app/.cxx/

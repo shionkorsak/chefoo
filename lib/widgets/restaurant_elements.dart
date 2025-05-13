@@ -3,7 +3,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/restaurant.dart';
 
-// Basic Info Elements
 class RestaurantName extends StatelessWidget {
   final String name;
   final TextStyle? style;
@@ -31,7 +30,6 @@ class RestaurantAddress extends StatelessWidget {
   }
 }
 
-// Status Elements
 class RestaurantRating extends StatelessWidget {
   final double rating;
   final double iconSize;
@@ -103,7 +101,6 @@ class OpenStatusBadge extends StatelessWidget {
   }
 }
 
-// Contact Elements
 class PhoneButton extends StatelessWidget {
   final String phoneNumber;
 
@@ -124,7 +121,6 @@ class PhoneButton extends StatelessWidget {
   }
 }
 
-// Navigation Elements
 class DirectionsButton extends StatelessWidget {
   final double lat;
   final double lng;
@@ -152,7 +148,6 @@ class DirectionsButton extends StatelessWidget {
   }
 }
 
-// Photo Elements
 class RestaurantPhoto extends StatelessWidget {
   final String photoRef;
   final double? width;
@@ -171,9 +166,10 @@ class RestaurantPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     return Image.network(
       'https://maps.googleapis.com/maps/api/place/photo'
-      '?maxwidth=400'
+      '?maxwidth=200'
       '&photo_reference=$photoRef'
       '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
+      cacheWidth: 200,
       width: width,
       height: height,
       fit: fit,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/services/popular_times.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/restaurant.dart';
@@ -14,6 +15,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class PlaceService {
   static const String baseUrl = 'https://maps.googleapis.com/maps/api/place';
   final http.Client client;
+
+  final Map<String, List<Place>> _cachedPlaces = {};
 
   PlaceService({required this.client});
 
@@ -90,18 +93,6 @@ class PlaceService {
         final jsonData = jsonDecode(response.body);
         if (jsonData['status'] == 'OK') {
           final details = jsonData['result'];
-          
-          final popularTimesService = PopularTimesService();
-          try {
-            final popularTimes = await popularTimesService.getPopularTimes(placeId);
-            if (popularTimes != null) {
-              details['populartimes'] = popularTimes;
-              print('Added popular times data for $placeId');
-            }
-          } catch (e) {
-            print('Error fetching popular times: $e');
-          }
-          
           return details;
         }
       }
@@ -112,12 +103,69 @@ class PlaceService {
     }
   }
 
+  Future<void> loadPlaceDetails(Place place) async {
+    if (place.detailsLoaded) return;
+    
+    try {
+      final details = await getPlaceDetails(place.id);
+      
+      if (details['formatted_phone_number'] != null) {
+        place.phone = details['formatted_phone_number'];
+      }
+      
+      if (details['opening_hours'] != null && 
+          details['opening_hours']['weekday_text'] != null) {
+        place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
+      }
+      
+      if (details['reviews'] != null) {
+        final reviews = (details['reviews'] as List).map((r) {
+          return Review(
+            authorName: r['author_name'] ?? 'Anonymous',
+            rating: (r['rating'] ?? 0).toDouble(),
+            text: r['text'] ?? '',
+            time: r['time']?.toString(),
+            photoReference: r['profile_photo_url'],
+          );
+        }).toList();
+        
+        place.reviews = reviews;
+      }
+      
+      if (details['photos'] != null) {
+        final photos = details['photos'] as List;
+        for (var photo in photos) {
+          if (photo['photo_reference'] != null && 
+              !place.pictureUrls.contains(photo['photo_reference'])) {
+            place.pictureUrls.add(photo['photo_reference']);
+          }
+        }
+      }
+      
+      place.markDetailsLoaded();
+    } catch (e) {
+      print('Error getting place details: $e');
+      throw e;
+    }
+  }
+
   Future<ApiResponse<List<Place>>> getNearbyPlaces({
     required double lat,
     required double lng,
     required double radius,
     required String apiKey,
   }) async {
+    final cacheKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}_$radius';
+    
+    if (_cachedPlaces.containsKey(cacheKey)) {
+      print('Using cached places data');
+      return ApiResponse(
+        success: true,
+        message: 'Places loaded from cache',
+        data: _cachedPlaces[cacheKey],
+      );
+    }
+
     try {
       final url = Uri.parse(
         '$baseUrl/nearbysearch/json'
@@ -189,6 +237,8 @@ class PlaceService {
             }
           }
 
+          _cachedPlaces[cacheKey] = places;
+
           return ApiResponse(
             success: true,
             message: 'Places loaded successfully',
@@ -215,6 +265,119 @@ class PlaceService {
         error: e.toString(),
       );
     }
+  }
+
+  Future<ApiResponse<List<LatLng>>> getDirections({
+    required LatLng origin,
+    required LatLng destination,
+  }) async {
+    try {
+      print('Getting directions from (${origin.latitude}, ${origin.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      
+      final apiKey = MapsConstants.mapsKey;
+      print('Using API key: ${apiKey.isEmpty ? "MISSING!" : "Present"}');
+      
+      if (apiKey.isEmpty) {
+        return ApiResponse(
+          success: false,
+          message: 'API key not found',
+          error: 'Missing Google Maps API key',
+        );
+      }
+    
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json'
+        '?origin=${origin.latitude},${origin.longitude}'
+        '&destination=${destination.latitude},${destination.longitude}'
+        '&mode=driving'
+        '&key=$apiKey'
+      );
+      
+      print('Directions URL: $url');
+      final response = await client.get(url);
+      
+      print('API Response Status: ${response.statusCode}');
+      
+      if (response.statusCode != 200) {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to get directions',
+          error: 'API returned ${response.statusCode}',
+        );
+      }
+      
+      final data = json.decode(response.body);
+      
+      print('API Status: ${data['status']}');
+      
+      if (data['status'] != 'OK') {
+        return ApiResponse(
+          success: false,
+          message: 'Route not found',
+          error: data['status'],
+        );
+      }
+      
+      final points = _decodePolyline(
+        data['routes'][0]['overview_polyline']['points']
+      );
+      
+      print('Decoded ${points.length} route points');
+      
+      return ApiResponse(
+        success: true,
+        message: 'Route loaded successfully',
+        data: points,
+      );
+    } catch (e) {
+      print('Error in getDirections: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to get directions',
+        error: e.toString(),
+      );
+    }
+  }
+
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> points = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+    
+    try {
+      while (index < len) {
+        int b, shift = 0, result = 0;
+        
+        do {
+          b = encoded.codeUnitAt(index++) - 63;
+          result |= (b & 0x1f) << shift;
+          shift += 5;
+        } while (b >= 0x20);
+        
+        int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+        lat += dlat;
+        
+        shift = 0;
+        result = 0;
+        do {
+          b = encoded.codeUnitAt(index++) - 63;
+          result |= (b & 0x1f) << shift;
+          shift += 5;
+        } while (b >= 0x20);
+        
+        int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+        lng += dlng;
+        
+        double latitude = lat / 1e5;
+        double longitude = lng / 1e5;
+        
+        points.add(LatLng(latitude, longitude));
+      }
+    } catch (e) {
+      print('Error decoding polyline: $e');
+    }
+    
+    return points;
   }
 
   bool _isFoodRelatedPlace(List<String> types) {
@@ -264,5 +427,24 @@ class PlaceService {
     }
     
     return tags;
+  }
+
+  Future<bool> fetchPopularTimes(Place place) async {
+    if (place.popularTimesLoaded) {
+      return place.popularTimes != null;
+    }
+    
+    try {
+      final popularTimesService = PopularTimesService();
+      final popularTimes = await popularTimesService.getPopularTimes(place.id);
+      
+      place.setPopularTimes(popularTimes);
+      
+      return popularTimes != null;
+    } catch (e) {
+      print('Error fetching popular times: $e');
+      place.setPopularTimes(null);
+      return false;
+    }
   }
 }

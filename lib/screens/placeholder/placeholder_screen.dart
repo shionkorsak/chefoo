@@ -1,4 +1,5 @@
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/screens/calendar_screen.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/placeholder/playground.dart';
 import 'package:chefoo/screens/testScreen.dart';
@@ -65,6 +66,14 @@ class PlaceholderScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (BuildContext context) => TestScreen()));
             }, 
             child: Text("Maps")),
+          SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (BuildContext context) => CalendarScreen()));
+            }, 
+            child: Text("Calendar Events")),
         ],
       ),);
   }

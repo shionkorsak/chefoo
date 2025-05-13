@@ -7,9 +7,14 @@ class AuthService {
   //! When trying to get user's data, just run 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
+    scopes: [
+      'email',
+      'https://www.googleapis.com/auth/calendar.readonly', // Add this line
+    ],
     signInOption: SignInOption.standard,
   );
+
+  GoogleSignIn get googleSignIn => _googleSignIn;
 
   User? getCurrentUser() { // Get current user's instance
     return _auth.currentUser;

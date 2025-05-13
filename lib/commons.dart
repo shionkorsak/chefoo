@@ -1,11 +1,9 @@
 ///List of all packages used
-
 ///List of all files used as helpers
-export 'package:chefoo/constants.dart';
-export 'package:chefoo/screens.dart';
-export 'package:chefoo/utils/utils.dart';
+export 'package:flutter/material.dart';
 
-///List of all local files used for style
+/// Constants and styles
+export 'constants.dart';
 export 'styles/colors.dart';
 export 'styles/sizes.dart';
 export 'styles/styles.dart';
@@ -27,6 +25,13 @@ export 'services/popular_times.dart';
 
 // Providers
 export 'providers/restaurant.dart';
+export 'providers/favorites.dart';
+
+/// Services
+export 'services/maps.dart';
+export 'services/location.dart';
+export 'services/location_handler.dart';
+export 'services/calendar_service.dart';
 
 // Widgets
 export 'widgets/restaurant_card.dart';
