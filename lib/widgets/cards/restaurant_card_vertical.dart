@@ -23,29 +23,57 @@ class RestaurantCardVertical extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pictureUrl = place.pictureUrls.isNotEmpty ? place.pictureUrls.first : null;
+    final pictureUrl =
+        place.pictureUrls.isNotEmpty ? place.pictureUrls.first : null;
 
     return Container(
       width: 130,
-      height: 190,
       padding: kPadd10,
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: kRadius15,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 6,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          //LikeButton(isLiked: false),
-          LikeButton(place: place),
+          Container(
+            height: 116,
+            width: 116,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: kRadius10, // Use your existing border radius
+                    child: Image.network(
+                      'https://maps.googleapis.com/maps/api/place/photo'
+                      '?maxwidth=400'
+                      '&photo_reference=${pictureUrl}'
+                      '&key=${MapsConstants.mapsKey}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Error loading image: $error');
+                        return Placeholder();
+                      },
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: LikeButton(place: place),
+                ),
+              ],
+            ),
+          ),
           SizedBox(
-            height: 24,
+            height: 28,
             width: double.infinity,
             child: Marquee(
               text: place.name,
@@ -62,38 +90,39 @@ class RestaurantCardVertical extends StatelessWidget {
               decelerationCurve: Curves.easeOut,
             ),
           ),
-          SizedBox(height: 6),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(
-                    Icons.star,
-                    size: 10,
-                    color: AppColors.primary,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.star,
+                        size: 10,
+                        color: AppColors.primary,
+                      ),
+                      Text(
+                        place.rating.toString(),
+                        style: AppTextStyles.detail.copyWith(height: 1),
+                      )
+                    ],
                   ),
                   Text(
-                    place.rating.toString(),
-                    style: AppTextStyles.detail.copyWith(height: 1),
-                  )
+                    place.tags.isNotEmpty
+                        ? place.tags.first
+                        : 'No tags available',
+                    style: AppTextStyles.detail,
+                  ),
                 ],
               ),
-              Text(place.tags.isNotEmpty ? place.tags.first : 'No tags available'),
+              Text(
+                '${place.walkingDistance.toStringAsFixed(1)}km',
+                style: AppTextStyles.detail,
+              )
             ],
-          ),
-          SizedBox(height: 6),
-          Expanded(
-            child: isValidImageUrl(pictureUrl)
-                ? Image.network(
-                    pictureUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      print('Error loading image: $error');
-                      return Image.asset('assets/images/placeholder.png', fit: BoxFit.cover);
-                    },
-                  )
-                : Image.asset('assets/images/placeholder.png', fit: BoxFit.cover),
           ),
         ],
       ),

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:chefoo/widgets/cards/restaurant_card_vertical.dart';
-import '../models/restaurant.dart';
-import './restaurant_card.dart';
+import '../../models/restaurant.dart';
+import 'restaurant_card_vertical.dart';
 
-class RestaurantList extends StatelessWidget {
+class RestaurantCardListHorizontal extends StatelessWidget {
   final List<Place> places;
   final bool isLoading;
 
-  const RestaurantList({
+  const RestaurantCardListHorizontal({
     Key? key,
     required this.places,
     this.isLoading = false,
@@ -24,8 +23,13 @@ class RestaurantList extends StatelessWidget {
     }
 
     return ListView.builder(
+      scrollDirection: Axis.horizontal,
       itemCount: places.length,
-      itemBuilder: (context, index) => RestaurantCard(place: places[index]),
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 5.0), // Adjust the value as needed
+        child: Center(child: RestaurantCardVertical(place: places[index])),
+      ),
     );
   }
 }
