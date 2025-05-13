@@ -56,3 +56,7 @@ windows/flutter/generated_plugins.cmake
 node_modules
 /functions/node_modules
 android/app/.cxx/
+macos/Flutter/GeneratedPluginRegistrant.swift
+windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.cc
+pubspec.lock
