@@ -36,7 +36,7 @@ export const updatePreference = ai.defineFlow({
 
   const prompt = `
     Based on the following restaurant history, return a JSON object with these fields:
-    - description: string, user's food personality
+    - description: array of strings, user's food personality
     - likedFood: array of strings, based on the meal input, decide which meal is liked by user
     - dislikedFood: array of strings, based on the meal input, decide which meal is disliked by user
     - cuisine: array of strings, based on the meal input, decide whether the user prefer which country of cuisine they like, this can be left empty

@@ -29,7 +29,7 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         - The response must fully respect the dietary preferences and allergies provided.
 
         Return a JSON object with the following fields:
-        - description: string, rewritten or removed if it contradicts dietary limits.
+        - description: array of strings, rewritten or removed if it contradicts dietary limits.
         - likedFood: array of strings, must NOT include restricted items.
         - dislikedFood: array of strings, cleaned if needed.
         - cuisine: array of strings, optionally revised.
@@ -55,7 +55,7 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         }
 
         await userRef.set({
-        preference: {
+        preferences: {
             description: parsed.description,
             likedFood: parsed.likedFood,
             dislikedFood: parsed.dislikedFood,

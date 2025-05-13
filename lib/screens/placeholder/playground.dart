@@ -1,3 +1,5 @@
+import 'package:chefoo/screens/placeholder/placeholder_screen.dart';
+import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +67,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   },
                 ),
+                SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (BuildContext context) => TestScreen()));
+                  }, 
+                  child: Text("Maps")),
+                SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (BuildContext context) => PlaceholderScreen()));
+                  }, 
+                  child: Text("Placeholder")),
               ],
             ),
           );

@@ -56,7 +56,7 @@ class PlaceholderScreen extends StatelessWidget {
                 context, 
                 MaterialPageRoute(builder: (BuildContext context) => UserProfileScreen()));
             }, 
-            child: Text("Update Preference")),
+            child: Text("New Update Preference")),
           SizedBox(height: 30),
           ElevatedButton(
             onPressed: () {
