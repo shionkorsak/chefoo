@@ -1,14 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/constants.dart';
-import 'package:chefoo/models/restaurant.dart';
-import 'package:chefoo/services/maps.dart';
-import 'package:chefoo/providers/favorites.dart';
-import 'package:chefoo/widgets/photo_grid.dart';
-import 'package:chefoo/widgets/popular_times_chart.dart';
-import 'package:chefoo/widgets/restaurant_elements.dart';
-import 'package:chefoo/widgets/buttons/like_button.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
   final Place place;
@@ -29,6 +19,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     super.initState();
     _loadDetailedInfo();
     _loadPopularTimes();
+
+    // [DATABASE]: here too. save to history when viewing a place
+    // String placeId = place.id;
+    // saveToDatabase(placeId);
   }
 
   Future<void> _loadDetailedInfo() async {

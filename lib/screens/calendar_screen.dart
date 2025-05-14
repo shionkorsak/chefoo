@@ -1,23 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:chefoo/main.dart';
 import 'package:chefoo/screens/map_view.dart';
-import 'package:chefoo/services/auth/auth_service.dart';
-import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:chefoo/providers/calendar_state.dart' as provider;
-
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/constants.dart';
-import 'package:chefoo/services/calendar_service.dart';
-import 'package:chefoo/providers/restaurant.dart';
-import 'package:chefoo/services/maps.dart';
-import 'package:chefoo/services/location.dart';
 import 'package:chefoo/providers/calendar_state.dart' as provider;
 
 class CalendarScreen extends StatefulWidget {
@@ -58,12 +47,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           _isLoading = false;
         });
 
-        // Store the next event in the provider
         if (_nextEvent != null) {
           final providerInstance = Provider.of<provider.CalendarStateProvider>(context, listen: false);
           providerInstance.setNextEvent(_nextEvent);
 
-          // If we have a location, geocode it
           if (_nextEvent!.location.isNotEmpty) {
             _geocodeAndStoreEventLocation(_nextEvent!.location);
           }
@@ -89,7 +76,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       final coordinates = await _geocodeAddress(address);
 
       if (coordinates != null && mounted) {
-        // Store coordinates in provider
         final providerInstance = Provider.of<provider.CalendarStateProvider>(context, listen: false);
         providerInstance.setEventLocation(coordinates);
       }
@@ -233,7 +219,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     try {
       setState(() => _isLoading = true);
       
-      // Geocode the event location to get coordinates
       LatLng? destination = await _geocodeAddress(event.location);
       
       if (!mounted) return;
@@ -245,7 +230,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return;
       }
 
-      // Load places along the route
       final response = await _loadPlacesAlongRoute(destination);
       
       if (!response.success || response.data == null) {
@@ -255,7 +239,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return;
       }
 
-      // Navigate to the MapViewScreen with destination and places
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -292,10 +275,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         );
       }
       
-      // Create a combined Map to avoid duplicate places
       final Map<String, Place> allPlaces = {};
       
-      // 1. Load places near current location
       final nearCurrentResponse = await placeService.getNearbyPlaces(
         lat: position.latitude, 
         lng: position.longitude,
@@ -309,7 +290,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
       }
       
-      // 2. Load places near destination
       final nearDestinationResponse = await placeService.getNearbyPlaces(
         lat: destination.latitude,
         lng: destination.longitude,
@@ -323,14 +303,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
       }
       
-      // 3. Load places near midpoint of the route
       final midLat = (position.latitude + destination.latitude) / 2;
       final midLng = (position.longitude + destination.longitude) / 2;
       
       final midpointResponse = await placeService.getNearbyPlaces(
         lat: midLat,
         lng: midLng,
-        radius: 1500, // Slightly larger radius
+        radius: 1500,
         apiKey: MapsConstants.mapsKey,
       );
       

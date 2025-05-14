@@ -154,11 +154,14 @@ class PlaceService {
     required double lng,
     required double radius,
     required String apiKey,
+    bool skipCache = false,
+    bool addToCache = false,
+    bool fetchDetails = false, // Add this parameter with default false
   }) async {
     final cacheKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}_$radius';
     
-    if (_cachedPlaces.containsKey(cacheKey)) {
-      print('Using cached places data');
+    if (!skipCache && _cachedPlaces.containsKey(cacheKey)) {
+      print('Using cached places data for key: $cacheKey with ${_cachedPlaces[cacheKey]!.length} places');
       return ApiResponse(
         success: true,
         message: 'Places loaded from cache',
@@ -217,7 +220,9 @@ class PlaceService {
 
                 if (walkingDistance <= 1.0) {
                   print('Fetching details for food place: ${place['name']}');
-                  final details = await getPlaceDetails(place['place_id']);
+                  final details = fetchDetails 
+                    ? await getPlaceDetails(place['place_id'])
+                    : {'photos': place['photos'], 'types': place['types']};
                   
                   final tags = _convertTypesToTags(types);
                   
@@ -237,7 +242,10 @@ class PlaceService {
             }
           }
 
-          _cachedPlaces[cacheKey] = places;
+          if (addToCache || !_cachedPlaces.containsKey(cacheKey)) {
+            _cachedPlaces[cacheKey] = places;
+            print('Cached ${places.length} places with key: $cacheKey');
+          }
 
           return ApiResponse(
             success: true,
@@ -445,6 +453,54 @@ class PlaceService {
       print('Error fetching popular times: $e');
       place.setPopularTimes(null);
       return false;
+    }
+  }
+
+  void updateCacheWithRoutePlaces(String cacheKey, List<Place> routePlaces) {
+    print('UPDATING CACHE: key=$cacheKey with ${routePlaces.length} route places');
+    
+    if (!_cachedPlaces.containsKey(cacheKey)) {
+      _cachedPlaces[cacheKey] = [];
+      print('Created new cache entry for key: $cacheKey');
+    }
+    
+    final List<Place> existingPlaces = _cachedPlaces[cacheKey] ?? [];
+    print('Found ${existingPlaces.length} existing places in cache');
+    
+    final Map<String, Place> mergedPlaces = {};
+    
+    for (var place in existingPlaces) {
+      mergedPlaces[place.id] = place;
+    }
+    
+    for (var place in routePlaces) {
+      mergedPlaces[place.id] = place;
+    }
+    
+    _cachedPlaces[cacheKey] = mergedPlaces.values.toList();
+    
+    print('CACHE UPDATED: Now has ${_cachedPlaces[cacheKey]!.length} places');
+    
+    final baseLoc = cacheKey.split('_')[0];
+    for (var radius in [1000.0, 1500.0, 2000.0, 3000.0]) {
+      final alternateKey = '${baseLoc}_${radius}';
+      if (alternateKey != cacheKey) {
+        if (!_cachedPlaces.containsKey(alternateKey)) {
+          _cachedPlaces[alternateKey] = [];
+        }
+        
+        final Map<String, Place> altPlaces = {};
+        for (var place in _cachedPlaces[alternateKey]!) {
+          altPlaces[place.id] = place;
+        }
+        
+        for (var place in routePlaces) {
+          altPlaces[place.id] = place;
+        }
+        
+        _cachedPlaces[alternateKey] = altPlaces.values.toList();
+        print('Updated alternate cache key: $alternateKey with ${_cachedPlaces[alternateKey]!.length} places');
+      }
     }
   }
 }
