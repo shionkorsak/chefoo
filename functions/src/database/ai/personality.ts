@@ -1,7 +1,7 @@
 import { z } from 'genkit';
-import { ai } from '../config';
+import { ai } from '../../config';
 import { firestore } from 'firebase-admin';
-import { restaurantSchema } from '../schema';
+import { restaurantSchema } from '../../schema';
 
 function mergeUniqueArrays<T = string>(...arrays: T[][]): T[] {
   return [...new Set(arrays.flat())];

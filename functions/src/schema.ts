@@ -1,8 +1,9 @@
+import { profile } from "console";
 import { z } from "zod";
 
 // TODO: user's route
 
-export const userProfileSchema = z.object({ // TODO: google calendar link
+export const userProfileSchema = z.object({ 
     uid: z.string(),
     email: z.string().email(),
     displayName: z.string(),
@@ -16,45 +17,69 @@ export const userProfileSchema = z.object({ // TODO: google calendar link
 })
 
 export const userPreferenceSchema = z.object({
-    description: z.array(z.string()),
-    likedFood: z.array(z.string()),
-    dislikedFood: z.array(z.string()),
-    cuisine: z.array(z.string()),
-    dietaryPreferences: z.array(z.string()),
-    allergies: z.array(z.string()),
+    description: z.array(z.string()).default([]),
+    likedFood: z.array(z.string()).default([]),
+    dislikedFood: z.array(z.string()).default([]),
+    cuisine: z.array(z.string()).default([]),
+    dietaryPreferences: z.array(z.string()).default([]),
+    allergies: z.array(z.string()).default([]),
+})
+
+export const mealProfile = z.object({
+    time: z.string(),
+    restaurantId: z.string(),
+    mealId: z.string(),
+    name: z.string(),
+})
+
+export const mealAnalysis = z.object({
+    tags: z.array(z.string()),
+    ingredients: z.array(z.string()),
+    estimatedCalories: z.number(),
+    healthyScore: z.number(),
+})
+
+export const mealInput = z.object({
+    profile: mealProfile,
+    analysis: mealAnalysis,
+    feedback: z.object({
+        rating: z.number(),
+        notes: z.string().optional(),
+    })
+})
+
+export const restaurantReview = z.object({
+    author: z.string(),
+    rating: z.number(),
+    text: z.string(),
+})
+
+export const restaurantSchema =  z.object({
+    id: z.string(),
+    name: z.string(),
+    location: z.object({
+        lat: z.number(),
+        lng: z.number(),
+    }),
+    address: z.string(),
+    walkingDistance: z.number(),
+    overallRating: z.number().min(0).max(5),
+    isFavorite: z.boolean().default(false),
+    tags: z.array(z.string()),
+    notes: z.string().optional(),
+    review: z.array(restaurantReview)
 })
 
 export const healthInsightSchema = z.object({
     healthScore: z.number().min(0).max(100),
     weeklyData: z.array(
         z.object({
-            week: z.number(),
+            date: z.string().datetime(),
+            mealInput: z.array(mealInput),
             ratio: z.number().min(0).max(1),
             comment: z.string()
         })
-    )
-})
-
-export const mealInput = z.object({
-    name: z.string(),
-    comment: z.string(),
-    rating: z.number(),
-})
-
-export const restaurantSchema =  z.object({
-    restaurantId: z.string(),
-    restaurantName: z.string(),
-    location: 
-        z.object({
-            lat: z.number(),
-            lng: z.number(),
-        }),
-    meals: z.array(
-        mealInput
-    ),
-    overallRating: z.number(),
-    tags: z.array(z.string()),
-    notes: z.string()
+    ).length(7)
 })
 
 export const userAccountSchema = z.object({

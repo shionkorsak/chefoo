@@ -1,5 +1,5 @@
 import { onCallGenkit } from "firebase-functions/https";
-import { updatePreference } from "./ai/personality";
+import { updatePreference } from "./database/ai/personality";
 
 export { createUserAccount } from "./auth/userAuth";
 export { deleteUserAccount } from "./auth/userAuth";
