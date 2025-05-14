@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:chefoo/widgets/cards/restaurant_card_vertical.dart';
 import '../models/restaurant.dart';
 import './restaurant_card.dart';
 

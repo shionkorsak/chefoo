@@ -180,10 +180,12 @@ Place place = Place.fromGooglePlace(placeData, detailsData);
 
 3. If location doesn't update:
    - Check location permissions
+   - Did you actually press the 'Set location button'?
    - Verify GPS is enabled
    - Try refreshing?
     
 4. If you just ran the app, it asked for location, but no places are loaded:
+   - Check if you have set a location. How do I set a location? Look at (5) below.
    - Hot Reload and everything should be fine
      - Go to the terminal where the app is running, and press R (capitalized!!)
 
