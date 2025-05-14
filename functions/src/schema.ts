@@ -57,12 +57,6 @@ export const restaurantReview = z.object({
 export const restaurantSchema =  z.object({
     id: z.string(),
     name: z.string(),
-    location: z.object({
-        lat: z.number(),
-        lng: z.number(),
-    }),
-    address: z.string(),
-    walkingDistance: z.number(),
     overallRating: z.number().min(0).max(5),
     isFavorite: z.boolean().default(false),
     tags: z.array(z.string()),
