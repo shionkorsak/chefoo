@@ -16,6 +16,7 @@ export 'package:url_launcher/url_launcher.dart';
 /// Constants and styles
 export 'constants.dart';
 export 'models/api_response.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 // Models
 export 'models/restaurant.dart';
 export 'models/user_model.dart';

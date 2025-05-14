@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'dart:convert';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:http/http.dart' as http;
 
 // [FRONTEND]: GO DIRECTLY TO SECTION 8 AND 9 FOR UI
@@ -788,56 +789,130 @@ class _MapViewScreenState extends State<MapViewScreen> {
       return const SizedBox.shrink();
     }
     
-    return Card(
+    final pictureUrl = _selectedPlace!.pictureUrls.isNotEmpty 
+      ? _selectedPlace!.pictureUrls.first 
+      : null;
+      
+    return Container(
       margin: const EdgeInsets.all(8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+      width: double.infinity,
+      padding: kPadd10,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: kRadius15,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (pictureUrl != null)
+            Container(
+              height: 120,
+              width: 120,
+              child: ClipRRect(
+                borderRadius: kRadius10,
+                child: Image.network(
+                  'https://maps.googleapis.com/maps/api/place/photo'
+                  '?maxwidth=400'
+                  '&photo_reference=${pictureUrl}'
+                  '&key=${MapsConstants.mapsKey}',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: Icon(Icons.image, color: Colors.grey[600]),
+                    );
+                  },
+                ),
+              ),
+            ),
+            
+          SizedBox(width: 12),
+          
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    _selectedPlace!.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                SizedBox(
+                  height: 28,
+                  width: double.infinity,
+                  child: Marquee(
+                    text: _selectedPlace!.name,
+                    style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
+                    scrollAxis: Axis.horizontal,
+                    blankSpace: 20.0,
+                    velocity: 30.0,
+                    pauseAfterRound: Duration(seconds: 1),
+                    startPadding: 10.0,
+                    accelerationDuration: Duration(seconds: 1),
+                    accelerationCurve: Curves.linear,
+                    decelerationDuration: Duration(milliseconds: 500),
+                    decelerationCurve: Curves.easeOut,
                   ),
                 ),
-                OpenStatusBadge(isOpen: _selectedPlace!.isOpenNow ?? false),
+                  
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.star,
+                          size: 10,
+                          color: AppColors.primary,
+                        ),
+                        Text(
+                          _selectedPlace!.rating.toString(),
+                          style: AppTextStyles.detail.copyWith(height: 1),
+                        )
+                      ],
+                    ),
+                    Text(
+                      _selectedPlace!.tags.isNotEmpty
+                          ? _selectedPlace!.tags.first
+                          : 'No tags available',
+                      style: AppTextStyles.detail,
+                    ),
+                  ],
+                ),
+                
+                Text(
+                  '${_selectedPlace!.walkingDistance.toStringAsFixed(1)}km',
+                  style: AppTextStyles.detail,
+                ),
+                
+                SizedBox(height: 8),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    if (_selectedPlace!.phone != null)
+                      PhoneButton(phoneNumber: _selectedPlace!.phone!),
+                    SizedBox(width: 16),
+                    IconButton(
+                      icon: Icon(Icons.info_outline),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RestaurantDetailScreen(place: _selectedPlace!),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            
-            Text(
-              _selectedPlace!.address,
-              style: Theme.of(context).textTheme.bodyMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            
-            Row(
-              children: [
-                RestaurantRating(rating: _selectedPlace!.rating),
-                const SizedBox(width: 16),
-                RestaurantDistance(distanceKm: _selectedPlace!.walkingDistance),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                if (_selectedPlace!.phone != null)
-                  PhoneButton(phoneNumber: _selectedPlace!.phone!),
-                DirectionsButton(lat: _selectedPlace!.lat, lng: _selectedPlace!.lng),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
