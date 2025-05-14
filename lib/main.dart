@@ -1,9 +1,11 @@
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
+import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:chefoo/screens/tests/widget_test_screen.dart';
+import 'package:chefoo/providers/getstarted.dart';
 import 'package:http/http.dart' as http;
 
 import 'commons.dart';
@@ -38,6 +40,9 @@ void main() async {
         ChangeNotifierProvider<RestaurantProvider>(
           create: (_) => RestaurantProvider(),
         ),
+        ChangeNotifierProvider<GetStartedProvider>(
+          create: (_) => GetStartedProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -57,8 +62,10 @@ class MyApp extends StatelessWidget {
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
-        home: TestScreen());
+        //home: TestScreen());
+        home: GetStartedScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
 }
+
