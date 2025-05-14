@@ -1,21 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'package:chefoo/commons.dart';
-import 'package:chefoo/providers/calendar_state.dart';
-import 'package:chefoo/services/calendar_service.dart';
-import 'package:chefoo/services/maps.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../models/restaurant.dart';
-import '../services/location.dart';
-import '../widgets/base_layout.dart';
-import '../widgets/restaurant_card.dart';
+import 'package:chefoo/commons.dart';
+import 'package:http/http.dart' as http;
+
+// [FRONTEND]: GO DIRECTLY TO SECTION 8 AND 9 FOR UI
 
 class MapViewScreen extends StatefulWidget {
   final List<Place> places;
@@ -34,12 +23,14 @@ class MapViewScreen extends StatefulWidget {
 }
 
 class _MapViewScreenState extends State<MapViewScreen> {
+  // SECTION 1: CONSTANTS
   static const double _initialZoom = 20.0;
   static const double _maxZoom = 21.0;
   static const double _minZoom = 17.0;
   static const double _mapPadding = 50.0;
   static const double _boundsPadding = 0.001;
 
+  // SECTION 2: STATE VARIABLES
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   Place? _selectedPlace;
@@ -53,7 +44,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeMap();
+  }
 
+  // SECTION 3: INITIALIZATION METHODS
+  void _initializeMap() {
     _createMarkersWithDestination();
 
     if (widget.destination != null) {
@@ -63,8 +58,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
           widget.destinationName ?? 'Event Location',
         );
       });
-    }
-    else {
+    } else {
       final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
       if (calendarState.eventLocation != null) {
         _calendarEvent = calendarState.nextEvent;
@@ -165,6 +159,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
+  // SECTION 4: EVENT HANDLING METHODS (calendar & routing)
   Future<void> _fetchNextEvent() async {
     try {
       setState(() {
@@ -191,7 +186,12 @@ class _MapViewScreenState extends State<MapViewScreen> {
               _eventLocation = coordinates;
             });
 
-            await _loadPlacesAlongRoute(coordinates);
+            final locationService = Provider.of<LocationService>(context, listen: false);
+            final start = locationService.currentPosition;
+            if (start != null) {
+              final routeKey = '${start.latitude.toStringAsFixed(4)},${start.longitude.toStringAsFixed(4)}-${coordinates.latitude.toStringAsFixed(4)},${coordinates.longitude.toStringAsFixed(4)}';
+              await _loadPlacesAlongRouteImplementation(LatLng(start.latitude, start.longitude), coordinates, routeKey);
+            }
 
             _drawRouteToDestination(coordinates, _calendarEvent!.title);
 
@@ -276,6 +276,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
+  // SECTION 5: ROUTE & MAP MANIPULATION
   Future<void> _drawRouteToDestination(LatLng destination, String destinationName) async {
     print('⭐️ Drawing route to $destinationName');
 
@@ -286,6 +287,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
     setState(() {
       _isLoadingRoute = true;
+      _hasActiveRoute = true;
       _polylines.clear();
       print('Cleared existing polylines');
     });
@@ -298,6 +300,10 @@ class _MapViewScreenState extends State<MapViewScreen> {
         print('Current location not available');
         throw Exception('Current location not available');
       }
+
+      print('Loading places along route before drawing...');
+      await _loadPlacesAlongRoute(destination);
+      print('Places along route loaded successfully');
 
       print('Getting directions from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
 
@@ -329,7 +335,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
       });
 
       _addDestinationMarker(destination, destinationName);
-
       _fitRouteAndDestination(position, destination);
 
     } catch (e) {
@@ -343,58 +348,129 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
-  Future<void> _loadPlacesAlongRoute(LatLng destination) async {
-    try {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      final position = locationService.currentPosition;
+  Future<void> _drawRouteToEvent() async {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final start = locationService.currentPosition;
+    final end = widget.destination;
 
-      if (position == null) {
-        print('Current location not available');
-        return;
+    if (start == null || end == null) return;
+
+    final routeKey =
+        '${start.latitude.toStringAsFixed(4)},${start.longitude.toStringAsFixed(4)}-${end.latitude.toStringAsFixed(4)},${end.longitude.toStringAsFixed(4)}';
+
+    print('⭐️ Drawing route with key: $routeKey');
+
+    setState(() {
+      _isLoadingRoute = true;
+      _hasActiveRoute = true;
+      _polylines.clear();
+      print('Cleared existing polylines');
+    });
+
+    try {
+      print('Loading places along route before drawing...');
+      await _loadPlacesAlongRoute(end);  // Ensure this calls the wrapper method
+      print('Places along route loaded successfully');
+
+      print('Getting directions from (${start.latitude}, ${start.longitude}) to (${end.latitude}, ${end.longitude})');
+
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+
+      final response = await placeService.getDirections(
+        origin: LatLng(start.latitude, start.longitude),
+        destination: end,
+      );
+
+      if (!response.success || response.data == null || response.data!.isEmpty) {
+        print('Failed to get directions: ${response.error}');
+        throw Exception("Couldn't get directions: ${response.error ?? 'Unknown error'}");
       }
 
+      print('Got route with ${response.data!.length} points');
+
+      setState(() {
+        _polylines.add(
+          Polyline(
+            polylineId: const PolylineId('event_route'),
+            color: Colors.blue,
+            width: 5,
+            points: response.data!,
+          ),
+        );
+        print('Added polyline with ${response.data!.length} points');
+        print('Total polylines now: ${_polylines.length}');
+      });
+
+      _addDestinationMarker(end, widget.destinationName ?? 'Event Location');
+      _fitRouteAndDestination(start, end);
+
+    } catch (e) {
+      print('ERROR drawing route: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingRoute = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadPlacesAlongRoute(LatLng destination) async {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final position = locationService.currentPosition;
+    
+    if (position == null) return;
+    
+    final start = LatLng(position.latitude, position.longitude);
+    final routeKey = '${start.latitude.toStringAsFixed(4)},${start.longitude.toStringAsFixed(4)}-${destination.latitude.toStringAsFixed(4)},${destination.longitude.toStringAsFixed(4)}';
+    
+    await _loadPlacesAlongRouteImplementation(start, destination, routeKey);
+  }
+
+  Future<void> _loadPlacesAlongRouteImplementation(LatLng start, LatLng end, String routeKey) async {
+    try {
       final placeService = Provider.of<PlaceService>(context, listen: false);
       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
-      print('Loading places along route from (${position.latitude}, ${position.longitude}) to (${destination.latitude}, ${destination.longitude})');
+      print('Loading places along route from (${start.latitude}, ${start.longitude}) to (${end.latitude}, ${end.longitude})');
 
       final Map<String, Place> allPlaces = {};
 
-      final nearCurrentResponse = await placeService.getNearbyPlaces(
-        lat: position.latitude,
-        lng: position.longitude,
+      final nearStartResponse = await placeService.getNearbyPlaces(
+        lat: start.latitude,
+        lng: start.longitude,
         radius: 1000,
         apiKey: MapsConstants.mapsKey,
       );
 
-      if (nearCurrentResponse.success && nearCurrentResponse.data != null) {
-        for (var place in nearCurrentResponse.data!) {
+      if (nearStartResponse.success && nearStartResponse.data != null) {
+        for (var place in nearStartResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('Loaded ${nearCurrentResponse.data!.length} places near current location');
+        print('Loaded ${nearStartResponse.data!.length} places near start location');
       }
 
-      final nearDestinationResponse = await placeService.getNearbyPlaces(
-        lat: destination.latitude,
-        lng: destination.longitude,
+      final nearEndResponse = await placeService.getNearbyPlaces(
+        lat: end.latitude,
+        lng: end.longitude,
         radius: 1000,
         apiKey: MapsConstants.mapsKey,
       );
 
-      if (nearDestinationResponse.success && nearDestinationResponse.data != null) {
-        for (var place in nearDestinationResponse.data!) {
+      if (nearEndResponse.success && nearEndResponse.data != null) {
+        for (var place in nearEndResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('Loaded ${nearDestinationResponse.data!.length} places near destination');
+        print('Loaded ${nearEndResponse.data!.length} places near end location');
       }
 
-      final midLat = (position.latitude + destination.latitude) / 2;
-      final midLng = (position.longitude + destination.longitude) / 2;
+      final midpointLat = (start.latitude + end.latitude) / 2;
+      final midpointLng = (start.longitude + end.longitude) / 2;
 
       final midpointResponse = await placeService.getNearbyPlaces(
-        lat: midLat,
-        lng: midLng,
-        radius: 1500,
+        lat: midpointLat,
+        lng: midpointLng,
+        radius: 1000,
         apiKey: MapsConstants.mapsKey,
       );
 
@@ -402,56 +478,51 @@ class _MapViewScreenState extends State<MapViewScreen> {
         for (var place in midpointResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('Loaded ${midpointResponse.data!.length} places near route midpoint');
+        print('Loaded ${midpointResponse.data!.length} places at route midpoint');
       }
 
-      final distance = _calculateDistance(
-        position.latitude, position.longitude,
-        destination.latitude, destination.longitude
+      final quarterLat = start.latitude + (end.latitude - start.latitude) * 0.25;
+      final quarterLng = start.longitude + (end.longitude - start.longitude) * 0.25;
+
+      final quarterResponse = await placeService.getNearbyPlaces(
+        lat: quarterLat,
+        lng: quarterLng,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
       );
 
-      if (distance > 3000) {
-        final quarterLat = position.latitude + (destination.latitude - position.latitude) * 0.25;
-        final quarterLng = position.longitude + (destination.longitude - position.longitude) * 0.25;
-
-        final quarterResponse = await placeService.getNearbyPlaces(
-          lat: quarterLat,
-          lng: quarterLng,
-          radius: 1000,
-          apiKey: MapsConstants.mapsKey,
-        );
-
-        if (quarterResponse.success && quarterResponse.data != null) {
-          for (var place in quarterResponse.data!) {
-            allPlaces[place.id] = place;
-          }
-          print('Loaded ${quarterResponse.data!.length} places at quarter point');
+      if (quarterResponse.success && quarterResponse.data != null) {
+        for (var place in quarterResponse.data!) {
+          allPlaces[place.id] = place;
         }
-
-        final threeQuarterLat = position.latitude + (destination.latitude - position.latitude) * 0.75;
-        final threeQuarterLng = position.longitude + (destination.longitude - position.longitude) * 0.75;
-
-        final threeQuarterResponse = await placeService.getNearbyPlaces(
-          lat: threeQuarterLat,
-          lng: threeQuarterLng,
-          radius: 1000,
-          apiKey: MapsConstants.mapsKey,
-        );
-
-        if (threeQuarterResponse.success && threeQuarterResponse.data != null) {
-          for (var place in threeQuarterResponse.data!) {
-            allPlaces[place.id] = place;
-          }
-          print('Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
-        }
+        print('Loaded ${quarterResponse.data!.length} places at quarter point');
       }
 
-      print('Total unique places along route: ${allPlaces.length}');
+      final threeQuarterLat = start.latitude + (end.latitude - start.latitude) * 0.75;
+      final threeQuarterLng = start.longitude + (end.longitude - start.longitude) * 0.75;
+
+      final threeQuarterResponse = await placeService.getNearbyPlaces(
+        lat: threeQuarterLat,
+        lng: threeQuarterLng,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
+      );
+
+      if (threeQuarterResponse.success && threeQuarterResponse.data != null) {
+        for (var place in threeQuarterResponse.data!) {
+          allPlaces[place.id] = place;
+        }
+        print('Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
+      }
+
+      final places = allPlaces.values.toList();
+
+      restaurantProvider.setRoutePlaces(places, routeKey);
+
+      print('Total unique places along route: ${places.length}');
+      print('Places along route loaded successfully');
 
       if (mounted) {
-        final places = allPlaces.values.toList();
-        restaurantProvider.setPlaces(places);
-
         setState(() {
           _createMarkersWithDestination();
         });
@@ -461,16 +532,17 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
+  // SECTION 6: UTILITY METHODS
   double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371000; // Earth radius in meters
+    const r = 6371000;
     final phi1 = lat1 * (math.pi / 180);
     final phi2 = lat2 * (math.pi / 180);
     final deltaPhi = (lat2 - lat1) * (math.pi / 180);
     final deltaLambda = (lon2 - lon1) * (math.pi / 180);
 
     final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
-             math.cos(phi1) * math.cos(phi2) *
-             math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
+              math.cos(phi1) * math.cos(phi2) *
+              math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
 
     return r * c;
@@ -517,6 +589,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     return places;
   }
 
+  // SECTION 7: MARKER & UI STATE MANAGEMENT
   void _createMarkersWithDestination() {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final places = restaurantProvider.places.isNotEmpty 
@@ -530,7 +603,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
       
     final Set<Marker> markers = sortedPlaces.map((place) {
       final isSelected = place.id == _selectedPlace?.id;
-
+      
       return Marker(
         markerId: MarkerId(place.id),
         position: LatLng(place.lat, place.lng),
@@ -608,6 +681,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
       _selectedPlace = places[index];
       _createMarkersWithDestination();
     });
+    
     _centerOnLocation(_selectedPlace!.lat, _selectedPlace!.lng);
   }
 
@@ -643,7 +717,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     if (_mapController == null || _markers.isEmpty) return;
 
     final bounds = _MapBounds();
-
+    
     for (final marker in _markers) {
       bounds.extend(marker.position);
     }
@@ -689,6 +763,26 @@ class _MapViewScreenState extends State<MapViewScreen> {
     }
   }
 
+  void _clearRoutes() {
+    setState(() {
+      _polylines.clear();
+      _hasActiveRoute = false;
+    });
+  }
+
+  void _clearRouteAndPlaces() {
+    _clearRoutes();
+    
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    restaurantProvider.clearRoutePlaces();
+  }
+
+  void _exitNavigation() {
+    _clearRouteAndPlaces();
+    Navigator.pop(context);
+  }
+
+  // SECTION 8: UI COMPONENTS
   Widget _buildRestaurantCard() {
     if (_selectedPlace == null) {
       return const SizedBox.shrink();
@@ -748,6 +842,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     );
   }
 
+  // SECTION 9: MAIN BUILD METHOD
   @override
   Widget build(BuildContext context) {
     final locationService = Provider.of<LocationService>(context);
@@ -771,6 +866,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
       title: pageTitle,
       child: Stack(
         children: [
+          // SECTION 9.1: MAP
           GoogleMap(
             initialCameraPosition: _getInitialCameraPosition(),
             markers: _markers,
@@ -799,12 +895,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
             compassEnabled: false,
             minMaxZoomPreference: MinMaxZoomPreference(_minZoom, _maxZoom),
           ),
+          
+          // SECTION 9.2: RESTAURANT CARD
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: _buildRestaurantCard(),
           ),
+          
+          // SECTION 9.3: LIST VIEW BUTTON
           Positioned(
             right: 16,
             bottom: _selectedPlace != null ? 220 : 16,
@@ -820,6 +920,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 }
 
+// helper class for calculating map bounds <3 dont touch? or do
 class _MapBounds {
   double minLat = double.infinity;
   double maxLat = -double.infinity;
