@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../commons.dart';
 import '../constants.dart';
 
@@ -98,6 +100,119 @@ class LocationHandler {
       
       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
       restaurantProvider.setLoading(false);
+    }
+  }
+
+  static Future<void> geocodeAddressAndFindRestaurants(
+    BuildContext context, 
+    String address
+  ) async {
+    try {
+      final apiKey = MapsConstants.mapsKey;
+      final encodedAddress = Uri.encodeComponent(address);
+      
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json'
+        '?address=$encodedAddress'
+        '&key=$apiKey'
+      );
+      
+      final response = await http.get(url);
+      if (response.statusCode != 200) {
+        throw Exception('Geocoding API error');
+      }
+      
+      final data = json.decode(response.body);
+      if (data['status'] != 'OK' || data['results'].isEmpty) {
+        throw Exception('No location found for address');
+      }
+      
+      final location = data['results'][0]['geometry']['location'];
+      final lat = location['lat'];
+      final lng = location['lng'];
+      
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      
+      restaurantProvider.setLoading(true);
+      
+      final restaurantResponse = await placeService.getNearbyPlaces(
+        lat: lat,
+        lng: lng,
+        radius: 1000.0,
+        apiKey: apiKey,
+      );
+      
+      if (restaurantResponse.success && restaurantResponse.data != null) {
+        restaurantProvider.setPlaces(restaurantResponse.data!);
+      } else {
+        throw Exception(restaurantResponse.message);
+      }
+      
+      restaurantProvider.setLoading(false);
+    } catch (e) {
+      print('Error: $e');
+      throw e;
+    }
+  }
+
+  static Future<void> geocodeAddressAndFetchRestaurants(
+    BuildContext context, 
+    String address
+  ) async {
+    try {
+      final apiKey = MapsConstants.mapsKey;
+      
+      final encodedAddress = Uri.encodeComponent(address);
+      
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json'
+        '?address=$encodedAddress'
+        '&key=$apiKey'
+      );
+      
+      final http.Response response = await http.get(url);
+      
+      if (response.statusCode != 200) {
+        throw Exception('Failed to geocode address');
+      }
+      
+      final data = json.decode(response.body);
+      
+      if (data['status'] != 'OK' || data['results'].isEmpty) {
+        throw Exception('No location found for: $address');
+      }
+      
+      final location = data['results'][0]['geometry']['location'];
+      final double lat = location['lat'];
+      final double lng = location['lng'];
+      
+      print('Geocoded address to: $lat, $lng');
+      
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      
+      restaurantProvider.setLoading(true);
+      
+      final restaurantResponse = await placeService.getNearbyPlaces(
+        lat: lat,
+        lng: lng,
+        radius: 1000.0,
+        apiKey: apiKey,
+      );
+      
+      if (restaurantResponse.success && restaurantResponse.data != null) {
+        restaurantProvider.setPlaces(restaurantResponse.data!);
+      } else {
+        throw Exception(restaurantResponse.message);
+      }
+      
+    } catch (e) {
+      print('Error in geocodeAddressAndFetchRestaurants: $e');
+      Provider.of<RestaurantProvider>(context, listen: false).setLoading(false);
+      rethrow;
+    } finally {
+      Provider.of<RestaurantProvider>(context, listen: false).setLoading(false);
     }
   }
 }

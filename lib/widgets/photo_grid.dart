@@ -4,12 +4,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class PhotoGrid extends StatelessWidget {
   final List<String> photoRefs;
   final String placeName;
+  final int initialIndex;
   static const String baseUrl = 'https://maps.googleapis.com/maps/api/place/photo';
 
   const PhotoGrid({
     Key? key,
     required this.photoRefs,
     required this.placeName,
+    this.initialIndex = 0,
   }) : super(key: key);
 
   @override
