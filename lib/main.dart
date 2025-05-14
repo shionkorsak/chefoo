@@ -5,6 +5,7 @@ import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/screens/tests/widget_test_screen.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
+import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
 
@@ -77,6 +78,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
-        home: AuthGate());
+        // home: AuthGate());
+
+        ///Screen names used from file screens.dart
+
+        // routes: {Screens.profile: (_) => const ProfileScreen()},
+        //home: GetStarted());
+        //home: TestScreen());
+        home: GetStartedScreen());
+    
+        //home: WidgetTestScreen());
+        //home: TestScreen());
+    // this testScreen is only to visualize google maps info
+    // which we are importing, and related widgets
   }
 }
+
