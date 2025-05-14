@@ -19,8 +19,6 @@ android
 - Better Comments VSCode extension
 
 ### Installation steps
-0. 
-
 1. Clone the repo:
 ```bash
 git clone https://github.com/shionkorsak/chefoo.git
