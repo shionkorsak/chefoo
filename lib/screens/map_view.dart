@@ -588,6 +588,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
       _createMarkersWithDestination();
     });
     _centerOnLocation(place.lat, place.lng);
+
+    // [DATABASE]: you can add a function here so that everytime a 📍 gets
+    // clicked on, you save it to the database or smth
+    // String placeId = place.id;
+    // saveToDatabase(placeId);
   }
 
   void _updateSelectedPlace(int index) {

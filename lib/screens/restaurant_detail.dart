@@ -29,6 +29,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     super.initState();
     _loadDetailedInfo();
     _loadPopularTimes();
+
+    // [DATABASE]: here too. save to history when viewing a place
+    // String placeId = place.id;
+    // saveToDatabase(placeId);
   }
 
   Future<void> _loadDetailedInfo() async {

@@ -27,7 +27,7 @@ class RestaurantCardListHorizontal extends StatelessWidget {
       itemCount: places.length,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: 5.0), // Adjust the value as needed
+            horizontal: 5.0),
         child: Center(child: RestaurantCardVertical(place: places[index])),
       ),
     );

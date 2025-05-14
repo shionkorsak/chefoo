@@ -50,6 +50,12 @@ class _RestaurantCardState extends State<RestaurantCard> {
   Widget build(BuildContext context) {
     final locationService = Provider.of<LocationService>(context, listen: false);
     
+    // [DATABASE]: here too. save to history when viewing a place
+    // i think in this case youll have to wrap the Card in a GestureDetector to
+    // make the relation that onTap: 
+    // String placeId = place.id;
+    // saveToDatabase(placeId);
+    
     return Card(
       margin: const EdgeInsets.all(8.0),
       child: ExpansionTile(

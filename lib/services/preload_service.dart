@@ -11,48 +11,40 @@ import 'package:chefoo/services/calendar_service.dart';
 import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/providers/calendar_state.dart';
 
-/// Service to preload data when the app starts
 class PreloadService {
   
-  /// Preload restaurants near user's location and upcoming calendar events
   static Future<void> preloadData(BuildContext context) async {
-    print('🔄 Starting to preload application data...');
+    print('Starting to preload application data...');
     
     try {
-      // Get required providers
       final locationService = Provider.of<LocationService>(context, listen: false);
       final placeService = Provider.of<PlaceService>(context, listen: false);
       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
       final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
       
-      // Make sure we have a location
       await locationService.getCurrentLocation();
       
-      // Wait for location to be available (max 2 seconds)
       int attempts = 0;
       while (locationService.currentPosition == null && attempts < 10) {
         await Future.delayed(const Duration(milliseconds: 200));
         attempts++;
       }
       
-      // Get current location
       final position = locationService.currentPosition;
       if (position == null) {
-        print('⚠️ Could not get current location for preloading');
+        print('Could not get current location for preloading');
         return;
       }
       
-      print('📍 Initial position: (${position.latitude}, ${position.longitude})');
+      print('Initial position: (${position.latitude}, ${position.longitude})');
       
-      // Create a map to store unique places
       final Map<String, Place> allPlaces = {};
       
-      // First, load places near current location
-      print('📍 Loading places near current location...');
+      print('Loading places near current location...');
       final nearCurrentResponse = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
-        radius: 1500, // 1.5km radius
+        radius: 1500,
         apiKey: MapsConstants.mapsKey,
       );
       
@@ -60,28 +52,25 @@ class PreloadService {
         for (var place in nearCurrentResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('✅ Loaded ${nearCurrentResponse.data!.length} places near current location');
+        print('Loaded ${nearCurrentResponse.data!.length} places near current location');
       }
       
-      // Next, load upcoming calendar event
-      print('📅 Loading upcoming calendar event...');
+      print('Loading upcoming calendar event...');
       final calendarService = CalendarService();
       final eventResponse = await calendarService.getNextEvent();
       
       if (eventResponse.success && eventResponse.data != null) {
-        print('📅 Found upcoming calendar event: ${eventResponse.data!.title}');
+        print('Found upcoming calendar event: ${eventResponse.data!.title}');
         calendarState.setNextEvent(eventResponse.data);
         
-        // Try to geocode the location
         if (eventResponse.data!.location.isNotEmpty) {
           try {
             final coordinates = await _geocodeAddress(eventResponse.data!.location);
             
             if (coordinates != null) {
-              print('📍 Geocoded event location: (${coordinates.latitude}, ${coordinates.longitude})');
+              print('Geocoded event location: (${coordinates.latitude}, ${coordinates.longitude})');
               calendarState.setEventLocation(coordinates);
               
-              // Now load places along the route to the event
               await _preloadPlacesAlongRoute(
                 context,
                 LatLng(position.latitude, position.longitude),
@@ -90,25 +79,23 @@ class PreloadService {
               );
             }
           } catch (e) {
-            print('⚠️ Error geocoding event address: $e');
+            print('Error geocoding event address: $e');
           }
         }
       } else {
-        print('📅 No upcoming calendar events found');
+        print('No upcoming calendar events found');
       }
       
-      // Update the restaurant provider with all places found
-      print('📌 Updating restaurant provider with ${allPlaces.length} total places');
+      print('Updating restaurant provider with ${allPlaces.length} total places');
       restaurantProvider.setPlaces(allPlaces.values.toList());
       
-      print('✅ Data preloading complete!');
+      print('Data preloading complete!');
       
     } catch (e) {
-      print('❌ Error during data preloading: $e');
+      print('Error during data preloading: $e');
     }
   }
   
-  /// Helper method to load places along a route between two points
   static Future<void> _preloadPlacesAlongRoute(
     BuildContext context, 
     LatLng origin, 
@@ -118,14 +105,13 @@ class PreloadService {
     try {
       final placeService = Provider.of<PlaceService>(context, listen: false);
       
-      print('📍 Preloading places along route from (${origin.latitude}, ${origin.longitude}) '
+      print('Preloading places along route from (${origin.latitude}, ${origin.longitude}) '
           'to (${destination.latitude}, ${destination.longitude})');
       
-      // 1. Load places near destination first
       final nearDestinationResponse = await placeService.getNearbyPlaces(
         lat: destination.latitude,
         lng: destination.longitude,
-        radius: 1500, // 1.5km radius
+        radius: 1500,
         apiKey: MapsConstants.mapsKey,
       );
       
@@ -133,10 +119,9 @@ class PreloadService {
         for (var place in nearDestinationResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('✅ Loaded ${nearDestinationResponse.data!.length} places near destination');
+        print('Loaded ${nearDestinationResponse.data!.length} places near destination');
       }
       
-      // 2. Load places near midpoint of the route
       final midLat = (origin.latitude + destination.latitude) / 2;
       final midLng = (origin.longitude + destination.longitude) / 2;
       
@@ -151,17 +136,15 @@ class PreloadService {
         for (var place in midpointResponse.data!) {
           allPlaces[place.id] = place;
         }
-        print('✅ Loaded ${midpointResponse.data!.length} places near route midpoint');
+        print('Loaded ${midpointResponse.data!.length} places near route midpoint');
       }
       
-      // 3. For longer routes, add more sampling points
       final distance = _calculateDistance(
         origin.latitude, origin.longitude,
         destination.latitude, destination.longitude
       );
       
-      if (distance > 3000) { // If more than 3km apart
-        // Quarter point
+      if (distance > 3000) {
         final quarterLat = origin.latitude + (destination.latitude - origin.latitude) * 0.25;
         final quarterLng = origin.longitude + (destination.longitude - origin.longitude) * 0.25;
         
@@ -176,10 +159,9 @@ class PreloadService {
           for (var place in quarterResponse.data!) {
             allPlaces[place.id] = place;
           }
-          print('✅ Loaded ${quarterResponse.data!.length} places at quarter point');
+          print('Loaded ${quarterResponse.data!.length} places at quarter point');
         }
         
-        // Three-quarter point
         final threeQuarterLat = origin.latitude + (destination.latitude - origin.latitude) * 0.75;
         final threeQuarterLng = origin.longitude + (destination.longitude - origin.longitude) * 0.75;
         
@@ -194,18 +176,17 @@ class PreloadService {
           for (var place in threeQuarterResponse.data!) {
             allPlaces[place.id] = place;
           }
-          print('✅ Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
+          print('Loaded ${threeQuarterResponse.data!.length} places at three-quarter point');
         }
       }
       
       print('📊 Total places along route: ${allPlaces.length}');
       
     } catch (e) {
-      print('❌ Error preloading places along route: $e');
+      print('Error preloading places along route: $e');
     }
   }
   
-  /// Helper method to geocode an address to coordinates
   static Future<LatLng?> _geocodeAddress(String address) async {
     try {
       final apiKey = MapsConstants.mapsKey;
@@ -230,14 +211,13 @@ class PreloadService {
       final location = data['results'][0]['geometry']['location'];
       return LatLng(location['lat'], location['lng']);
     } catch (e) {
-      print('❌ Error geocoding address: $e');
+      print('Error geocoding address: $e');
       return null;
     }
   }
   
-  /// Calculate distance between two points in meters
   static double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371000; // Earth radius in meters
+    const r = 6371000;
     final phi1 = lat1 * (math.pi / 180);
     final phi2 = lat2 * (math.pi / 180);
     final deltaPhi = (lat2 - lat1) * (math.pi / 180);
@@ -248,6 +228,6 @@ class PreloadService {
              math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
     
-    return r * c; // Distance in meters
+    return r * c;
   }
 }

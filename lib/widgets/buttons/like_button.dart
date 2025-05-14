@@ -37,6 +37,18 @@ class LikeButton extends StatelessWidget {
             ),
           );
         }
+        // [DATABASE]: here needs editing too. you or i will have
+        // to get rid of the provider thing i have implemented above
+        /* 
+          String placeId = place.id;
+
+          final isFav = await placeDatabase.isFav(place.id);
+          if(isFav) {
+            await placeDatabase.removeFav(place.id);
+          } else {
+            await placeDatabase.saveFav(place.id);
+          }
+        */
       },
       child: Container(
         padding: EdgeInsets.all(6),
