@@ -92,14 +92,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
-        // home: AuthGate());
+        home: AuthGate());
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         //home: TestScreen());
-        home: GetStartedScreen());
+        // home: GetStartedScreen());
     
         //home: WidgetTestScreen());
         //home: TestScreen());

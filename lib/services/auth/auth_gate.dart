@@ -1,9 +1,8 @@
 import 'dart:developer';
-import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/placeholder/playground.dart';
+import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 
 //? To make sure that when user is authenticated the page should be the home page
 class AuthGate extends StatelessWidget {
@@ -20,7 +19,7 @@ class AuthGate extends StatelessWidget {
             return UserProfileScreen(); //TODO [FRONTEND]: change this to home screen
           } else {
             log("User has not signed in.");
-            return const LoginScreen(); //TODO: will change this to onboarding screens when frontend has made it
+            return GetStartedScreen(); //TODO: will change this to onboarding screens when frontend has made it
           }
         }
       )
