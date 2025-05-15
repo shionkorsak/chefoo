@@ -7,6 +7,7 @@
 - Node.js (v14 or higher)
 - Python
 - Google Maps API key (find it in our notion)
+- Google AI API key (find it in our notion)
 - Make sure you give your Play Services SHA fingerprints to gladys, how to get:
 ```
 keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
@@ -39,11 +40,15 @@ or, if this doesn't work because you don't have Python3 installed:
 pip install --upgrade git+https://github.com/m-wrzr/populartimes
 ```
 
-4. Create a `.env` file in the *ROOT* directory:
+4. API handling
+Create a `.env` file in the *ROOT* directory:
 ```env
 GOOGLE_MAPS_API_KEY=key_here
 ```
-
+Then in the functions folder, input the key in the .env file
+```env
+GEMINI_API_KEY=key_here
+```
 you can find the key in our notion
 
 5. Put google-services.json in android/app directory
