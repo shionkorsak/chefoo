@@ -7,10 +7,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user/user_account.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
-//? ONLY CLIENT SIDE, SERVER (AI) WILL BE DONE BY FUNCTIONS
 class UserAccountService {
   final _auth = AuthService();
-  String? get uid => _auth.getCurrentUser()?.uid;
+  String? get uid => _auth.getCurrentUserUID();
   final _firestore = FirebaseFirestore.instance;
 
   Future<UserAccount?> fetchUserAccount() async {

@@ -32,7 +32,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           if (provider.errorMessage != null) {
             return Center(child: Text(provider.errorMessage!, style: TextStyle(color: Colors.red)));
           }
-
+          
           final account = provider.userAccount;
           if (account == null) return Center(child: Text("No user data available."));
 
@@ -61,7 +61,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   onPressed: () async {
                     final dietary = _dietaryController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
                     final allergies = _allergiesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-
+                    
                     final success = await provider.updateUserPreferences(dietary, allergies);
                     final snackBar = SnackBar(content: Text(success ? "Updated!" : "Failed to update"));
                     ScaffoldMessenger.of(context).showSnackBar(snackBar);

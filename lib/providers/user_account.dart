@@ -3,11 +3,10 @@ import '../models/user/user_account.dart';
 import '../services/database/user_account_service.dart';
 
 class UserAccountProvider with ChangeNotifier {
-    final UserAccountService _service = UserAccountService();
+    final _service = UserAccountService();
     UserAccount? _userAccount;
     String? _errorMessage;
     bool _isLoading = false;
-
     UserAccount? get userAccount => _userAccount;
     String? get errorMessage => _errorMessage;
     bool get isLoading => _isLoading;
