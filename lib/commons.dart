@@ -27,6 +27,7 @@ export 'services/auth/auth_service.dart';
 export 'services/calendar_service.dart';
 // Services
 export 'services/auth/auth_gate.dart';
+export 'services/database/user_account_service.dart';
 export 'services/location.dart';
 export 'services/maps.dart';
 export 'services/popular_times.dart';
