@@ -27,7 +27,7 @@ class RestaurantCardVertical extends StatelessWidget {
         place.pictureUrls.isNotEmpty ? place.pictureUrls.first : null;
 
     return Container(
-      width: 130,
+      width: 200,
       padding: kPadd10,
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -42,54 +42,64 @@ class RestaurantCardVertical extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 116,
-            width: 116,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: kRadius10, // Use your existing border radius
-                    child: Image.network(
-                      'https://maps.googleapis.com/maps/api/place/photo'
-                      '?maxwidth=400'
-                      '&photo_reference=${pictureUrl}'
-                      '&key=${MapsConstants.mapsKey}',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        print('Error loading image: $error');
-                        return Placeholder();
-                      },
+          AspectRatio(
+            aspectRatio: 3 / 2, // Adjust this ratio as needed (width/height)
+            child: Container(
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: kRadius10,
+                      child: Image.network(
+                        'https://maps.googleapis.com/maps/api/place/photo'
+                        '?maxwidth=400'
+                        '&photo_reference=${pictureUrl}'
+                        '&key=${MapsConstants.mapsKey}',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Error loading image: $error');
+                          return Placeholder();
+                        },
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: LikeButton(place: place),
-                ),
-              ],
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: LikeButton(place: place),
+                  ),
+                ],
+              ),
             ),
           ),
-          SizedBox(
-            height: 28,
-            width: double.infinity,
-            child: Marquee(
-              text: place.name,
-              style: AppTextStyles.headline3
-                  .copyWith(color: AppColors.textPrimary),
-              scrollAxis: Axis.horizontal,
-              blankSpace: 20.0,
-              velocity: 30.0,
-              pauseAfterRound: Duration(seconds: 1),
-              startPadding: 10.0,
-              accelerationDuration: Duration(seconds: 1),
-              accelerationCurve: Curves.linear,
-              decelerationDuration: Duration(milliseconds: 500),
-              decelerationCurve: Curves.easeOut,
-            ),
+          Text(
+            place.name,
+            style:
+                AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+          // SizedBox(
+          //   height: 28,
+          //   width: double.infinity,
+          //   child: Marquee(
+          //     text: place.name,
+          //     style: AppTextStyles.headline3
+          //         .copyWith(color: AppColors.textPrimary),
+          //     scrollAxis: Axis.horizontal,
+          //     blankSpace: 20.0,
+          //     velocity: 30.0,
+          //     pauseAfterRound: Duration(seconds: 1),
+          //     startPadding: 10.0,
+          //     accelerationDuration: Duration(seconds: 1),
+          //     accelerationCurve: Curves.linear,
+          //     decelerationDuration: Duration(milliseconds: 500),
+          //     decelerationCurve: Curves.easeOut,
+          //   ),
+          // ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
