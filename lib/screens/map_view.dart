@@ -41,6 +41,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
   LatLng? _eventLocation;
   bool _isLoadingRoute = false;
   bool _hasActiveRoute = false;
+  bool _showPlaceCard = false;
+  bool _isNavigatingToEvent = false;
 
   @override
   void initState() {
@@ -125,19 +127,23 @@ class _MapViewScreenState extends State<MapViewScreen> {
     final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
 
     if (calendarState.eventLocation != null && locationService.currentPosition != null) {
-      final LatLngBounds bounds = LatLngBounds(
-        southwest: LatLng(
-          math.min(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
-          math.min(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
-        ),
-        northeast: LatLng(
-          math.max(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
-          math.max(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
-        ),
+      final south = math.min(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude);
+      final north = math.max(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude);
+      final west = math.min(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude);
+      final east = math.max(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude);
+
+      final diagonalDistance = math.sqrt(
+        math.pow(north - south, 2) + math.pow(east - west, 2)
+      );
+      final adaptivePadding = math.max(0.005, diagonalDistance * 0.2);
+
+      final bounds = LatLngBounds(
+        southwest: LatLng(south - adaptivePadding, west - adaptivePadding),
+        northeast: LatLng(north + adaptivePadding, east + adaptivePadding),
       );
 
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 50.0),
+        CameraUpdate.newLatLngBounds(bounds, 80.0),
       );
     }
   }
@@ -279,7 +285,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
   // SECTION 5: ROUTE & MAP MANIPULATION
   Future<void> _drawRouteToDestination(LatLng destination, String destinationName) async {
-    print('⭐️ Drawing route to $destinationName');
+    print('Drawing route to $destinationName');
 
     if (_mapController == null) {
       print('Map controller is null');
@@ -573,15 +579,27 @@ class _MapViewScreenState extends State<MapViewScreen> {
     final north = math.max(position.latitude, destination.latitude);
     final west = math.min(position.longitude, destination.longitude);
     final east = math.max(position.longitude, destination.longitude);
+    
+    final diagonalDistance = math.sqrt(
+      math.pow(north - south, 2) + math.pow(east - west, 2)
+    );
+    
+    final adaptivePadding = math.max(0.005, diagonalDistance * 0.2);
 
     final bounds = LatLngBounds(
-      southwest: LatLng(south - 0.01, west - 0.01),
-      northeast: LatLng(north + 0.01, east + 0.01),
+      southwest: LatLng(south - adaptivePadding, west - adaptivePadding),
+      northeast: LatLng(north + adaptivePadding, east + adaptivePadding),
     );
 
     _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 50),
+      CameraUpdate.newLatLngBounds(bounds, 80),
     );
+    
+    if (diagonalDistance > 0.1) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(-0.5));
+      });
+    }
   }
 
   List<Place> _sortPlacesByDistance() {
@@ -659,6 +677,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     setState(() {
       _selectedPlace = place;
       _selectedIndex = places.indexOf(place);
+      _showPlaceCard = true;
       _createMarkersWithDestination();
     });
     _centerOnLocation(place.lat, place.lng);
@@ -948,16 +967,36 @@ class _MapViewScreenState extends State<MapViewScreen> {
             polylines: _polylines,
             onMapCreated: _onMapCreated,
             onTap: (LatLng position) {
+              print("DEBUG: Map tapped at ${position.latitude}, ${position.longitude}");
+              
+              final wasShowingCard = _showPlaceCard;
+              print("DEBUG: wasShowingCard = $wasShowingCard");
+              
               setState(() {
                 _selectedPlace = null;
                 _selectedIndex = -1;
+                _showPlaceCard = false;
                 _createMarkersWithDestination();
               });
-              
-              if (_hasActiveRoute) {
-                Future.delayed(const Duration(milliseconds: 100), () {
+
+              if (wasShowingCard) {
+                if (_hasActiveRoute) {
+                  print("DEBUG: Recentering on route");
                   _centerOnRoute();
-                });
+                } else {
+                  final locationService = Provider.of<LocationService>(context, listen: false);
+                  final currentPosition = locationService.currentPosition;
+                  
+                  if (currentPosition != null) {
+                    print("DEBUG: Recentering on user location");
+                    _mapController!.animateCamera(
+                      CameraUpdate.newLatLngZoom(
+                        LatLng(currentPosition.latitude, currentPosition.longitude),
+                        15.0
+                      ),
+                    );
+                  }
+                }
               }
             },
             myLocationEnabled: true,
