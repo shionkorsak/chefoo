@@ -27,9 +27,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
   // SECTION 1: CONSTANTS
   static const double _initialZoom = 20.0;
   static const double _maxZoom = 21.0;
-  static const double _minZoom = 17.0;
+  static const double _minZoom = 16.0;
   static const double _mapPadding = 50.0;
-  static const double _boundsPadding = 0.001;
+  static const double _boundsPadding = 0.1;
 
   // SECTION 2: STATE VARIABLES
   GoogleMapController? _mapController;
@@ -127,24 +127,24 @@ class _MapViewScreenState extends State<MapViewScreen> {
     final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
 
     if (calendarState.eventLocation != null && locationService.currentPosition != null) {
-      final south = math.min(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude);
-      final north = math.max(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude);
-      final west = math.min(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude);
-      final east = math.max(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude);
-
-      final diagonalDistance = math.sqrt(
-        math.pow(north - south, 2) + math.pow(east - west, 2)
+      final start = LatLng(
+        locationService.currentPosition!.latitude, 
+        locationService.currentPosition!.longitude
       );
-      final adaptivePadding = math.max(0.005, diagonalDistance * 0.2);
-
-      final bounds = LatLngBounds(
-        southwest: LatLng(south - adaptivePadding, west - adaptivePadding),
-        northeast: LatLng(north + adaptivePadding, east + adaptivePadding),
+      final end = LatLng(
+        calendarState.eventLocation!.latitude,
+        calendarState.eventLocation!.longitude
       );
+
+      final bounds = _calculateRouteViewBounds(start, end);
 
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 80.0),
+        CameraUpdate.newLatLngBounds(bounds, 50)
       );
+
+      Future.delayed(Duration(milliseconds: 500), () {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(-0.8));
+      });
     }
   }
 
@@ -575,31 +575,75 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void _fitRouteAndDestination(Position position, LatLng destination) {
     if (_mapController == null) return;
 
-    final south = math.min(position.latitude, destination.latitude);
-    final north = math.max(position.latitude, destination.latitude);
-    final west = math.min(position.longitude, destination.longitude);
-    final east = math.max(position.longitude, destination.longitude);
+    final distanceKm = _calculateDistance(
+      position.latitude, position.longitude,
+      destination.latitude, destination.longitude
+    ) / 1000;
+    
+    print('DEBUG: Distance between points is $distanceKm km');
+    
+    final adaptivePadding = distanceKm < 0.2 ? 0.001 :
+                          distanceKm < 0.5 ? 0.002 :
+                          distanceKm < 2 ? 0.01 : 
+                          distanceKm < 5 ? 0.03 : 0.1;
+    
+    final LatLngBounds bounds = LatLngBounds(
+      southwest: LatLng(
+        math.min(position.latitude, destination.latitude) - adaptivePadding,
+        math.min(position.longitude, destination.longitude) - adaptivePadding
+      ),
+      northeast: LatLng(
+        math.max(position.latitude, destination.latitude) + adaptivePadding, 
+        math.max(position.longitude, destination.longitude) + adaptivePadding
+      )
+    );
+
+    final edgePadding = distanceKm < 0.8 ? 30.0 : 50.0;
+    
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, edgePadding)
+    );
+    
+    Future.delayed(Duration(milliseconds: 500), () {
+      if (distanceKm < 0.2) {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(1.0));
+      } else if (distanceKm < 0.9) {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(0.9));
+      } else if (distanceKm > 1.0) {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(-0.5));
+      }
+    });
+  }
+
+  LatLngBounds _calculateRouteViewBounds(LatLng start, LatLng end) {
+    double minLat = math.min(start.latitude, end.latitude);
+    double maxLat = math.max(start.latitude, end.latitude);
+    double minLng = math.min(start.longitude, end.longitude);
+    double maxLng = math.max(start.longitude, end.longitude);
+    
+    if (_polylines.isNotEmpty && _polylines.first.points.isNotEmpty) {
+      final polylinePoints = _polylines.first.points;
+      
+      for (final point in polylinePoints) {
+        minLat = math.min(minLat, point.latitude);
+        maxLat = math.max(maxLat, point.latitude);
+        minLng = math.min(minLng, point.longitude);
+        maxLng = math.max(maxLng, point.longitude);
+      }
+    }
     
     final diagonalDistance = math.sqrt(
-      math.pow(north - south, 2) + math.pow(east - west, 2)
+      math.pow(maxLat - minLat, 2) + math.pow(maxLng - minLng, 2)
     );
     
-    final adaptivePadding = math.max(0.005, diagonalDistance * 0.2);
-
-    final bounds = LatLngBounds(
-      southwest: LatLng(south - adaptivePadding, west - adaptivePadding),
-      northeast: LatLng(north + adaptivePadding, east + adaptivePadding),
-    );
-
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 80),
-    );
+    final adaptivePadding = math.max(0.005, diagonalDistance * 0.3);
     
-    if (diagonalDistance > 0.1) {
-      Future.delayed(Duration(milliseconds: 500), () {
-        _mapController!.animateCamera(CameraUpdate.zoomBy(-0.5));
-      });
-    }
+    print('DEBUG: Route bounds: $minLat,$minLng to $maxLat,$maxLng with padding $adaptivePadding');
+    
+    return LatLngBounds(
+      southwest: LatLng(minLat - adaptivePadding, minLng - adaptivePadding),
+      northeast: LatLng(maxLat + adaptivePadding, maxLng + adaptivePadding),
+    );
   }
 
   List<Place> _sortPlacesByDistance() {
