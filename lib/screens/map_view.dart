@@ -846,6 +846,28 @@ class _MapViewScreenState extends State<MapViewScreen> {
     Navigator.pop(context);
   }
 
+  void _exportPlacesData() async {
+    try {
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      await placeService.exportCachedPlacesToJson(context);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Places data exported to console'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error exporting places data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error exporting places data: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   // SECTION 8: UI COMPONENTS
   Widget _buildRestaurantCard() {
     if (_selectedPlace == null) {
@@ -1059,7 +1081,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: _buildRestaurantCard(),
+            child: _showPlaceCard ? _buildRestaurantCard() : SizedBox.shrink(),
           ),
           
           // SECTION 9.3: LIST VIEW BUTTON
@@ -1070,6 +1092,20 @@ class _MapViewScreenState extends State<MapViewScreen> {
               heroTag: 'listView',
               child: const Icon(Icons.list),
               onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          
+          // NEW: EXPORT PLACES DEBUG BUTTON
+          Positioned(
+            left: 16,
+            bottom: 16,
+            child: FloatingActionButton(
+              heroTag: 'exportData',
+              backgroundColor: Colors.green,
+              mini: true,
+              child: const Icon(Icons.download),
+              onPressed: () => _exportPlacesData(),
+              tooltip: 'Export Places Data',
             ),
           ),
         ],

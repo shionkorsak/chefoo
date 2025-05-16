@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'package:chefoo/constants.dart';
+import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/services/popular_times.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +10,7 @@ import '../models/api_response.dart';
 import '../models/restaurant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 
 //const String proxyBaseUrl = 'http://localhost:3000';
 
@@ -156,7 +158,7 @@ class PlaceService {
     required String apiKey,
     bool skipCache = false,
     bool addToCache = false,
-    bool fetchDetails = false, // Add this parameter with default false
+    bool fetchDetails = false,
   }) async {
     final cacheKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}_$radius';
     
@@ -502,5 +504,50 @@ class PlaceService {
         print('Updated alternate cache key: $alternateKey with ${_cachedPlaces[alternateKey]!.length} places');
       }
     }
+  }
+
+  Future<String> exportCachedPlacesToJson(BuildContext context) async {
+    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
+    
+    final Set<String> processedIds = {};
+    final List<Map<String, dynamic>> placesJson = [];
+    
+    void addPlacesToResult(List<Place> places) {
+      for (var place in places) {
+        if (processedIds.contains(place.id)) continue;
+        
+        processedIds.add(place.id);
+        
+        placesJson.add({
+          'id': place.id,
+          'name': place.name,
+          'rating': place.rating,
+          'tags': place.tags,
+          'isFavorite': favoritesProvider.isFavorite(place.id),
+        });
+      }
+    }
+    
+    for (final cacheEntry in _cachedPlaces.entries) {
+      addPlacesToResult(cacheEntry.value);
+    }
+    
+    print('Exported ${placesJson.length} unique cached places to JSON');
+    
+    final jsonString = jsonEncode(placesJson);
+    final JsonEncoder prettyEncoder = JsonEncoder.withIndent('  ');
+    
+    print('\n===== EXPORTED JSON DATA (${placesJson.length} places) =====');
+    const int chunkSize = 3; 
+    
+    for (int i = 0; i < placesJson.length; i += chunkSize) {
+      final end = (i + chunkSize < placesJson.length) ? i + chunkSize : placesJson.length;
+      final chunk = placesJson.sublist(i, end);
+      print(prettyEncoder.convert(chunk));
+    }
+    
+    print('===== END OF JSON DATA =====\n');
+    
+    return jsonString;
   }
 }
