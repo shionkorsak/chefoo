@@ -30,7 +30,8 @@ class RestaurantCardListHorizontal extends StatelessWidget {
       itemBuilder: (context, index) =>
           Center(child: RestaurantCardVertical(place: places[index])),
       separatorBuilder: (context, index) =>
-          const SizedBox(width: 10), // Space between cards
+          const SizedBox(width: 10), 
+
     );
   }
 }

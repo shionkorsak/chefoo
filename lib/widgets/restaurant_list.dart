@@ -1,3 +1,5 @@
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/utils/img_preloader.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_vertical.dart';
 import '../models/restaurant.dart';
@@ -23,9 +25,23 @@ class RestaurantList extends StatelessWidget {
       return const Center(child: Text('No restaurants found nearby'));
     }
 
+    _preloadImages(context);
+
     return ListView.builder(
       itemCount: places.length,
       itemBuilder: (context, index) => RestaurantCard(place: places[index]),
     );
+  }
+
+  void _preloadImages(BuildContext context) {
+    final urls = places
+        .where((place) => place.pictureUrls.isNotEmpty)
+        .map((place) => 'https://maps.googleapis.com/maps/api/place/photo'
+            '?maxwidth=200'
+            '&photo_reference=${place.pictureUrls[0]}'
+            '&key=${MapsConstants.mapsKey}')
+        .toList();
+
+    ImagePreloader.preloadImages(context, urls);
   }
 }
