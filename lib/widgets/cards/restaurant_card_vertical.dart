@@ -75,6 +75,9 @@ class RestaurantCardVertical extends StatelessWidget {
               ),
             ),
           ),
+          SizedBox(
+            height: 2,
+          ),
           Text(
             place.name,
             style:
@@ -100,23 +103,27 @@ class RestaurantCardVertical extends StatelessWidget {
           //     decelerationCurve: Curves.easeOut,
           //   ),
           // ),
+          SizedBox(
+            height: 2,
+          ),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Icon(
                         Icons.star,
-                        size: 10,
+                        size: 16,
                         color: AppColors.primary,
                       ),
                       Text(
                         place.rating.toString(),
-                        style: AppTextStyles.detail.copyWith(height: 1),
+                        style: AppTextStyles.detail
+                            .copyWith(height: 1, fontSize: 14),
                       )
                     ],
                   ),
@@ -131,7 +138,7 @@ class RestaurantCardVertical extends StatelessWidget {
               Text(
                 '${place.walkingDistance.toStringAsFixed(1)}km',
                 style: AppTextStyles.detail,
-              )
+              ),
             ],
           ),
         ],
