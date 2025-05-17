@@ -1,14 +1,7 @@
-import 'dart:convert';
+import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/favorites.dart';
-import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:chefoo/constants.dart';
 import 'package:chefoo/screens/map_view.dart';
-import 'package:provider/provider.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
+import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
 
 import '../providers/restaurant.dart';
 import '../commons.dart';
@@ -30,7 +23,7 @@ class RestaurantListContainer extends StatefulWidget {
 }
 
 class _RestaurantListContainerState extends State<RestaurantListContainer> {
-  bool _isLoading = false;
+  bool _isLoading = true;
   static const double _minDistanceToRefresh = 500.0;
 
   @override
@@ -42,6 +35,10 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
   Future<void> _initializeLocation() async {
     if (!mounted) return;
 
+    setState(() {
+      _isLoading = true;
+    });
+
     final locationService =
         Provider.of<LocationService>(context, listen: false);
     await locationService.getCurrentLocation();
@@ -52,6 +49,10 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
         await _fetchNearbyPlaces(position);
       }
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -78,13 +79,14 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     });
 
     try {
-      print(
-          'Fetching places for location: ${position.latitude}, ${position.longitude}');
+      print('Fetching places for location: ${position.latitude}, ${position.longitude}');
 
       final placeService = Provider.of<PlaceService>(context, listen: false);
-      final restaurantProvider =
-          Provider.of<RestaurantProvider>(context, listen: false);
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
+      final cacheKey = '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}_1000';
+      print('Using cache key: $cacheKey for nearby places');
+      
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
@@ -95,6 +97,10 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
       if (response.success && response.data != null) {
         print('Successfully loaded ${response.data!.length} places');
         restaurantProvider.setPlaces(response.data!);
+        
+        if (response.message?.contains('cache') == true) {
+          print('Used cache with ${response.data!.length} places');
+        }
       } else {
         print('Failed to load places: ${response.message}');
       }

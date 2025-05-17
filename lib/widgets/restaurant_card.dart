@@ -5,11 +5,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/restaurant.dart';
 import '../services/location.dart';
+import '../services/maps.dart';
 import 'popular_times_chart.dart';
 import 'photo_grid.dart';
 import 'restaurant_elements.dart';
 
-class RestaurantCard extends StatelessWidget {
+class RestaurantCard extends StatefulWidget {
   final Place place;
 
   const RestaurantCard({
@@ -18,25 +19,64 @@ class RestaurantCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<RestaurantCard> createState() => _RestaurantCardState();
+}
+
+class _RestaurantCardState extends State<RestaurantCard> {
+  bool _isLoadingPopularTimes = false;
+
+  Future<void> _loadPopularTimesIfNeeded() async {
+    if (widget.place.popularTimesLoaded) return;
+
+    setState(() {
+      _isLoadingPopularTimes = true;
+    });
+
+    try {
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      await placeService.fetchPopularTimes(widget.place);
+    } catch (e) {
+      print('Error loading popular times: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingPopularTimes = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final locationService = Provider.of<LocationService>(context, listen: false);
+    
+    // [DATABASE]: here too. save to history when viewing a place
+    // i think in this case youll have to wrap the Card in a GestureDetector to
+    // make the relation that onTap: 
+    // String placeId = place.id;
+    // saveToDatabase(placeId);
     
     return Card(
       margin: const EdgeInsets.all(8.0),
       child: ExpansionTile(
-        title: RestaurantName(place.name),
+        onExpansionChanged: (expanded) {
+          if (expanded) {
+            _loadPopularTimesIfNeeded();
+          }
+        },
+        title: RestaurantName(widget.place.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RestaurantAddress(place.address),
+            RestaurantAddress(widget.place.address),
             const SizedBox(height: 4),
             Row(
               children: [
-                RestaurantRating(rating: place.rating),
+                RestaurantRating(rating: widget.place.rating),
                 const SizedBox(width: 8),
-                RestaurantDistance(distanceKm: place.walkingDistance),
+                RestaurantDistance(distanceKm: widget.place.walkingDistance),
                 const SizedBox(width: 8),
-                OpenStatusBadge(isOpen: place.isOpenNow ?? false),
+                OpenStatusBadge(isOpen: widget.place.isOpenNow ?? false),
               ],
             ),
           ],
@@ -47,53 +87,50 @@ class RestaurantCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (place.phone != null) ...[
-                  Center(child: PhoneButton(phoneNumber: place.phone!)),
+                if (widget.place.phone != null) ...[
+                  Center(child: PhoneButton(phoneNumber: widget.place.phone!)),
                   const SizedBox(height: 16),
                 ],
-                if (place.openingHours != null && place.openingHours!.isNotEmpty) ...[
+                if (widget.place.openingHours != null && widget.place.openingHours!.isNotEmpty) ...[
                   const Text(
                     'Opening Hours',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  ...place.openingHours!.map((hour) => Text(hour)),
+                  ...widget.place.openingHours!.map((hour) => Text(hour)),
                   const SizedBox(height: 16),
                 ],
-                if (place.popularTimes != null && place.popularTimes!.isNotEmpty) ...[
-                  FutureBuilder<void>(
-                    future: Future(() {
-                      print('Popular times data for ${place.name}:');
-                      print('Length: ${place.popularTimes?.length}');
-                      print('Content: ${place.popularTimes}');
-                      return;
-                    }),
-                    builder: (context, snapshot) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Popular Times',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          PopularTimesChart(
-                            popularTimes: place.popularTimes!,
-                            openingHours: place.openingHours,
-                          ),
-                        ],
-                      );
-                    },
+                if (widget.place.popularTimes != null && widget.place.popularTimes!.isNotEmpty) ...[
+                  ExpansionTile(
+                    title: const Text('Popular Times'),
+                    children: [
+                      SizedBox(
+                        height: 150,
+                        child: PopularTimesChart(
+                          popularTimes: widget.place.popularTimes!,
+                          openingHours: widget.place.openingHours,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                ] else if (_isLoadingPopularTimes) ...[
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                ] else if (widget.place.popularTimesLoaded) ...[
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('Popular times data not available'),
+                  )
                 ],
-                if (place.reviews.isNotEmpty) ...[
+                if (widget.place.reviews.isNotEmpty) ...[
                   const Text(
                     'Reviews',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ...place.reviews.map(
+                  ...widget.place.reviews.map(
                     (review) => Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: Column(
@@ -132,7 +169,7 @@ class RestaurantCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                 ],
-                if (place.pictureUrls.isNotEmpty) ...[
+                if (widget.place.pictureUrls.isNotEmpty) ...[
                   const Text(
                     'Photos',
                     style: TextStyle(fontWeight: FontWeight.bold),
@@ -145,7 +182,7 @@ class RestaurantCard extends StatelessWidget {
                         Expanded(
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: place.pictureUrls.length > 3 ? 3 : place.pictureUrls.length,
+                            itemCount: widget.place.pictureUrls.length > 3 ? 3 : widget.place.pictureUrls.length,
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8.0),
@@ -155,8 +192,8 @@ class RestaurantCard extends StatelessWidget {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PhotoGrid(
-                                          photoRefs: place.pictureUrls,
-                                          placeName: place.name,
+                                          photoRefs: widget.place.pictureUrls,
+                                          placeName: widget.place.name,
                                         ),
                                       ),
                                     );
@@ -164,7 +201,7 @@ class RestaurantCard extends StatelessWidget {
                                   child: Image.network(
                                     'https://maps.googleapis.com/maps/api/place/photo'
                                     '?maxwidth=400'
-                                    '&photo_reference=${place.pictureUrls[index]}'
+                                    '&photo_reference=${widget.place.pictureUrls[index]}'
                                     '&key=${MapsConstants.mapsKey}',
                                     height: 100,
                                     width: 100,
@@ -183,15 +220,15 @@ class RestaurantCard extends StatelessWidget {
                             },
                           ),
                         ),
-                        if (place.pictureUrls.length > 3)
+                        if (widget.place.pictureUrls.length > 3)
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => PhotoGrid(
-                                    photoRefs: place.pictureUrls,
-                                    placeName: place.name,
+                                    photoRefs: widget.place.pictureUrls,
+                                    placeName: widget.place.name,
                                   ),
                                 ),
                               );
@@ -202,7 +239,7 @@ class RestaurantCard extends StatelessWidget {
                               color: Colors.black54,
                               child: Center(
                                 child: Text(
-                                  '+${place.pictureUrls.length - 3}',
+                                  '+${widget.place.pictureUrls.length - 3}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 24,
@@ -217,7 +254,7 @@ class RestaurantCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                 ],
-                Center(child: DirectionsButton(lat: place.lat, lng: place.lng)),
+                Center(child: DirectionsButton(lat: widget.place.lat, lng: widget.place.lng)),
               ],
             ),
           ),
