@@ -60,7 +60,8 @@ class ManageAccountScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              //const SizedBox(height: 8),
+              //kGap5,
               AuthCard(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -115,7 +116,8 @@ class ManageAccountScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 96),
+              const SizedBox(height: 24),
+              //kGap5,
               Center(
                 child: GlowingButton(
                   onPressed: () {
