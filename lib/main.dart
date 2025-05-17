@@ -10,7 +10,9 @@ import 'package:chefoo/screens/tests/widget_test_screen.dart';
 import 'package:chefoo/providers/getstarted.dart';
 import 'package:http/http.dart' as http;
 import 'package:chefoo/services/location_handler.dart';
+import 'package:chefoo/screens/settings/account_settings.dart';
 
+import 'package:chefoo/screens/splash/splash.dart';
 import 'commons.dart';
 
 Future<void> initializeApp() async {
@@ -76,9 +78,11 @@ class MyApp extends StatelessWidget {
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         //home: TestScreen());
-        home: GetStartedScreen());
-        // home: WidgetTestScreen());
+        //home: GetStartedScreen());
+        //home: WidgetTestScreen());
         //home: TestScreen());
+        //home: const SplashScreen());
+        home: SettingsScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }

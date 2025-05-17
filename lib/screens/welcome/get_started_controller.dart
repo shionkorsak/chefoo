@@ -16,8 +16,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
     return Align(
       alignment: Alignment.topCenter,
       child: AnimatedPadding(
-        duration: Duration(milliseconds: 800),
-        curve: Curves.easeOut,
+        duration: Duration(milliseconds: 600), // Increased duration
+        curve: Curves.easeOutCubic, // Smoother curve
         padding: EdgeInsets.only(top: (state == 5 || state == 6) ? 20 : 120),
         child: Stack(
           children: [
@@ -62,10 +62,34 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               children: [
                 Align(
                   alignment: Alignment.topCenter,
-                  child: SvgPicture.asset(
-                    'assets/svgs/Logo-3.svg',
-                    height: 120,
-                    fit: BoxFit.cover,
+                  child: Hero(
+                    tag: 'logo_hero',
+                    flightShuttleBuilder: (
+                      BuildContext flightContext,
+                      Animation<double> animation,
+                      HeroFlightDirection flightDirection,
+                      BuildContext fromHeroContext,
+                      BuildContext toHeroContext,
+                    ) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: animation.value,
+                            child: SvgPicture.asset(
+                              'assets/svgs/Logo-3.svg',
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: SvgPicture.asset(
+                      'assets/svgs/Logo-3.svg',
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ],
@@ -114,20 +138,30 @@ abstract class GetStartedController extends State<GetStartedScreen> {
       child: Transform.translate(
         offset: state >= 1 ? const Offset(0, 60) : const Offset(0, 0),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 600), // Increased duration
+          curve: Curves.easeOutCubic, // Smoother curve
           child: AnimatedSlide(
             offset: state >= 2 ? const Offset(0, 0) : const Offset(0, 1),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 600), // Increased duration
+            curve: Curves.easeOutCubic, // Smoother curve
             child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 600),
+              duration: Duration(milliseconds: 800), // Increased duration
+              switchInCurve: Curves.easeOutCubic, // Smoother curve
+              switchOutCurve: Curves.easeInCubic, // Smoother curve
               transitionBuilder: (child, animation) {
                 return SlideTransition(
                   position: Tween<Offset>(
-                    begin: Offset(0.0, 0.75),
+                    begin: Offset(0.0, 0.3), // Reduced slide distance
                     end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic, // Smoother curve
+                  )),
+                  child: FadeTransition(
+                    // Added fade transition
+                    opacity: animation,
+                    child: child,
+                  ),
                 );
               },
               child: AuthCard(
@@ -141,7 +175,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                       child: AnimatedPadding(
                         duration: const Duration(milliseconds: 300),
                         padding: EdgeInsets.symmetric(
-                          vertical: state >= 3 ? 24 : 40,
+                          vertical: state >= 2 ? 24 : 40,
                           horizontal: 18,
                         ),
                         child: buildCardContent(),
@@ -427,7 +461,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             kGap8,
             SvgPicture.asset(
               'assets/svgs/lock.svg',
-              height: 100,
+              height: 120,
             ),
             kGap8,
             Padding(
@@ -450,9 +484,11 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             kGap8,
             ElevatedButton(
               onPressed: () async {
-                setState(() {
-                  state = 7;
-                  showFinalScreenContent = false;
+                await Future.delayed(Duration(milliseconds: 300), () {
+                  setState(() {
+                    state = 7;
+                    showFinalScreenContent = false;
+                  });
                 });
                 await Future.delayed(Duration(milliseconds: 700));
                 setState(() {
@@ -463,9 +499,16 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             ),
             kGap8,
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                await Future.delayed(Duration(milliseconds: 300), () {
+                  setState(() {
+                    state = 7;
+                    showFinalScreenContent = false;
+                  });
+                });
+                await Future.delayed(Duration(milliseconds: 700));
                 setState(() {
-                  state = 0;
+                  showFinalScreenContent = true;
                 });
               },
               child: Text("Skip for now"),
