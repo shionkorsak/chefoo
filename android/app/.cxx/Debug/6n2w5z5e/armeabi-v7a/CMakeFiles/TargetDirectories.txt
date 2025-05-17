@@ -1,0 +1,2 @@
+/Users/taichizzz/Chefoo/chefoo/android/app/.cxx/Debug/6n2w5z5e/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/taichizzz/Chefoo/chefoo/android/app/.cxx/Debug/6n2w5z5e/armeabi-v7a/CMakeFiles/rebuild_cache.dir

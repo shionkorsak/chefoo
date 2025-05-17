@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/widgets/restaurant_list.dart';

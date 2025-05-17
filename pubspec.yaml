@@ -21,6 +21,12 @@ dependencies:
   geolocator: ^10.1.0
   geolocator_web: ^2.2.1
   iconsax_plus: ^1.0.0
+  firebase_core: 
+  firebase_auth: ^5.5.2
+  google_sign_in: ^6.3.0
+  flutter_signin_button: ^2.0.0
+  cloud_firestore: 
+  cloud_functions: ^5.5.0
   marquee: ^2.2.3 #for horizontall text animation
   shared_preferences: ^2.5.3
 
@@ -28,6 +34,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  
   flutter_lints: ^4.0.0
   #flutter_launcher_icons: ^0.14.1
   #flutter_native_splash: ^2.4.3
