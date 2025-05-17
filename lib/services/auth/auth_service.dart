@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
+  //! An instance of the Authentication service,
+  //! When trying to get user's data, just run 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
-      'https://www.googleapis.com/auth/calendar.readonly',
+      'https://www.googleapis.com/auth/calendar.readonly', // Add this line
     ],
     signInOption: SignInOption.standard,
   );
@@ -16,10 +18,6 @@ class AuthService {
 
   User? getCurrentUser() { // Get current user's instance
     return _auth.currentUser;
-  }
-
-  String? getCurrentUserUID() {
-    return getCurrentUser()?.uid;
   }
 
   String? getCurrentUserDisplayName() { // Get current user's display name
@@ -48,6 +46,43 @@ class AuthService {
 
     // Once signed in, return the UserCredential
     return await _auth.signInWithCredential(credential);
+  }
+
+  Future<UserCredential> signUpWithEmail({ // No actual implementation, just for testing
+    required String email,
+    required String password,
+    required String displayName
+  }) async {
+    try {
+      final UserCredential userCredential =
+        await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+
+        await userCredential.user?.updateDisplayName(displayName);
+        await userCredential.user?.reload();
+        log("User signed up with $email and $displayName");
+
+        return userCredential;
+    } on FirebaseAuthException catch (e) {
+      log("Sign up error: ${e.message}", name: "AuthService", error: e);
+      rethrow;
+    }
+  }
+
+  Future<UserCredential> signInWithEmail ({ // No actual implementation, just for testing
+    required String email,
+    required String password
+  }) async {
+    try {
+      final UserCredential userCredential =
+        await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
+        log("User signed in with email.", name: "AuthService");
+        return userCredential;
+    } on FirebaseAuthException catch (e) {
+        log("Sign in error: ${e.message}", name: "AuthService", error: e);
+        rethrow;
+    }
   }
 
   Future<void> signOut() async { // To sign out

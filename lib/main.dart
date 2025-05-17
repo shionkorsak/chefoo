@@ -1,8 +1,4 @@
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/providers/user_account.dart';
-import 'package:chefoo/services/auth/auth_gate.dart';
-import 'package:chefoo/services/auth/auth_service.dart';
-import 'package:chefoo/services/calendar_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
@@ -11,13 +7,6 @@ import 'package:chefoo/screens/tests/widget_test_screen.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'package:chefoo/services/database/location_handler.dart';
-import 'package:chefoo/providers/calendar_state.dart';
-import 'package:chefoo/services/preload_service.dart';
-
-import 'commons.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
 
 Future<void> initializeApp() async {
@@ -48,9 +37,6 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => UserAccountProvider(),
         ),
         Provider<CalendarService>(
           create: (_) => CalendarService(),
@@ -99,7 +85,7 @@ class MyApp extends StatelessWidget {
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         //home: TestScreen());
-        // home: GetStartedScreen());
+        //home: GetStartedScreen());
     
         //home: WidgetTestScreen());
       //home: TestScreen());
