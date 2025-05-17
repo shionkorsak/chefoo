@@ -27,9 +27,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
   // SECTION 1: CONSTANTS
   static const double _initialZoom = 20.0;
   static const double _maxZoom = 21.0;
-  static const double _minZoom = 17.0;
+  static const double _minZoom = 16.0;
   static const double _mapPadding = 50.0;
-  static const double _boundsPadding = 0.001;
+  static const double _boundsPadding = 0.1;
 
   // SECTION 2: STATE VARIABLES
   GoogleMapController? _mapController;
@@ -41,6 +41,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
   LatLng? _eventLocation;
   bool _isLoadingRoute = false;
   bool _hasActiveRoute = false;
+  bool _showPlaceCard = false;
+  bool _isNavigatingToEvent = false;
 
   @override
   void initState() {
@@ -125,20 +127,24 @@ class _MapViewScreenState extends State<MapViewScreen> {
     final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
 
     if (calendarState.eventLocation != null && locationService.currentPosition != null) {
-      final LatLngBounds bounds = LatLngBounds(
-        southwest: LatLng(
-          math.min(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
-          math.min(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
-        ),
-        northeast: LatLng(
-          math.max(locationService.currentPosition!.latitude, calendarState.eventLocation!.latitude),
-          math.max(locationService.currentPosition!.longitude, calendarState.eventLocation!.longitude),
-        ),
+      final start = LatLng(
+        locationService.currentPosition!.latitude, 
+        locationService.currentPosition!.longitude
+      );
+      final end = LatLng(
+        calendarState.eventLocation!.latitude,
+        calendarState.eventLocation!.longitude
       );
 
+      final bounds = _calculateRouteViewBounds(start, end);
+
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 50.0),
+        CameraUpdate.newLatLngBounds(bounds, 50)
       );
+
+      Future.delayed(Duration(milliseconds: 500), () {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(-0.8));
+      });
     }
   }
 
@@ -279,7 +285,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
   // SECTION 5: ROUTE & MAP MANIPULATION
   Future<void> _drawRouteToDestination(LatLng destination, String destinationName) async {
-    print('⭐️ Drawing route to $destinationName');
+    print('Drawing route to $destinationName');
 
     if (_mapController == null) {
       print('Map controller is null');
@@ -569,18 +575,74 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void _fitRouteAndDestination(Position position, LatLng destination) {
     if (_mapController == null) return;
 
-    final south = math.min(position.latitude, destination.latitude);
-    final north = math.max(position.latitude, destination.latitude);
-    final west = math.min(position.longitude, destination.longitude);
-    final east = math.max(position.longitude, destination.longitude);
-
-    final bounds = LatLngBounds(
-      southwest: LatLng(south - 0.01, west - 0.01),
-      northeast: LatLng(north + 0.01, east + 0.01),
+    final distanceKm = _calculateDistance(
+      position.latitude, position.longitude,
+      destination.latitude, destination.longitude
+    ) / 1000;
+    
+    print('DEBUG: Distance between points is $distanceKm km');
+    
+    final adaptivePadding = distanceKm < 0.2 ? 0.001 :
+                          distanceKm < 0.5 ? 0.002 :
+                          distanceKm < 2 ? 0.01 : 
+                          distanceKm < 5 ? 0.03 : 0.1;
+    
+    final LatLngBounds bounds = LatLngBounds(
+      southwest: LatLng(
+        math.min(position.latitude, destination.latitude) - adaptivePadding,
+        math.min(position.longitude, destination.longitude) - adaptivePadding
+      ),
+      northeast: LatLng(
+        math.max(position.latitude, destination.latitude) + adaptivePadding, 
+        math.max(position.longitude, destination.longitude) + adaptivePadding
+      )
     );
 
+    final edgePadding = distanceKm < 0.8 ? 30.0 : 50.0;
+    
     _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 50),
+      CameraUpdate.newLatLngBounds(bounds, edgePadding)
+    );
+    
+    Future.delayed(Duration(milliseconds: 500), () {
+      if (distanceKm < 0.2) {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(1.0));
+      } else if (distanceKm < 0.9) {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(0.9));
+      } else if (distanceKm > 1.0) {
+        _mapController!.animateCamera(CameraUpdate.zoomBy(-0.5));
+      }
+    });
+  }
+
+  LatLngBounds _calculateRouteViewBounds(LatLng start, LatLng end) {
+    double minLat = math.min(start.latitude, end.latitude);
+    double maxLat = math.max(start.latitude, end.latitude);
+    double minLng = math.min(start.longitude, end.longitude);
+    double maxLng = math.max(start.longitude, end.longitude);
+    
+    if (_polylines.isNotEmpty && _polylines.first.points.isNotEmpty) {
+      final polylinePoints = _polylines.first.points;
+      
+      for (final point in polylinePoints) {
+        minLat = math.min(minLat, point.latitude);
+        maxLat = math.max(maxLat, point.latitude);
+        minLng = math.min(minLng, point.longitude);
+        maxLng = math.max(maxLng, point.longitude);
+      }
+    }
+    
+    final diagonalDistance = math.sqrt(
+      math.pow(maxLat - minLat, 2) + math.pow(maxLng - minLng, 2)
+    );
+    
+    final adaptivePadding = math.max(0.005, diagonalDistance * 0.3);
+    
+    print('DEBUG: Route bounds: $minLat,$minLng to $maxLat,$maxLng with padding $adaptivePadding');
+    
+    return LatLngBounds(
+      southwest: LatLng(minLat - adaptivePadding, minLng - adaptivePadding),
+      northeast: LatLng(maxLat + adaptivePadding, maxLng + adaptivePadding),
     );
   }
 
@@ -659,6 +721,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     setState(() {
       _selectedPlace = place;
       _selectedIndex = places.indexOf(place);
+      _showPlaceCard = true;
       _createMarkersWithDestination();
     });
     _centerOnLocation(place.lat, place.lng);
@@ -781,6 +844,28 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void _exitNavigation() {
     _clearRouteAndPlaces();
     Navigator.pop(context);
+  }
+
+  void _exportPlacesData() async {
+    try {
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      await placeService.exportCachedPlacesToJson(context);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Places data exported to console'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error exporting places data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error exporting places data: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // SECTION 8: UI COMPONENTS
@@ -948,16 +1033,36 @@ class _MapViewScreenState extends State<MapViewScreen> {
             polylines: _polylines,
             onMapCreated: _onMapCreated,
             onTap: (LatLng position) {
+              print("DEBUG: Map tapped at ${position.latitude}, ${position.longitude}");
+              
+              final wasShowingCard = _showPlaceCard;
+              print("DEBUG: wasShowingCard = $wasShowingCard");
+              
               setState(() {
                 _selectedPlace = null;
                 _selectedIndex = -1;
+                _showPlaceCard = false;
                 _createMarkersWithDestination();
               });
-              
-              if (_hasActiveRoute) {
-                Future.delayed(const Duration(milliseconds: 100), () {
+
+              if (wasShowingCard) {
+                if (_hasActiveRoute) {
+                  print("DEBUG: Recentering on route");
                   _centerOnRoute();
-                });
+                } else {
+                  final locationService = Provider.of<LocationService>(context, listen: false);
+                  final currentPosition = locationService.currentPosition;
+                  
+                  if (currentPosition != null) {
+                    print("DEBUG: Recentering on user location");
+                    _mapController!.animateCamera(
+                      CameraUpdate.newLatLngZoom(
+                        LatLng(currentPosition.latitude, currentPosition.longitude),
+                        15.0
+                      ),
+                    );
+                  }
+                }
               }
             },
             myLocationEnabled: true,
@@ -976,7 +1081,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: _buildRestaurantCard(),
+            child: _showPlaceCard ? _buildRestaurantCard() : SizedBox.shrink(),
           ),
           
           // SECTION 9.3: LIST VIEW BUTTON
@@ -987,6 +1092,20 @@ class _MapViewScreenState extends State<MapViewScreen> {
               heroTag: 'listView',
               child: const Icon(Icons.list),
               onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          
+          // NEW: EXPORT PLACES DEBUG BUTTON
+          Positioned(
+            left: 16,
+            bottom: 16,
+            child: FloatingActionButton(
+              heroTag: 'exportData',
+              backgroundColor: Colors.green,
+              mini: true,
+              child: const Icon(Icons.download),
+              onPressed: () => _exportPlacesData(),
+              tooltip: 'Export Places Data',
             ),
           ),
         ],
