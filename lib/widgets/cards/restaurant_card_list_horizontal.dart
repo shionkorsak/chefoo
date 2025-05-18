@@ -22,14 +22,16 @@ class RestaurantCardListHorizontal extends StatelessWidget {
       return const Center(child: Text('No restaurants found nearby'));
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      shrinkWrap: true,
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12), // Outer padding
       itemCount: places.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 5.0),
-        child: Center(child: RestaurantCardVertical(place: places[index])),
-      ),
+      itemBuilder: (context, index) =>
+          Center(child: RestaurantCardVertical(place: places[index])),
+      separatorBuilder: (context, index) =>
+          const SizedBox(width: 10), 
+
     );
   }
 }

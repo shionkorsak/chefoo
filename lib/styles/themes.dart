@@ -65,6 +65,7 @@ ThemeData get lightTheme {
         padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
           const EdgeInsets.symmetric(horizontal: 35, vertical: 15),
         ),
+        minimumSize: WidgetStateProperty.all<Size>(const Size(168, 48)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
