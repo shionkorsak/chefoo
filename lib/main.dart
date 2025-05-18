@@ -1,4 +1,8 @@
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/user_account.dart';
+import 'package:chefoo/services/auth/auth_gate.dart';
+import 'package:chefoo/services/auth/auth_service.dart';
+import 'package:chefoo/services/calendar_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
@@ -37,6 +41,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => UserAccountProvider(),
         ),
         Provider<CalendarService>(
           create: (_) => CalendarService(),
