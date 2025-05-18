@@ -1,4 +1,3 @@
-import { profile } from "console";
 import { z } from "zod";
 
 // TODO: user's route
@@ -23,12 +22,15 @@ export const userPreferenceSchema = z.object({
     cuisine: z.array(z.string()).default([]),
     dietaryPreferences: z.array(z.string()).default([]),
     allergies: z.array(z.string()).default([]),
+    lastAnalyzedfromHistory: z.string().time(),
 })
 
 export const mealProfile = z.object({
     time: z.string(),
     restaurantId: z.string(),
-    mealId: z.string(),
+    mealId: z.string().regex(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z?)_.+$/, {
+        message: "mealId must be formatted as ISO timestamp + underscore + meal name",
+    }),
     name: z.string(),
 })
 
@@ -39,13 +41,13 @@ export const mealAnalysis = z.object({
     healthyScore: z.number(),
 })
 
-export const mealInput = z.object({
+export const mealInputSchema = z.object({
     profile: mealProfile,
-    analysis: mealAnalysis,
+    analysis: mealAnalysis.optional(),
     feedback: z.object({
         rating: z.number(),
         notes: z.string().optional(),
-    })
+    }).optional()
 })
 
 export const restaurantReview = z.object({
@@ -69,7 +71,7 @@ export const healthInsightSchema = z.object({
     weeklyData: z.array(
         z.object({
             date: z.string().datetime(),
-            mealInput: z.array(mealInput),
+            mealInput: z.array(mealInputSchema),
             ratio: z.number().min(0).max(1),
             comment: z.string()
         })

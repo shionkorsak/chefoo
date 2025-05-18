@@ -22,6 +22,7 @@ export const createUserAccount =
             cuisine: [],
             dietaryPreferences: [],
             allergies: [],
+            lastAnalyzedfromHistory: new Date().toISOString(),
           },
           healthInsight: {
             healthScore: 0,

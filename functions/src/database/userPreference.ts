@@ -22,7 +22,7 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         const currentPref = userSnap.exists ? userSnap.data()?.preferences || {} : {};
 
         const prompt = `
-        You are a dietary AI assistant. Based on the user's new dietary preferences and allergies, review their existing food profile and modify any items that conflict with the new restrictions.
+        You are a professional nutritionist and a foodie expert. Review their existing food profile and modify any items that conflict with the new restrictions.
 
         Rules:
         - If any item in "likedFood", "dislikedFood", or "description" contradicts the user's dietary preferences (e.g., cheeseburgers for a vegetarian), it must be modified.
