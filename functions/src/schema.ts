@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // TODO: user's route
 
-export const userProfileSchema = z.object({ // TODO: google calendar link
+export const userProfileSchema = z.object({ 
     uid: z.string(),
     email: z.string().email(),
     displayName: z.string(),
@@ -75,30 +75,18 @@ export const healthInsightSchema = z.object({
             ratio: z.number().min(0).max(1),
             comment: z.string()
         })
-    )
-})
-
-export const restaurantRatingSchema = z.object({
-    rating: z.number().min(1).max(5),
-    feedback: z.string().max(1000),
-    mealImageUrl: z.string().url().optional(),
+    ).length(7)
 })
 
 export const userAccountSchema = z.object({
     profile: userProfileSchema,
     preferences: userPreferenceSchema,
-    healthInsight: healthInsightSchema,
-    gpsStatus: z.boolean(),
-    notificationStatus: z.boolean(),
-    restaurantRatings: z.array(
-        restaurantRatingSchema
-    ),
-    restaurantHistory: z.array(
-        restaurantSchema
-    ),
-    favoriteRestaurant: z.array(
-        restaurantSchema
-    )
+    healthInsight: healthInsightSchema
+})
+
+export const clientUpdatePreferenceSchema = z.object({
+    dietaryPreferences: z.array(z.string()),
+    allergies: z.array(z.string())
 })
 
 export type UserAccount = z.infer<typeof userAccountSchema>;
