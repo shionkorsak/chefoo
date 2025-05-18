@@ -94,7 +94,6 @@ class MyApp extends StatelessWidget {
         //home: TestScreen());
         //home: GetStartedScreen());
         //home: WidgetTestScreen());
-        //home: TestScreen());
         //home: SettingsScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
