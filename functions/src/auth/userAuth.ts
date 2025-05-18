@@ -16,10 +16,6 @@ export const createUserAccount =
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
           },
           preferences: {
-            description: [],
-            likedFood: [],
-            dislikedFood: [],
-            cuisine: [],
             dietaryPreferences: [],
             allergies: [],
             lastAnalyzedfromHistory: new Date().toISOString(),
@@ -28,6 +24,11 @@ export const createUserAccount =
             healthScore: 0,
             weeklyData: [],
           },
+          gpsStatus: false,
+          notificationStatus: true,
+          restaurantRatings: [],
+          restaurantHistory: [],
+          favoriteRestaurant: [],
       };
 
       try {
@@ -38,6 +39,8 @@ export const createUserAccount =
             profile: userAccount.profile,
             preferences: userAccount.preferences,
             healthInsights: userAccount.healthInsight,
+            gpsStatus: userAccount.gpsStatus,
+            notificationStatus: userAccount.notificationStatus
         });
 
         console.log(`Created user doc and subcollections (empty for favorites & history) for UID ${uid}`);
