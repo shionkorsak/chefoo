@@ -1,3 +1,4 @@
+import 'package:chefoo/screens/placeholder/playground.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
@@ -489,9 +490,15 @@ class GetStartedState extends State<GetStarted> {
                       kGap8,
                       TextButton(
                         onPressed: () {
-                          setState(() {
-                            state = 0;
-                          });
+                          // setState(() {
+                          //   state = 0;
+                          // });
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserProfileScreen(),
+                            ),
+                          );
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

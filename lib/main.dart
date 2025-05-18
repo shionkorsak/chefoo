@@ -95,7 +95,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
-        // home: AuthGate());
+        home: AuthGate());
 
         ///Screen names used from file screens.dart
 
@@ -104,7 +104,7 @@ class MyApp extends StatelessWidget {
         //home: TestScreen());
         //home: GetStartedScreen());    
         //home: WidgetTestScreen());
-        home: const SplashScreen());
+        // home: const SplashScreen());
         //home: SettingsScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets

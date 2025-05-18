@@ -1,6 +1,7 @@
 part of 'get_started_screen.dart';
 
 abstract class GetStartedController extends State<GetStartedScreen> {
+  final _auth = AuthService();
   int state = 0;
   bool showFinalScreenContent = false;
   final TextEditingController nameController = TextEditingController();
@@ -258,10 +259,15 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             kGap8,
             GoogleLoginButton(
               onPressed: () async {
-                await Future.delayed(Duration(milliseconds: 300), () {
-                  setState(() {
-                    state = 4;
-                  });
+                // await Future.delayed(Duration(milliseconds: 300), () {
+                //   setState(() {
+                //     state = 4;
+                //   });
+                // });
+
+                await _auth.signInWithGoogle();
+                setState(() {
+                  state = 4;
                 });
               },
             ),
@@ -547,7 +553,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 ),
                 kGap5,
                 Text(
-                  nameController.text,
+                  // nameController.text,
+                  _auth.getCurrentUserDisplayName() ?? nameController.text,
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
