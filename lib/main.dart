@@ -1,4 +1,5 @@
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/getstarted.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
@@ -61,6 +62,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => RestaurantProvider(),
+        ),
+        ChangeNotifierProvider<GetStartedProvider>(
+          create: (_) => GetStartedProvider(),
         ),
       ],
       child: const MyApp(),
