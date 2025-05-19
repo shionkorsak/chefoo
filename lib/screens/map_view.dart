@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'dart:convert';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:http/http.dart' as http;
 
 // [FRONTEND]: GO DIRECTLY TO SECTION 8 AND 9 FOR UI
@@ -847,24 +848,66 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 
   void _exportPlacesData() async {
+    final placeService = Provider.of<PlaceService>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     try {
-      final placeService = Provider.of<PlaceService>(context, listen: false);
-      await placeService.exportCachedPlacesToJson(context);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Places data exported to console'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 16),
+                Expanded(child: Text("Analyzing recommendations...")),
+              ],
+            ),
+          ),
+        );
+        final placesList = await placeService.exportCachedPlacesAsList(context);
+
+        final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('mainPick');
+        final response = await callable.call({'data': placesList});
+        final List<dynamic> recommendations = response.data['result'];
+        final List<Place> allCachedPlaces = placeService.cachedPlaces.values.expand((list) => list).toList();
+        // Create a new map to store only recommended places
+
+        final Map<String, List<Place>> newCache = {};
+        
+        for(var rec in recommendations) {
+            final String recId = rec['id'];
+            final List<String> recTags = List<String>.from(rec['tags']);
+
+            Place? match;
+            try {
+                match = allCachedPlaces.firstWhere((p) => p.id == recId);
+            } catch (_) {
+                match = null;
+            }
+
+            if(match != null) {
+                final updatedPlace = match.copyWith(tags: recTags);
+                newCache.putIfAbsent('recommended', () => []).add(updatedPlace);
+            }
+        }
+
+        restaurantProvider.setPlaces(newCache['recommended'] ?? []);
+        Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading dialog
+
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+            content: Text('Places data exported to console'),
+            duration: Duration(seconds: 2),
+            ),
+        );
     } catch (e) {
-      print('Error exporting places data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error exporting places data: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+        print('Error exporting places data: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+            content: Text('Error exporting places data: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            ),
+        );
     }
   }
 

@@ -105,4 +105,6 @@ class RestaurantProvider with ChangeNotifier {
       print('Error loading places from SharedPreferences: $e');
     }
   }
+
+  
 }

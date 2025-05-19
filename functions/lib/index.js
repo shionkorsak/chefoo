@@ -1,13 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePreferenceAI = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
+exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updatePreferenceAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
 const https_1 = require("firebase-functions/https");
-const personality_1 = require("./ai/personality");
+const personality_1 = require("./database/ai/personality");
+const processMeal_1 = require("./database/ai/processMeal");
+const mainPick_1 = require("./recommendation/mainPick");
 var userAuth_1 = require("./auth/userAuth");
 Object.defineProperty(exports, "createUserAccount", { enumerable: true, get: function () { return userAuth_1.createUserAccount; } });
 var userAuth_2 = require("./auth/userAuth");
 Object.defineProperty(exports, "deleteUserAccount", { enumerable: true, get: function () { return userAuth_2.deleteUserAccount; } });
 var userPreference_1 = require("./database/userPreference");
 Object.defineProperty(exports, "updateClientPreferences", { enumerable: true, get: function () { return userPreference_1.updateClientPreferences; } });
-exports.updatePreferenceAI = (0, https_1.onCallGenkit)(personality_1.updatePreference);
+var mainPick_2 = require("./recommendation/mainPick");
+Object.defineProperty(exports, "mainPick", { enumerable: true, get: function () { return mainPick_2.mainPick; } });
+exports.updatePreferenceAI = (0, https_1.onCallGenkit)(personality_1.processMealBatchFlow);
+exports.processMealAnalysisAI = (0, https_1.onCallGenkit)(processMeal_1.processMealAnalysisFlow);
+exports.mainPickAI = (0, https_1.onCallGenkit)(mainPick_1.mainPickFlow);
+exports.restaurantTagsAI = (0, https_1.onCallGenkit)(mainPick_1.restaurantTagsFlow);
 //# sourceMappingURL=index.js.map

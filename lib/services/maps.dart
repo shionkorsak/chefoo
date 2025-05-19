@@ -20,6 +20,8 @@ class PlaceService {
 
   final Map<String, List<Place>> _cachedPlaces = {};
 
+  Map<String, List<Place>> get cachedPlaces => _cachedPlaces;
+
   PlaceService({required this.client});
 
   Future<double> getDistance({
@@ -550,4 +552,35 @@ class PlaceService {
     
     return jsonString;
   }
+  Future<List<Map<String, dynamic>>> exportCachedPlacesAsList(BuildContext context) async {
+    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
+    
+    final Set<String> processedIds = {};
+    final List<Map<String, dynamic>> placesJson = [];
+
+    void addPlacesToResult(List<Place> places) {
+      for (var place in places) {
+        if (processedIds.contains(place.id)) continue;
+
+        processedIds.add(place.id);
+
+        placesJson.add({
+          'id': place.id,
+          'name': place.name,
+          'rating': place.rating,
+          'tags': place.tags,
+          'isFavorite': favoritesProvider.isFavorite(place.id),
+        });
+      }
+    }
+
+    for (final cacheEntry in _cachedPlaces.entries) {
+      addPlacesToResult(cacheEntry.value);
+    }
+
+    print('✅ Exported ${placesJson.length} unique cached places as List');
+
+    return placesJson;
+  }
+
 }
