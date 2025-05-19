@@ -1,3 +1,4 @@
+import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/widgets/buttons/arrow_button.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
@@ -12,6 +13,10 @@ import 'package:chefoo/widgets/dots_page_indicator.dart';
 import 'package:chefoo/widgets/tags/tag_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chefoo/widgets/settings/settingstile.dart';
+import 'package:chefoo/widgets/star_rating.dart';
+import 'package:chefoo/widgets/restaurant_list.dart';
+import 'package:chefoo/widgets/restaurant_card.dart';
+import 'package:chefoo/widgets/ai_input_field.dart';
 
 class WidgetTestScreen extends StatefulWidget {
   const WidgetTestScreen({super.key});
@@ -91,6 +96,44 @@ class _WidgetTestScreenState extends State<WidgetTestScreen> {
                   ),
                 ],
               ),
+              SizedBox(height: 32),
+              StarRating(rating: 3.5),
+              SizedBox(height: 32),
+              Text("RestaurantList Preview", style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(
+                height: 200,
+                child: RestaurantList(
+                  places: [], // You can mock some Place objects if needed
+                  isLoading: false,
+                ),
+              ),
+              SizedBox(height: 32),
+              AuthCard(
+                children: [
+                  Text("RestaurantCard Preview", style: Theme.of(context).textTheme.titleLarge),
+                  RestaurantCard(
+                    place: Place(
+                      id: 'test_place',
+                      name: 'Mock Restaurant',
+                      address: '123 Test St, Test City',
+                      rating: 4.2,
+                      distance: 400, // ← Add this line to satisfy the required parameter
+                      walkingDistance: 0.4,
+                      isOpenNow: true,
+                      pictureUrls: [],
+                      reviews: [],
+                      openingHours: [],
+                      popularTimes: [],
+                      phone: '123-456-7890',
+                      lat: 25.033964,
+                      lng: 121.564468,
+                      tags: ['mock', 'test', 'demo'],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 32),
+              AIInputField(),
               SizedBox(height: 32),
             ],
           ),
