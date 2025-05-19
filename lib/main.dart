@@ -70,7 +70,10 @@ void main() async {
           create: (_) => CalendarStateProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => RestaurantProvider(),
+          create: (_) => RestaurantProvider()
+        ),
+        ChangeNotifierProvider<GetStartedProvider>(
+          create: (_) => GetStartedProvider(),
         ),
       ],
       child: const MyApp(),
