@@ -1,6 +1,7 @@
 part of 'get_started_screen.dart';
 
 abstract class GetStartedController extends State<GetStartedScreen> {
+  final _auth = AuthService();
   late GetStartedProvider provider;
 
   @override
@@ -259,7 +260,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             kGap8,
             GoogleLoginButton(
               onPressed: () async {
-                await Future.delayed(Duration(milliseconds: 300), () {
+                await Future.delayed(Duration(milliseconds: 300), () async {
+                  await _auth.signInWithGoogle();
                   provider.setState(4);
                 });
               },
@@ -530,7 +532,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 ),
                 kGap5,
                 Text(
-                  provider.nameController.text,
+                  _auth.getCurrentUserDisplayName() ?? provider.nameController.text,
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -540,8 +542,14 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 kGap8,
                 TextButton(
                   onPressed: () {
-                    provider.setState(0);
-                    provider.setShowFinalScreenContent(false);
+                    // provider.setState(0);
+                    // provider.setShowFinalScreenContent(false);
+                    Navigator.pushReplacement(
+                      context, 
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => ProfileScreen()
+                      )
+                    );
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:chefoo/commons.dart';
 
 class GetStartedProvider extends ChangeNotifier {
   int _state = 0;

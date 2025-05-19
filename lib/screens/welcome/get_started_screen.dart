@@ -83,6 +83,7 @@
 //   }
 // }
 
+import 'package:chefoo/screens/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
