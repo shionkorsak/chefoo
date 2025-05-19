@@ -48,6 +48,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(),
         ),
+        ChangeNotifierProvider<GetStartedProvider>(
+          create: (_) => GetStartedProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
