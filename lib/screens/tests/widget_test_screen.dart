@@ -1,6 +1,7 @@
 import 'package:chefoo/widgets/ai_input_field.dart';
 import 'package:chefoo/widgets/buttons/arrow_button.dart';
 import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
+import 'package:chefoo/widgets/star_ratings/star_rating_editable.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/border_text_field.dart';
@@ -75,6 +76,8 @@ class _WidgetTestScreenState extends State<WidgetTestScreen> {
                         height: 32,
                       ),
                       AIInputField(),
+                      SizedBox(height: 32),
+                      StarRatingEditable(rating: 1)
                     ],
                   ),
                 ],

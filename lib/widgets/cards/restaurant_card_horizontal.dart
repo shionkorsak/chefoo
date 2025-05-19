@@ -1,4 +1,4 @@
-import 'package:chefoo/widgets/star_rating.dart';
+import 'package:chefoo/widgets/star_ratings/star_rating.dart';
 import 'package:marquee/marquee.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/like_button.dart';
