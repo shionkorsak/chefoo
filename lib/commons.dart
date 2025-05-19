@@ -2,7 +2,6 @@
 ///List of all files used as helpers
 /// Packages
 export 'package:flutter/material.dart';
-export 'package:flutter/material.dart';
 export 'package:flutter_dotenv/flutter_dotenv.dart';
 export 'package:geolocator/geolocator.dart';
 export 'package:google_maps_flutter/google_maps_flutter.dart';

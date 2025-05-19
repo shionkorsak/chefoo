@@ -7,7 +7,9 @@ import 'package:chefoo/widgets/buttons/glowing_button.dart';
 import 'package:chefoo/widgets/settings/settingstile.dart';
 
 class ManageAccountScreen extends StatelessWidget {
-  const ManageAccountScreen({super.key});
+  ManageAccountScreen({super.key});
+
+  final _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +136,8 @@ class ManageAccountScreen extends StatelessWidget {
                             ),
                             CupertinoDialogAction(
                               isDestructiveAction: true,
-                              onPressed: () {
+                              onPressed: () async {
+                                await _auth.signOut();
                                 Navigator.of(context).pop(); // Close the first dialog
                                 showCupertinoDialog(
                                   context: context,
