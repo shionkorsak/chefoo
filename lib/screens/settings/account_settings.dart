@@ -3,6 +3,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/cards/auth_card.dart';
 import 'package:chefoo/widgets/settings/settingstile.dart';
 import 'package:chefoo/screens/settings/manage_account.dart';
+import 'package:chefoo/screens/settings/food_preference.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -72,7 +73,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.room_preferences,
                     title: 'Food Preferences',
                     onTap: () {
-                      print('Food Preferences tapped');
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => const PreferenceScreen(),
+                          transitionDuration: const Duration(milliseconds: 500),
+                          reverseTransitionDuration: const Duration(milliseconds: 500),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(1.0, 0.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeInOutCirc;
+
+                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                            var offsetAnimation = animation.drive(tween);
+
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
                     },
                   ),
                 ],
