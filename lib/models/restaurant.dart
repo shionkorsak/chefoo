@@ -157,6 +157,55 @@ class Place {
     };
   }
 
+  Place copyWith({
+    String? id,
+    String? name,
+    double? rating,
+    String? address,
+    double? distance,
+    List<String>? tags,
+    String? phone,
+    List<String>? openingHours,
+    List<Review>? reviews,
+    List<String>? pictureUrls,
+    double? lat,
+    double? lng,
+    bool? isOpenNow,
+    List<Map<String, dynamic>>? popularTimes,
+    bool? popularTimesLoaded,
+    double? walkingDistance,
+    bool? detailsLoaded,
+  }) {
+    final updated = Place(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      rating: rating ?? this.rating,
+      address: address ?? this.address,
+      distance: distance ?? this.distance,
+      tags: tags ?? List.from(this.tags),
+      phone: phone ?? this.phone,
+      openingHours: openingHours ?? this.openingHours,
+      reviews: reviews ?? List.from(this.reviews),
+      pictureUrls: pictureUrls ?? List.from(this.pictureUrls),
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      isOpenNow: isOpenNow ?? this.isOpenNow,
+      popularTimes: popularTimes ?? _popularTimes,
+      walkingDistance: walkingDistance ?? this.walkingDistance,
+   );
+
+  if (popularTimesLoaded ?? _popularTimesLoaded) {
+    updated._popularTimesLoaded = true;
+  }
+
+  if (detailsLoaded ?? _detailsLoaded) {
+    updated._detailsLoaded = true;
+  }
+
+  return updated;
+}
+
+
   List<Map<String, dynamic>>? get popularTimes => _popularTimes;
 
   bool get popularTimesLoaded => _popularTimesLoaded;
