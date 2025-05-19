@@ -95,8 +95,8 @@ class RestaurantCardVertical extends StatelessWidget {
             ),
             Text(
               place.name,
-              style:
-                  AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
+              style: AppTextStyles.headline3
+                  .copyWith(color: AppColors.textPrimary),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
