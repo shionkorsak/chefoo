@@ -16,6 +16,8 @@ import 'package:chefoo/services/preload_service.dart' as preload;
 import 'package:chefoo/screens/rating/rating_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
 
+import 'package:chefoo/screens/profile/profile.dart';
+
 Future<void> initializeApp() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
@@ -91,8 +93,8 @@ class MyApp extends StatelessWidget {
         home: AuthGate());
 
         //home: SettingsScreen());
-        home: RatingScreen();
         //home: MapViewScreen());
+        //home: ProfileScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
