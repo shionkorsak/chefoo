@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/screens/tests/widget_test_screen.dart';
+import 'package:chefoo/screens/tests/widget_test_screen2.dart';
 import 'package:chefoo/screens/welcome/get_started.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
@@ -103,14 +104,15 @@ class MyApp extends StatelessWidget {
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
-        //home: GetStarted());
-        //home: TestScreen());
-        //home: GetStartedScreen());    
-        //home: WidgetTestScreen());
-        //home: const SplashScreen());
-        //home: SettingsScreen());
-        home: RatingScreen());
-        //home: MapViewScreen());
+        // home: GetStarted());
+        // home: WidgetTestScreen());
+        // home: WidgetTestScreen2());
+        // home: TestScreen());
+        home: GetStartedScreen());
+        // home: const SplashScreen());
+        // home: SettingsScreen());
+        // home: RatingScreen());
+        // home: MapViewScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
