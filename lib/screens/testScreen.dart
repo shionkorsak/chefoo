@@ -96,6 +96,8 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
 
       if (response.success && response.data != null) {
         print('Successfully loaded ${response.data!.length} places');
+
+        
         restaurantProvider.setPlaces(response.data!);
         
         if (response.message?.contains('cache') == true) {

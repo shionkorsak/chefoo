@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.push(
                         context,
                         PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) => const ManageAccountScreen(),
+                          pageBuilder: (context, animation, secondaryAnimation) => ManageAccountScreen(),
                           transitionDuration: const Duration(milliseconds: 500),
                           reverseTransitionDuration: const Duration(milliseconds: 500),
                           transitionsBuilder: (context, animation, secondaryAnimation, child) {
