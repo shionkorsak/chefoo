@@ -14,12 +14,18 @@ import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/screens/welcome_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:chefoo/screens/settings/account_settings.dart';
 import 'package:chefoo/services/database/location_handler.dart';
 import 'package:chefoo/providers/calendar_state.dart';
 import 'package:chefoo/services/preload_service.dart';
 
+import 'package:chefoo/screens/splash/splash.dart';
 import 'commons.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
+
+import 'package:chefoo/screens/rating/rating_screen.dart';
+import 'package:chefoo/screens/map_view.dart';
 
 Future<void> initializeApp() async {
   try {
@@ -93,16 +99,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: lightTheme,
         navigatorKey: navigatorKey,
-        // home: AuthGate());
+        //home: AuthGate());
 
         ///Screen names used from file screens.dart
 
         // routes: {Screens.profile: (_) => const ProfileScreen()},
-        //home: GetStarted());
+        // home: GetStarted());
         // home: WidgetTestScreen());
         // home: WidgetTestScreen2());
-        //home: TestScreen());
+        // home: TestScreen());
         home: GetStartedScreen());
+        // home: const SplashScreen());
+        // home: SettingsScreen());
+        // home: RatingScreen());
+        // home: MapViewScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }

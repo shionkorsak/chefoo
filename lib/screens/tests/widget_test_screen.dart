@@ -26,6 +26,14 @@ class WidgetTestScreen extends StatefulWidget {
 class _WidgetTestScreenState extends State<WidgetTestScreen> {
   int _selectedIndex = 0;
 
+
+  @override
+  State<WidgetTestScreen> createState() => _WidgetTestScreenState();
+}
+
+class _WidgetTestScreenState extends State<WidgetTestScreen> {
+  bool notificationsEnabled = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -19,28 +19,26 @@ class GetStartedScreen extends StatefulWidget {
 class _GetStartedScreenState extends GetStartedController {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () async {
-            await Future.delayed(Duration(milliseconds: 300), () {
-              if (state == 0) {
-                setState(() {
-                  state = 1;
-                });
-              }
-            });
-          },
-          child: Center(
-            child: Stack(
-              children: [
-                buildBackground(),
-                if (state < 2) buildWelcomeContent(),
-                if (state >= 1 && state <= 7) buildAuthCard(),
-                if (state == 7) buildFinalScreen(),
-                buildBottomButton(),
-              ],
-            ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () async {
+        if (state == 0) {
+          await Future.delayed(Duration(milliseconds: 300));
+          setState(() {
+            state = 1;
+          });
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Stack(
+            children: [
+              buildBackground(),
+              if (state < 2) buildWelcomeContent(),
+              if (state >= 1 && state <= 7) buildAuthCard(),
+              if (state == 7) buildFinalScreen(),
+              buildBottomButton(),
+            ],
           ),
         ),
       ),
@@ -71,7 +69,8 @@ class AnimatedOval extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.only(top: paddingTop),
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
+          duration: Duration(milliseconds: 600), // Increased duration
+          curve: Curves.easeOutCubic, // Smoother curve
           width: state >= 1 ? width : 119,
           height: state >= 1 ? height : 33,
           decoration: ShapeDecoration(
