@@ -586,7 +586,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 TextButton(
                   onPressed: () {
                     provider.setState(0);
-                    // provider.setShowFinalScreenContent(false);
+                    provider.setShowFinalScreenContent(false);
                     Navigator.pushReplacement(
                       context, 
                       MaterialPageRoute(
