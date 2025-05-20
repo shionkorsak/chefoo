@@ -2,17 +2,18 @@ part of 'get_started_screen.dart';
 
 abstract class GetStartedController extends State<GetStartedScreen> {
   final _auth = AuthService();
-  final _account = UserAccountService();
   int state = 0;
   bool showFinalScreenContent = false;
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController allergyController = TextEditingController();
   bool nameError = false;
   late GetStartedProvider provider;
+  late UserAccountProvider userAccountProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     provider = Provider.of<GetStartedProvider>(context);
+    userAccountProvider = Provider.of<UserAccountProvider>(context, listen: false);
   }
 
   @override
@@ -267,7 +268,20 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               onPressed: () async {
                 await Future.delayed(Duration(milliseconds: 300), () async {
                   await _auth.signInWithGoogle();
-                  provider.setState(4);
+
+                  await userAccountProvider.fetchUserAccount();
+
+                  final account = userAccountProvider.userAccount;
+                  final hasPrefs = account?.preferences.dietaryPreferences.isNotEmpty == true ||
+                                    account?.preferences.allergies.isNotEmpty == true;
+                  if(hasPrefs) {
+                    provider.setState(7);
+                    provider.setShowFinalScreenContent(false);
+                    await Future.delayed(Duration(milliseconds: 700));
+                    provider.setShowFinalScreenContent(true);
+                  } else {
+                    provider.setState(4);
+                  }
                 });
               },
             ),
@@ -378,12 +392,16 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               'Vegan',
               'Vegetarian',
               'Pescatarian',
-            ]),
+            ],
+            onSelectionChanged: (tags) {
+              provider.setSelectedTags(tags);
+            },),
             kGap8,
             kGap8,
             kGap8,
             kGap8,
             TextField(
+              controller: provider.otherDietaryController,
               decoration: InputDecoration(
                 hintText: "Others",
                 border: OutlineInputBorder(
@@ -410,6 +428,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             ),
             kGap5,
             TextField(
+              controller: provider.allergiesController,
               decoration: InputDecoration(
                 hintText: "Write your allergies here",
                 border: OutlineInputBorder(
@@ -425,9 +444,28 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             kGap8,
             ElevatedButton(
               onPressed: () async {
-                await Future.delayed(Duration(milliseconds: 300), () {
-                  provider.setState(6);
-                });
+                final dietaryPreferences = [
+                  ...provider.selectedTags,
+                  if (provider.otherDietaryController.text.trim().isNotEmpty)
+                    provider.otherDietaryController.text.trim(),
+                ];
+
+                final allergies = [
+                  if(provider.allergiesController.text.trim().isNotEmpty)
+                    provider.allergiesController.text.trim(),
+                ];
+
+                final success = await userAccountProvider.updateUserPreferences(dietaryPreferences, allergies);
+
+                if(success) {
+                  await Future.delayed(Duration(milliseconds: 300), () {
+                    provider.setState(6);
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to update preferences. Please try again.")),
+                  );
+                }
               },
               child: Text("Next"),
             ),
@@ -547,7 +585,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 kGap8,
                 TextButton(
                   onPressed: () {
-                    // provider.setState(0);
+                    provider.setState(0);
                     // provider.setShowFinalScreenContent(false);
                     Navigator.pushReplacement(
                       context, 

@@ -3,8 +3,13 @@ import 'package:chefoo/widgets/tags/tag.dart';
 
 class TagMap extends StatefulWidget {
   final List<String> tags;
+  final void Function(List<String>)? onSelectionChanged;
 
-  const TagMap({Key? key, required this.tags}) : super(key: key);
+  const TagMap({
+    Key? key, 
+    required this.tags, 
+    this.onSelectionChanged
+    }) : super(key: key);
 
   @override
   State<TagMap> createState() => _TagMapState();
@@ -22,6 +27,20 @@ class _TagMapState extends State<TagMap> {
     }
   }
 
+  void _onTagTapped(String tag) {
+    setState(() {
+      selectedTags[tag] = !(selectedTags[tag] ?? false);
+    });
+
+    if(widget.onSelectionChanged != null) {
+      final selected = selectedTags.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
+      widget.onSelectionChanged!(selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -31,11 +50,7 @@ class _TagMapState extends State<TagMap> {
         return Tag(
           label: tag,
           selected: selectedTags[tag] ?? false,
-          onTap: () {
-            setState(() {
-              selectedTags[tag] = !(selectedTags[tag] ?? false);
-            });
-          },
+          onTap: () => _onTagTapped(tag),
         );
       }).toList(),
     );

@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/calendar_screen.dart';
 import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/placeholder/playground.dart';
+import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/screens/testScreen.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 
@@ -31,7 +32,7 @@ class PlaceholderScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(
-                  builder: (BuildContext context) => LoginScreen()
+                  builder: (BuildContext context) => SplashScreen()
                 )
               );
             },
@@ -44,7 +45,7 @@ class PlaceholderScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(
-                  builder: (BuildContext context) => LoginScreen()
+                  builder: (BuildContext context) => SplashScreen()
                 )
               );
             },
