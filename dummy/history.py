@@ -8,7 +8,6 @@ firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-user_id = "xCzmnw5RgnUXwkefe0SfNlIjL9T2"
 uid = "xCzmnw5RgnUXwkefe0SfNlIjL9T2"
 collection_path = f"users/{uid}/mealHistory"
 
