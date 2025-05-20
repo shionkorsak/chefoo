@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
-import 'package:chefoo/widgets/star_rating.dart';
+import 'package:chefoo/widgets//star_ratings/star_rating.dart';
 import 'package:chefoo/widgets/border_text_field.dart';
 import 'package:chefoo/widgets/cards/auth_card.dart';
 import 'rating_controller.dart';
