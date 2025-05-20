@@ -18,8 +18,8 @@ class AuthGate extends StatelessWidget {
         builder: (context, snapshot) {
           if(snapshot.hasData) {
             log("User has signed in.");
-            // return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
-            return ProfileScreen();
+            return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
+            // return ProfileScreen();
           } else {
             log("User has not signed in.");
             return SplashScreen(); //TODO: will change this to onboarding screens when frontend has made it

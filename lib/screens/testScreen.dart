@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/favorites.dart';
 import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../providers/restaurant.dart';
 import '../commons.dart';
@@ -96,9 +97,33 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
 
       if (response.success && response.data != null) {
         print('Successfully loaded ${response.data!.length} places');
-
         
-        restaurantProvider.setPlaces(response.data!);
+        final placesList = await placeService.exportCachedPlacesAsList(context);
+
+        final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('mainPick');
+        final aiResponse = await callable.call({'data': placesList});
+        final List<dynamic> recommendations = aiResponse.data['result'];
+        final List<Place> allCachedPlaces = placeService.cachedPlaces.values.expand((list) => list).toList();
+
+        final Map<String, List<Place>> newCache = {};
+        
+        for(var rec in recommendations) {
+            final String recId = rec['id'];
+            final List<String> recTags = List<String>.from(rec['tags']);
+
+            Place? match;
+            try {
+                match = allCachedPlaces.firstWhere((p) => p.id == recId);
+            } catch (_) {
+                match = null;
+            }
+
+            if(match != null) {
+                final updatedPlace = match.copyWith(tags: recTags);
+                newCache.putIfAbsent('recommended', () => []).add(updatedPlace);
+            }
+        }
+        restaurantProvider.setPlaces(newCache['recommended'] ?? []);
         
         if (response.message?.contains('cache') == true) {
           print('Used cache with ${response.data!.length} places');
