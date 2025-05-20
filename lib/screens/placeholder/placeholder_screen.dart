@@ -4,6 +4,7 @@ import 'package:chefoo/screens/login/login_screen.dart';
 import 'package:chefoo/screens/placeholder/playground.dart';
 import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/screens/testScreen.dart';
+import 'package:chefoo/screens/tests/widget_test_screen2.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 
 class PlaceholderScreen extends StatelessWidget {
@@ -64,7 +65,8 @@ class PlaceholderScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context, 
-                MaterialPageRoute(builder: (BuildContext context) => TestScreen()));
+                // MaterialPageRoute(builder: (BuildContext context) => TestScreen()));
+                MaterialPageRoute(builder: (BuildContext context) => WidgetTestScreen2()));
             }, 
             child: Text("Maps")),
           SizedBox(height: 30),
