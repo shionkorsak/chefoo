@@ -36,10 +36,10 @@ Future<void> initializeApp() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-    await initializeApp();
+  await initializeApp();
 
   runApp(
     MultiProvider(
@@ -65,9 +65,7 @@ void main() async {
         ChangeNotifierProvider<CalendarStateProvider>(
           create: (_) => CalendarStateProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => RestaurantProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => RestaurantProvider()),
         ChangeNotifierProvider<GetStartedProvider>(
           create: (_) => GetStartedProvider(),
         ),
@@ -85,13 +83,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-    
+    final restaurantProvider =
+        Provider.of<RestaurantProvider>(context, listen: false);
+
     // location monitoring after app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final locationService = Provider.of<LocationService>(context, listen: false);
+      final locationService =
+          Provider.of<LocationService>(context, listen: false);
       locationService.startLocationUpdates(context);
-      
       try {
         // final done = preload.PreloadService.preloadData(context, restaurantProvider);
       } catch (e) {
@@ -104,20 +103,28 @@ class MyApp extends StatelessWidget {
         navigatorKey: navigatorKey,
         home: AuthGate());
         //home: CalendarScreen());
-        ///Screen names used from file screens.dart
 
-        // routes: {Screens.profile: (_) => const ProfileScreen()},
-        //home: GetStarted());
-        // home: WidgetTestScreen());
-        // home: WidgetTestScreen2());
-        // home: TestScreen());
-        // home: GetStartedScreen());
+
+        // home: AuthGate());
+
+        //home: TestScreen());
+        //home: GetStartedScreen());
+        //home: WidgetTestScreen());
+
         // home: const SplashScreen());
-        // home: SettingsScreen());
-        // home: RatingScreen());
-        // home: MapViewScreen());
-        // home: MainScreen());/ this testScreen is only to visualize google maps info
+        //home: SettingsScreen());
+        //home: MapViewScreen());
+        //home: ProfileScreen());
+        // home: GetStarted());
+        // home: WidgetTestScreen());
+        //home: WidgetTestScreen2());
+    // home: TestScreen());
+    // home: GetStartedScreen());
+    // home: const SplashScreen());
+    // home: SettingsScreen());
+    // home: RatingScreen());
+    // home: MapViewScreen());
+    // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
 }
-
