@@ -2,6 +2,7 @@ part of 'get_started_screen.dart';
 
 abstract class GetStartedController extends State<GetStartedScreen> {
   final _auth = AuthService();
+  final _account = UserAccountService();
   int state = 0;
   bool showFinalScreenContent = false;
   final TextEditingController nameController = TextEditingController();
