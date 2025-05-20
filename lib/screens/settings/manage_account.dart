@@ -1,3 +1,4 @@
+import 'package:chefoo/screens/splash/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/cupertino.dart';
@@ -102,7 +103,16 @@ class ManageAccountScreen extends StatelessWidget {
                                     actions: [
                                       CupertinoDialogAction(
                                         isDefaultAction: true,
-                                        onPressed: () => Navigator.of(context).pop(),
+                                        onPressed: () async {
+                                          Navigator.of(context).pop();
+                                          await _auth.deleteAccount();
+                                          Navigator.pushReplacement(
+                                            context, 
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) => SplashScreen()
+                                            )
+                                          );
+                                        },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
                                       ),
                                     ],
@@ -137,7 +147,6 @@ class ManageAccountScreen extends StatelessWidget {
                             CupertinoDialogAction(
                               isDestructiveAction: true,
                               onPressed: () async {
-                                await _auth.signOut();
                                 Navigator.of(context).pop(); // Close the first dialog
                                 showCupertinoDialog(
                                   context: context,
@@ -147,7 +156,16 @@ class ManageAccountScreen extends StatelessWidget {
                                     actions: [
                                       CupertinoDialogAction(
                                         isDefaultAction: true,
-                                        onPressed: () => Navigator.of(context).pop(),
+                                        onPressed: () async { 
+                                          Navigator.of(context).pop();
+                                          await _auth.signOut();
+                                          Navigator.pushReplacement(
+                                            context, 
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) => SplashScreen()
+                                            )
+                                          );
+                                        },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
                                       ),
                                     ],
