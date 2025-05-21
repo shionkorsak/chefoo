@@ -29,6 +29,8 @@ dependencies:
   cloud_functions: ^5.5.0
   marquee: ^2.2.3 #for horizontall text animation
   shared_preferences: ^2.5.3
+  flutter_animate: ^4.2.0
+  location: ^5.0.3
 
 dev_dependencies:
   flutter_test:
