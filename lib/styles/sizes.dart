@@ -5,6 +5,7 @@ const kEmptyWidget = SizedBox.shrink();
 const kGap0 = SizedBox.square(dimension: 0,);
 const kGap5 = SizedBox.square(dimension: 5,);
 const kGap8 = SizedBox.square(dimension: 8,);
+const kGap20 = SizedBox.square(dimension: 20,);
 
 ///Const of Paddings used around the app
 const kPadd2 = EdgeInsets.all(2);
