@@ -1,5 +1,6 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/getstarted.dart';
+import 'package:chefoo/providers/mainscreen.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
@@ -29,6 +30,8 @@ import 'package:chefoo/screens/rating/rating_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
 
 import 'package:chefoo/screens/profile/profile.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
+
 
 Future<void> initializeApp() async {
   try {
@@ -77,6 +80,9 @@ void main() async {
         ChangeNotifierProvider<GetStartedProvider>(
           create: (_) => GetStartedProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => MainScreenProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -106,7 +112,7 @@ class MyApp extends StatelessWidget {
         theme: lightTheme,
         navigatorKey: navigatorKey,
 
-        home: AuthGate());
+        //home: AuthGate());
 
 
         ///Screen names used from file screens.dart
@@ -130,6 +136,7 @@ class MyApp extends StatelessWidget {
         // home: SettingsScreen());
         // home: RatingScreen());
         // home: MapViewScreen());
+        home: MainScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
