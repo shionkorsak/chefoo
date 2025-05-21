@@ -6,13 +6,20 @@ import 'package:chefoo/widgets/buttons/like_button.dart';
 class RestaurantCardHorizontal extends StatelessWidget {
   final _banner = PictureCategoryAssets();
   final Place place;
+  final bool isLoading;
+
   RestaurantCardHorizontal({
     Key? key,
     required this.place,
+    this.isLoading = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
     final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] 
     ?? 'https://maps.googleapis.com/maps/api/place/photo'
         '?maxwidth=400'

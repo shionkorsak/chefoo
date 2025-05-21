@@ -617,7 +617,7 @@ class PlaceService {
       addPlacesToResult(cacheEntry.value);
     }
 
-    print('✅ Exported ${placesJson.length} unique cached places as List');
+    print('Exported ${placesJson.length} unique cached places as List');
 
     return placesJson;
   }
