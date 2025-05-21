@@ -3,28 +3,24 @@ import 'package:marquee/marquee.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/like_button.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
+import 'package:chefoo/constants.dart';
 
 class RestaurantCardVertical extends StatelessWidget {
   final Place place;
-  const RestaurantCardVertical({
+  final _banner = PictureCategoryAssets();
+
+  RestaurantCardVertical({
     Key? key,
     required this.place,
   }) : super(key: key);
 
-  bool isValidImageUrl(String? url) {
-    if (url == null || url.isEmpty) return false;
-    try {
-      final uri = Uri.parse(url);
-      return uri.hasScheme && (uri.scheme == 'http' || uri.scheme == 'https');
-    } catch (e) {
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final pictureUrl =
-        place.pictureUrls.isNotEmpty ? place.pictureUrls.first : null;
+    final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] 
+    ?? 'https://maps.googleapis.com/maps/api/place/photo'
+        '?maxwidth=400'
+        '&photo_reference=${place.pictureUrls.first}'
+        '&key=${MapsConstants.mapsKey}';
 
     return GestureDetector(
       onTap: () {
@@ -69,10 +65,7 @@ class RestaurantCardVertical extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: kRadius10,
                         child: Image.network(
-                          'https://maps.googleapis.com/maps/api/place/photo'
-                          '?maxwidth=400'
-                          '&photo_reference=${pictureUrl}'
-                          '&key=${MapsConstants.mapsKey}',
+                          pictureUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             print('Error loading image: $error');
@@ -151,10 +144,12 @@ class RestaurantCardVertical extends StatelessWidget {
                     ),
                   ],
                 ),
-                Text(
-                  '${place.walkingDistance.toStringAsFixed(1)}km',
-                  style: AppTextStyles.detail,
-                ),
+                place.walkingDistance == 0
+                ? const SizedBox.shrink()
+                : Text(
+                    '${place.walkingDistance.toStringAsFixed(1)}km',
+                    style: AppTextStyles.detail,
+                  )
               ],
             ),
           ],

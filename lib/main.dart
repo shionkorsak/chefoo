@@ -57,7 +57,7 @@ void main() async {
           create: (_) => LocationService(),
         ),
         ChangeNotifierProvider(
-          create: (_) => FavoritesProvider(),
+          create: (_) => FavoritesProvider()..loadFavorites(),
         ),
         ChangeNotifierProvider(
           create: (_) => UserAccountProvider(),

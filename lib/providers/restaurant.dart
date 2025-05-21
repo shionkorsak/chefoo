@@ -11,7 +11,9 @@ class RestaurantProvider with ChangeNotifier {
   String? _error;
   bool _routePlacesLoaded = false;
   Map<String, List<Place>> _routePlacesCache = {};
+  bool _hasFetched = false;
 
+  bool get hasFetched => _hasFetched;
   List<Place> get places => _places;
   List<Place> get routePlaces => _routePlaces;
   Place? get selectedPlace => _selectedPlace;
@@ -21,6 +23,7 @@ class RestaurantProvider with ChangeNotifier {
 
   void setPlaces(List<Place> places) {
     _places = places;
+    _hasFetched = true;
     _savePlacesToPrefs();
     notifyListeners();
   }
@@ -98,6 +101,7 @@ class RestaurantProvider with ChangeNotifier {
       if (placesJson != null) {
         final List<dynamic> decodedPlaces = jsonDecode(placesJson);
         _places = decodedPlaces.map((json) => Place.fromJson(json)).toList();
+        _hasFetched = true;
         print('Loaded ${_places.length} places from SharedPreferences');
       }
       notifyListeners();
@@ -106,5 +110,14 @@ class RestaurantProvider with ChangeNotifier {
     }
   }
 
+  Future<void> loadPlacesIfNotFetched() async {
+    if (_hasFetched) return;
+    await _loadPlacesFromPrefs();
+  }
+
+  void setHasFetched(bool fetch) {
+    _hasFetched = fetch;
+    notifyListeners();
+  }
   
 }

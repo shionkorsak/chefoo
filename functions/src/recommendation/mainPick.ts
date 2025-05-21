@@ -2,7 +2,7 @@ import * as functions from "firebase-functions/v1";
 import { ai } from '../config';
 import { db } from "../admin";
 import { z } from 'genkit';
-import { userPreferenceSchema } from "../schema";
+import { restaurantSchema, userPreferenceSchema } from "../schema";
 
 export const restaurantTagsFlow = ai.defineFlow(
     {
@@ -32,6 +32,59 @@ export const restaurantTagsFlow = ai.defineFlow(
     }
 );
 
+export const restaurantBannerFlow = ai.defineFlow(
+    {
+        name: 'restaurantBannerFlow',
+        inputSchema: z.object({
+            name: z.string(),
+            tags: z.array(z.string())
+        })
+    },
+    async ({ name, tags }) => {
+        const bannerOptions = {
+            'american_food': ['Fast Food', 'Diner', 'BBQ Joint', 'Steakhouse', 'Fast Casual Burger Spot'],
+            'beefnoodle_food': ['Taiwanese Beef Noodle'],
+            'dimsum_food': ['Dim Sum', 'Hong Kong', 'Tea House'],
+            'hotpot_food': ['Hot Pot'],
+            'indian_food': ['Indian'],
+            'italian_food': ['Pasta', 'Pizza', 'Italian'],
+            'korean_food': ['Korean', 'Bibimbap', 'Kimchi', 'Korean Fried Chicken'],
+            'mexican_food': ['Mexican', 'Taco', 'Taqueria'],
+            'thai_food': ['Thai', 'Tomyum', 'Mango'],
+            'vietnamese_food': ['Vietnamese', 'Pho', 'Banh Mi'],
+            'xiaolongbao_food': ['Chinese', 'Xiaolongbao', 'Shanghai', 'Steamed Bun'],
+            'vegetarian_food': ['Vegan', 'Vegetarian']
+        }
+
+        const categories = Object.keys(bannerOptions);
+
+        console.log(categories.join(', '));
+
+        const prompt = `
+    You are a food domain expert. Given a restaurant name and its cuisine tags (which may include abbreviations or colloquial terms), choose the **single most appropriate category key** from this list:
+
+    ${categories.join(', ')}
+
+    Think carefully about what the tags refer to. For example, "K-BBQ" should map to "korean_food".
+
+    Only return the exact category key — nothing else. If nothing matches, return 'default'.
+
+    Restaurant Name: ${name}
+    Tags: ${tags.join(', ')}
+
+    Category Key:
+    `;
+
+        const result = await ai.generate({ prompt });
+
+        const categoryKey = result.text.trim();
+
+        return {
+            pictureCategory: categoryKey
+        };
+    }
+);
+
 export const mainPickFlow = ai.defineFlow(
     {
         name: 'mainPickFlow',
@@ -48,10 +101,7 @@ export const mainPickFlow = ai.defineFlow(
             ),
         }),
         outputSchema: z.array(
-            z.object({
-                id: z.string(),
-                tags: z.array(z.string())
-            })
+            restaurantSchema
         )
     },
     async ({ uid, restaurants }) => {
@@ -78,7 +128,7 @@ export const mainPickFlow = ai.defineFlow(
                 console.log(`Generated tags for ${restaurant.name}:`, newTags);
                 return { ...restaurant, tags: newTags };
             })
-            );
+        );
 
 
         const restaurantList = enriched.map((r, i) => {
@@ -108,20 +158,58 @@ export const mainPickFlow = ai.defineFlow(
 
         const response = await ai.generate({prompt});
         console.log(response.text);
-        const cleanedText = response.text
-            .replace(/```(?:json|javascript)?/gi, '')
-            .replace(/```/g, '')
-            .trim();
-        const recommendedIds = JSON.parse(cleanedText);
-        const recommendedRestaurants = enriched.filter(r =>
-            recommendedIds.includes(r.id)
-        );
+        let recommendedIds: string[] = [];
+        let recommendedRestaurants: typeof enriched = [];
 
-        console.log(recommendedRestaurants);
-        return recommendedRestaurants.map(r => ({
-            id: r.id,
-            tags: r.tags
-        }));
+        try {
+            const cleanedText = response.text
+                .replace(/```(?:json|javascript)?/gi, '')
+                .replace(/```/g, '')
+                .trim();
+
+            // Optionally: Use regex to extract array content
+            const match = cleanedText.match(/\[[^\]]*\]/);
+            if (!match) {
+                throw new Error(`No array found in AI response: "${cleanedText}"`);
+            }
+
+            recommendedIds = JSON.parse(match[0]);
+
+            if (!Array.isArray(recommendedIds)) {
+                throw new Error("Parsed data is not an array");
+            }
+
+            recommendedRestaurants = enriched.filter(r =>
+                recommendedIds.includes(r.id)
+            );
+        } catch (err) {
+            console.error("Failed to parse recommended restaurant IDs:", err);
+            console.error("Raw AI output was:", response.text);
+            throw new Error("Invalid AI output — could not extract restaurant IDs.");
+        }
+
+
+        const finalResults = await Promise.all(
+            recommendedRestaurants.map(async (r) => {
+                const bannerRes = await restaurantBannerFlow.run({
+                    name: r.name,
+                    tags: r.tags
+                });
+
+                return {
+                    id: r.id,
+                    tags: r.tags,
+                    pictureCategory: bannerRes.result.pictureCategory
+                }
+            })
+        )
+
+        console.log(finalResults);
+        // return recommendedRestaurants.map(r => ({
+        //     id: r.id,
+        //     tags: r.tags
+        // }));
+        return finalResults;
     }
 )
 

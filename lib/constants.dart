@@ -18,3 +18,22 @@ abstract class MapsConstants {
 class AppConfig {
   static const int MAX_PLACES_TO_LOAD = 5; // TODO: change for final presentation
 }
+class PictureCategoryAssets {
+  Map<String, String> get pictureCategoryAssets => _pictureCategoryAssets;
+
+  static const Map<String, String> _pictureCategoryAssets = {
+    'american_food': 'https://drive.google.com/uc?export=view&id=1g3CA0b_WXl-riKWZWJX6WsYjmM18XEL9',
+    'beefnoodle_food': 'https://drive.google.com/uc?export=view&id=1Z_rJBNAQtgOCVjKJuEuo5Myh7WlrGmf1',
+    'dimsum_food': 'https://drive.google.com/uc?export=view&id=1ZK6yKaR5LsmF8VF1DcC0gbqWrGZM9WUT',
+    'hotpot_food': 'https://drive.google.com/uc?export=view&id=1J6Xs4zp9HttLrEZTXqqRObI6hoxx58it',
+    'indian_food': 'https://drive.google.com/uc?export=view&id=1xUY3ov4NiFYEjoz_JmBaQhofrnkajfhs',
+    'italian_food': 'https://drive.google.com/uc?export=view&id=1eZEJ2ico9_56_SaPXAgW14w27wtSJSwm',
+    'korean_food': 'https://drive.google.com/uc?export=view&id=1LSvQt4zVawMUky6uIeGpo4-DdeoxuXHP',
+    'mexican_food': 'https://drive.google.com/uc?export=view&id=1Md0FwpGr0OCxbBvD3_x3oORVr26XNxzu',
+    'thai_food': 'https://drive.google.com/uc?export=view&id=1uDfrXW7ohb2ndozyF3ke4HaHg24fY3hx',
+    'vietnamese_food': 'https://drive.google.com/uc?export=view&id=1WWU9YBq3JKi1lwuTkMWl2wh1lCSCWRua',
+    'xiaolongbao_food': 'https://drive.google.com/uc?export=view&id=1l0tCBbvrF9cOvEt5L7zvQIJ-zOUbogn7',
+    'vegetarian_food': 'https://drive.google.com/uc?export=view&id=1oIIx9IkiQU63sDqF6VosBMOpUGgFIWRT',
+    'default': 'https://drive.google.com/uc?export=view&id=1nrdA3JCPybcnxAFQSAp7m1jZXTSess3e'
+  };
+}

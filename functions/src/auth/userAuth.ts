@@ -27,6 +27,7 @@ export const createUserAccount =
           healthInsight: {
             healthScore: 0,
             weeklyData: [],
+            lastAnalyzedAt: new Date().toISOString(),
           },
       };
 

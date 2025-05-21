@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
 import 'package:chefoo/constants.dart';
@@ -104,6 +105,44 @@ class PlaceService {
     } catch (e) {
       print('Error in getPlaceDetails: $e');
       throw e;
+    }
+  }
+
+  Future<Map<String, dynamic>> getFullPlaceDetails(String placeId) async {
+    final url = Uri.parse(
+      '$baseUrl/details/json'
+      '?place_id=$placeId'
+      '&fields='
+      'place_id,name,geometry,formatted_address,formatted_phone_number,'
+      'opening_hours,rating,reviews,types,photos'
+      '&key=${MapsConstants.mapsKey}',
+    );
+
+    try {
+      log('Fetching details for $placeId');
+      final response = await client.get(url);
+
+      log('Google API response ${response.statusCode}');
+      if(response.statusCode != 200) throw Exception('HTTP error: ${response.statusCode}');;
+
+      final Map<String, dynamic> jsonData = jsonDecode(response.body);
+      log('Response JSON: ${jsonEncode(jsonData)}');
+
+      final result = jsonData['result'] as Map<String, dynamic>;
+
+      final geometry = result['geometry'];
+      if (geometry == null || geometry['location'] == null) {
+        throw Exception('Missing geometry or location for place $placeId');
+      }
+
+      if (geometry['location']['lat'] == null || geometry['location']['lng'] == null) {
+        throw Exception('Missing lat/lng in geometry for place $placeId');
+      }
+      
+      return result;
+    } catch (e) {
+      log('Failed to fetch place details for $placeId: $e');
+      rethrow;
     }
   }
 
