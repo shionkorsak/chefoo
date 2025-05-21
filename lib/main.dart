@@ -107,8 +107,14 @@ class MyApp extends StatelessWidget {
         // routes: {Screens.profile: (_) => const ProfileScreen()},
         //home: GetStarted());
         // home: WidgetTestScreen());
-        //home: WidgetTestScreen2());
-    // this testScreen is only to visualize google maps info
+        // home: WidgetTestScreen2());
+        // home: TestScreen());
+        // home: GetStartedScreen());
+        // home: const SplashScreen());
+        // home: SettingsScreen());
+        // home: RatingScreen());
+        // home: MapViewScreen());
+        // home: MainScreen());/ this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
 }
