@@ -1,62 +1,62 @@
 {
-    "project_info": {
-      "project_number": "176036392836",
-      "project_id": "chefoo-1",
-      "storage_bucket": "chefoo-1.firebasestorage.app"
-    },
-    "client": [
-      {
-        "client_info": {
-          "mobilesdk_app_id": "1:176036392836:android:8f4f7e7d4a9968d46977d1",
-          "android_client_info": {
-            "package_name": "com.example.chefoo"
+  "project_info": {
+    "project_number": "176036392836",
+    "project_id": "chefoo-1",
+    "storage_bucket": "chefoo-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176036392836:android:8f4f7e7d4a9968d46977d1",
+        "android_client_info": {
+          "package_name": "com.example.chefoo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "176036392836-26vdj2i0fqf66icfasr48gopltbplafp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chefoo",
+            "certificate_hash": "190d8af1479e38a1f566bdf6d1edd1667845d52b"
           }
         },
-        "oauth_client": [
-          {
-            "client_id": "176036392836-26vdj2i0fqf66icfasr48gopltbplafp.apps.googleusercontent.com",
-            "client_type": 1,
-            "android_info": {
-              "package_name": "com.example.chefoo",
-              "certificate_hash": "190d8af1479e38a1f566bdf6d1edd1667845d52b"
-            }
-          },
-          {
-            "client_id": "176036392836-7p13isijjf72gkq39re9qahtojhuaa15.apps.googleusercontent.com",
-            "client_type": 1,
-            "android_info": {
-              "package_name": "com.example.chefoo",
-              "certificate_hash": "499db6fc31c81562dc1ee3d2ce616df1439ff159"
-            }
-          },
-          {
-            "client_id": "176036392836-gph8j1plc5t3urdbop9jbqfqf71tdbov.apps.googleusercontent.com",
-            "client_type": 3
+        {
+          "client_id": "176036392836-7p13isijjf72gkq39re9qahtojhuaa15.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chefoo",
+            "certificate_hash": "499db6fc31c81562dc1ee3d2ce616df1439ff159"
           }
-        ],
-        "api_key": [
-          {
-            "current_key": "AIzaSyD8KceUgDzBX5K-6KFAWoZ1KtBQWcIUWgU"
-          }
-        ],
-        "services": {
-          "appinvite_service": {
-            "other_platform_oauth_client": [
-              {
-                "client_id": "176036392836-gph8j1plc5t3urdbop9jbqfqf71tdbov.apps.googleusercontent.com",
-                "client_type": 3
-              },
-              {
-                "client_id": "176036392836-o4g1i4e39m2su4u3l4n1mvir5nnn0ak9.apps.googleusercontent.com",
-                "client_type": 2,
-                "ios_info": {
-                  "bundle_id": "com.example.flutterSkeleton"
-                }
+        },
+        {
+          "client_id": "176036392836-gph8j1plc5t3urdbop9jbqfqf71tdbov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8KceUgDzBX5K-6KFAWoZ1KtBQWcIUWgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "176036392836-gph8j1plc5t3urdbop9jbqfqf71tdbov.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "176036392836-o4g1i4e39m2su4u3l4n1mvir5nnn0ak9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterSkeleton"
               }
-            ]
-          }
+            }
+          ]
         }
       }
-    ],
-    "configuration_version": "1"
-  }
+    }
+  ],
+  "configuration_version": "1"
+}
