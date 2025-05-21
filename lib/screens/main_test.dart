@@ -69,7 +69,12 @@ class _RestaurantListState extends State<RestaurantList> {
   Future<void> _initializeLocation() async {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
-    if (restaurantProvider.hasFetched) return;
+    if(restaurantProvider.places.isNotEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -82,7 +87,6 @@ class _RestaurantListState extends State<RestaurantList> {
     final position = locationService.currentPosition;
     if(position != null) {
       await _fetchandRecommend(position);
-      restaurantProvider.setHasFetched(true);
     }
     
   }
@@ -127,7 +131,6 @@ class _RestaurantListState extends State<RestaurantList> {
           _isLoading = true;
         });
         _fetchandRecommend(position);
-        restaurantProvider.setHasFetched(true); // optional if needed again
       } else {
         log('position is null');
       }
@@ -146,16 +149,18 @@ class _RestaurantListState extends State<RestaurantList> {
               SizedBox(height: 100),
               restaurantProvider.places.isNotEmpty
                 ? RestaurantCardHorizontal(
-                  place: restaurantProvider.places[0]
+                  place: restaurantProvider.places[0],
+                  isLoading: _isLoading,
                   )
                 : SizedBox(height: 10),
               SizedBox(height: 50),
               Container(
                 height: 220,
                 child: RestaurantCardListHorizontal(
-                  places: restaurantProvider.places.length > 1
-                    ? restaurantProvider.places.sublist(1)
-                    : restaurantProvider.places, 
+                  // places: restaurantProvider.places.length > 1
+                  //   ? restaurantProvider.places.sublist(1)
+                  //   : restaurantProvider.places, 
+                  places: restaurantProvider.places,
                   isLoading: _isLoading
                 ),
               ),
