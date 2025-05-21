@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
+import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/restaurant.dart';
+import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'main_screen.dart';
@@ -16,9 +20,13 @@ abstract class MainController extends State<MainScreen> {
 
   bool get shouldShowGpsWarning => !isGpsEnabled;
 
+  bool _isLoading = true;
+  bool get isLoading => _isLoading;
+
   @override
   void initState() {
     super.initState();
+    _initializeLocation();
     carouselController = PageController(
       initialPage: 2,
       viewportFraction: 0.6,
@@ -33,6 +41,77 @@ abstract class MainController extends State<MainScreen> {
 
     checkGpsStatus();
     _startInactivityTimer();
+  }
+
+  //! CHEFOO'S PICK CONTROLLER
+  Future<void> _initializeLocation() async {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+
+    if(restaurantProvider.places.isNotEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      // return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final locationService = 
+      Provider.of<LocationService>(context, listen: false);
+    await locationService.getCurrentLocation();
+
+    final position = locationService.currentPosition;
+    if(position != null) {
+      await _fetchandRecommend(position);
+    }
+  }
+
+  Future<void> _fetchandRecommend(Position position) async {
+    final placeService = 
+      Provider.of<PlaceService>(context, listen: false);
+    final restaurantProvider = 
+      Provider.of<RestaurantProvider>(context, listen: false);
+
+    final service = AIRecommendationService(
+      placeService: placeService, 
+      restaurantProvider: restaurantProvider
+      );
+
+    try {
+      await service.fetchAndRecommendNearbyPlaces(position, context);
+    } catch (e) {
+      log('Error fetching recommendations: $e');
+    } finally {
+        setState(() {
+          _isLoading = false;
+        });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final locationService = 
+      Provider.of<LocationService>(context);
+
+    if(locationService.locationChangedSignificantly) {
+      log('Location changed significantly, fetching new places');
+
+      final position = locationService.currentPosition;
+      if(position != null) {
+        setState(() {
+          _isLoading = true;
+        });
+        _fetchandRecommend(position);
+      } else {
+        log('position is null');
+      }
+
+      locationService.resetLocationChangedFlag();
+    }
   }
 
   Future<void> checkGpsStatus() async {
