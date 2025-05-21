@@ -4,27 +4,20 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/like_button.dart';
 
 class RestaurantCardHorizontal extends StatelessWidget {
+  final _banner = PictureCategoryAssets();
   final Place place;
-  const RestaurantCardHorizontal({
+  RestaurantCardHorizontal({
     Key? key,
     required this.place,
   }) : super(key: key);
 
-  // Define a safer way to check URLs
-  bool isValidImageUrl(String? url) {
-    if (url == null || url.isEmpty) return false;
-    try {
-      final uri = Uri.parse(url);
-      return uri.hasScheme && (uri.scheme == 'http' || uri.scheme == 'https');
-    } catch (e) {
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final pictureUrl =
-        place.pictureUrls.isNotEmpty ? place.pictureUrls.first : null;
+    final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] 
+    ?? 'https://maps.googleapis.com/maps/api/place/photo'
+        '?maxwidth=400'
+        '&photo_reference=${place.pictureUrls.first}'
+        '&key=${MapsConstants.mapsKey}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -53,10 +46,7 @@ class RestaurantCardHorizontal extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: kRadius10,
                       child: Image.network(
-                        'https://maps.googleapis.com/maps/api/place/photo'
-                        '?maxwidth=400'
-                        '&photo_reference=${pictureUrl}'
-                        '&key=${MapsConstants.mapsKey}',
+                        pictureUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           print('Error loading image: $error');

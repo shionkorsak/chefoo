@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clientUpdatePreferenceSchema = exports.userAccountSchema = exports.healthInsightSchema = exports.restaurantSchema = exports.restaurantReview = exports.mealInputSchema = exports.mealAnalysis = exports.mealProfile = exports.userPreferenceSchema = exports.userProfileSchema = void 0;
+exports.clientUpdatePreferenceSchema = exports.userAccountSchema = exports.healthInsightSchema = exports.restaurantSchema = exports.mealInputSchema = exports.mealAnalysis = exports.mealProfile = exports.userPreferenceSchema = exports.userProfileSchema = void 0;
 const zod_1 = require("zod");
 // TODO: user's route
 exports.userProfileSchema = zod_1.z.object({
@@ -46,28 +46,34 @@ exports.mealInputSchema = zod_1.z.object({
         notes: zod_1.z.string().optional(),
     }).optional()
 });
-exports.restaurantReview = zod_1.z.object({
-    author: zod_1.z.string(),
-    rating: zod_1.z.number(),
-    text: zod_1.z.string(),
-});
+// export const restaurantReview = z.object({
+//     author: z.string(),
+//     rating: z.number(),
+//     text: z.string(),
+// })
+// export const restaurantSchema =  z.object({
+//     id: z.string(),
+//     name: z.string(),
+//     overallRating: z.number().min(0).max(5),
+//     isFavorite: z.boolean().default(false),
+//     tags: z.array(z.string()),
+//     notes: z.string().optional(),
+//     review: z.array(restaurantReview)
+// })
 exports.restaurantSchema = zod_1.z.object({
     id: zod_1.z.string(),
-    name: zod_1.z.string(),
-    overallRating: zod_1.z.number().min(0).max(5),
-    isFavorite: zod_1.z.boolean().default(false),
     tags: zod_1.z.array(zod_1.z.string()),
-    notes: zod_1.z.string().optional(),
-    review: zod_1.z.array(exports.restaurantReview)
+    pictureCategory: zod_1.z.string(),
 });
 exports.healthInsightSchema = zod_1.z.object({
     healthScore: zod_1.z.number().min(0).max(100),
     weeklyData: zod_1.z.array(zod_1.z.object({
-        date: zod_1.z.string().datetime(),
+        date: zod_1.z.string(),
         mealInput: zod_1.z.array(exports.mealInputSchema),
         ratio: zod_1.z.number().min(0).max(1),
         comment: zod_1.z.string()
-    })).length(7)
+    })).length(7),
+    lastAnalyzedAt: zod_1.z.string()
 });
 exports.userAccountSchema = zod_1.z.object({
     profile: exports.userProfileSchema,

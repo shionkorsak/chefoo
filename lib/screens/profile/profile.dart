@@ -1,5 +1,7 @@
 import 'package:chefoo/models/user/user_account.dart';
 import 'package:chefoo/providers/user_account.dart';
+import 'package:chefoo/screens/main_test.dart';
+import 'package:chefoo/widgets/cards/favorite_list.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
@@ -30,8 +32,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Replace this with your actual GPS toggle or navigation logic
             print('Map tab tapped');
           } else if (index == 0) {
-            Navigator.popUntil(context, (route) => route.isFirst);
+            // Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false,
+            );
           }
+
         },
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
@@ -141,32 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 24),
                         Text('Favorites', style: AppTextStyles.headline2),
                         const SizedBox(height: 8),
-                        SizedBox(
-                          height: 240,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 5,
-                            separatorBuilder: (_, __) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) => Container(
-                              width: 160,
-                              height: 220,
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 8,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text('TO DO', style: AppTextStyles.detail),
-                              ),
-                            ),
-                          ),
-                        ),
+                        FavoriteList(),
                         const SizedBox(height: 24),
                         Text('History', style: AppTextStyles.headline2),
                         const SizedBox(height: 8),

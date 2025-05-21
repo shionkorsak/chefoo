@@ -1,15 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updatePreferenceAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
+exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updatePreferenceAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
 const https_1 = require("firebase-functions/https");
 const personality_1 = require("./database/ai/personality");
 const processMeal_1 = require("./database/ai/processMeal");
 const mainPick_1 = require("./recommendation/mainPick");
+const healthInsights_1 = require("./database/user/healthInsights");
 var userAuth_1 = require("./auth/userAuth");
 Object.defineProperty(exports, "createUserAccount", { enumerable: true, get: function () { return userAuth_1.createUserAccount; } });
 var userAuth_2 = require("./auth/userAuth");
 Object.defineProperty(exports, "deleteUserAccount", { enumerable: true, get: function () { return userAuth_2.deleteUserAccount; } });
-var userPreference_1 = require("./database/userPreference");
+var userPreference_1 = require("./database/user/userPreference");
 Object.defineProperty(exports, "updateClientPreferences", { enumerable: true, get: function () { return userPreference_1.updateClientPreferences; } });
 var mainPick_2 = require("./recommendation/mainPick");
 Object.defineProperty(exports, "mainPick", { enumerable: true, get: function () { return mainPick_2.mainPick; } });
@@ -17,4 +18,7 @@ exports.updatePreferenceAI = (0, https_1.onCallGenkit)(personality_1.processMeal
 exports.processMealAnalysisAI = (0, https_1.onCallGenkit)(processMeal_1.processMealAnalysisFlow);
 exports.mainPickAI = (0, https_1.onCallGenkit)(mainPick_1.mainPickFlow);
 exports.restaurantTagsAI = (0, https_1.onCallGenkit)(mainPick_1.restaurantTagsFlow);
+exports.analyzeHealthInsightsAI = (0, https_1.onCallGenkit)(healthInsights_1.analyzeHealthInsightsFlow);
+exports.analyzeHealthInsightsDailyAI = (0, https_1.onCallGenkit)(healthInsights_1.analyzeHealthInsightsDailyFlow);
+exports.restaurantBannerAI = (0, https_1.onCallGenkit)(mainPick_1.restaurantBannerFlow);
 //# sourceMappingURL=index.js.map

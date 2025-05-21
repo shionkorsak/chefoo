@@ -50,32 +50,39 @@ export const mealInputSchema = z.object({
     }).optional()
 })
 
-export const restaurantReview = z.object({
-    author: z.string(),
-    rating: z.number(),
-    text: z.string(),
-})
+// export const restaurantReview = z.object({
+//     author: z.string(),
+//     rating: z.number(),
+//     text: z.string(),
+// })
 
-export const restaurantSchema =  z.object({
+// export const restaurantSchema =  z.object({
+//     id: z.string(),
+//     name: z.string(),
+//     overallRating: z.number().min(0).max(5),
+//     isFavorite: z.boolean().default(false),
+//     tags: z.array(z.string()),
+//     notes: z.string().optional(),
+//     review: z.array(restaurantReview)
+// })
+
+export const restaurantSchema = z.object({
     id: z.string(),
-    name: z.string(),
-    overallRating: z.number().min(0).max(5),
-    isFavorite: z.boolean().default(false),
     tags: z.array(z.string()),
-    notes: z.string().optional(),
-    review: z.array(restaurantReview)
+    pictureCategory: z.string(),
 })
 
 export const healthInsightSchema = z.object({
     healthScore: z.number().min(0).max(100),
     weeklyData: z.array(
         z.object({
-            date: z.string().datetime(),
+            date: z.string(),
             mealInput: z.array(mealInputSchema),
             ratio: z.number().min(0).max(1),
             comment: z.string()
         })
-    ).length(7)
+    ).length(7),
+    lastAnalyzedAt: z.string()
 })
 
 export const userAccountSchema = z.object({

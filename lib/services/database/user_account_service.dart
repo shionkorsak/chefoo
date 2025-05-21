@@ -52,8 +52,5 @@ class UserAccountService {
     }
   }
 
-  // Future<bool> checkLocation({
-  //   required double latitude,
-  //   required double longitude
-  // })
+  
 }

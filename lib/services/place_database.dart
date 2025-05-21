@@ -4,31 +4,19 @@ import 'package:http/http.dart' as http;
 import '../commons.dart';
 
 class PlaceDatabase {
-  // firebase and service instances needed for database operations
+  final _auth = AuthService();
+  String? get uid => _auth.getCurrentUserUID();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final PlaceService _placeService;
   
-  // constructor
   PlaceDatabase({PlaceService? placeService}) 
     : _placeService = placeService ?? PlaceService(client: http.Client());
   
-  // get the current user ID or null if not logged in
-  String? get _userId => _auth.currentUser?.uid;
-  
-  // check if user is currently authenticated
-  bool get isUserLoggedIn => _userId != null;
-  
-  // adds a restaurant to the user's favorites collection
-  // idk if this is how youre gonna organize it on the actual db
-  // input: placeId
   Future<void> saveFavorite(String placeId) async {
-    if (!isUserLoggedIn) return;
-    
     try {
       await _firestore
           .collection('users')
-          .doc(_userId)
+          .doc(uid)
           .collection('favorites')
           .doc(placeId)
           .set({
@@ -44,13 +32,11 @@ class PlaceDatabase {
   
   // removes a restaurant from user's favorites
   // input: placeId
-  Future<void> removeFavorite(String placeId) async {
-    if (!isUserLoggedIn) return;
-    
+  Future<void> removeFavorite(String placeId) async {    
     try {
       await _firestore
           .collection('users')
-          .doc(_userId)
+          .doc(uid)
           .collection('favorites')
           .doc(placeId)
           .delete();
@@ -65,12 +51,10 @@ class PlaceDatabase {
   // input:   placeId
   // returns: true if favorited, false otherwise
   Future<bool> isFavorite(String placeId) async {
-    if (!isUserLoggedIn) return false;
-    
     try {
       final doc = await _firestore
           .collection('users')
-          .doc(_userId)
+          .doc(uid)
           .collection('favorites')
           .doc(placeId)
           .get();
@@ -85,12 +69,10 @@ class PlaceDatabase {
   // idk if we need the visit count? maybe it'll be helpful for ai? idk
   // input: placeId - the Google Place ID the user viewed
   Future<void> addToHistory(String placeId) async {
-    if (!isUserLoggedIn) return;
-    
     try {
       await _firestore
           .collection('users')
-          .doc(_userId)
+          .doc(uid)
           .collection('history')
           .doc(placeId)
           .set({
@@ -108,12 +90,10 @@ class PlaceDatabase {
   // gets the IDs of all places in user's favorites
   // returns: list of place IDs (empty if no favorites or not logged in)
   Future<List<String>> getFavoritePlaceIds() async {
-    if (!isUserLoggedIn) return [];
-    
     try {
       final snapshot = await _firestore
           .collection('users')
-          .doc(_userId)
+          .doc(uid)
           .collection('favorites')
           .get();
       
@@ -129,12 +109,10 @@ class PlaceDatabase {
   // gets the IDs of all places in user's history, sorted by most recent first
   // returns: list of place IDs (empty if no history or not logged in)
   Future<List<String>> getHistoryPlaceIds() async {
-    if (!isUserLoggedIn) return [];
-    
     try {
       final snapshot = await _firestore
           .collection('users')
-          .doc(_userId)
+          .doc(uid)
           .collection('history')
           .orderBy('timestamp', descending: true)
           .get();
