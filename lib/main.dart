@@ -112,7 +112,7 @@ class MyApp extends StatelessWidget {
         theme: lightTheme,
         navigatorKey: navigatorKey,
 
-        //home: AuthGate());
+        home: AuthGate());
 
 
         ///Screen names used from file screens.dart
@@ -136,7 +136,7 @@ class MyApp extends StatelessWidget {
         // home: SettingsScreen());
         // home: RatingScreen());
         // home: MapViewScreen());
-        home: MainScreen());
+        // home: MainScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }
