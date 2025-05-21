@@ -41,9 +41,7 @@ class AIRecommendationService {
         final List<dynamic> recommendations = aiResponse.data['result'];
         if(recommendations.isEmpty) {
           log('AI returned no recommendations. Falling back to raw places.');
-          final fallbackPlaces = response.data!;
-          restaurantProvider.setPlaces(fallbackPlaces);
-          return;
+          
         }
         final List<Place> allCachedPlaces = placeService.cachedPlaces.values.expand((list) => list).toList();
 

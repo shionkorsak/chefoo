@@ -156,124 +156,116 @@ class _MainScreenState extends MainController {
           }
         },
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: kPadd20,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                const AIInputField(),
-                kGap20,
-
-                // Chefoo’s Pick
-                if (!shouldShowGpsWarning)
-                  Animate(
-                    target: 0.0,
-                    effects: [
-                      ShakeEffect(
-                        duration: Duration(milliseconds: 500),
-                        hz: 4,
-                        offset: Offset(8, 0),
+      body: Consumer2<LocationService, RestaurantProvider>(
+        builder: (context, locationService, restaurantProvider, _) { 
+          return SafeArea(
+            child: Padding(
+              padding: kPadd20,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search Bar
+                    const AIInputField(),
+                    kGap20,
+          
+                    // Chefoo’s Pick
+                    if (!shouldShowGpsWarning)
+                      Animate(
+                        target: 0.0,
+                        effects: [
+                          ShakeEffect(
+                            duration: Duration(milliseconds: 500),
+                            hz: 4,
+                            offset: Offset(8, 0),
+                          ),
+                        ],
+                        child: Text(
+                          "Chefoo’s Pick",
+                          style: AppTextStyles.headline1.copyWith(color: AppColors.primary),
+                        ),
                       ),
-                    ],
-                    child: Text(
-                      "Chefoo’s Pick",
-                      style: AppTextStyles.headline1.copyWith(color: AppColors.primary),
+                    kGap5,
+                    Text(
+                      "You have class at NTHU Delta soon, this place is on the way!",
+                      style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                     ),
-                  ),
-                kGap5,
-                Text(
-                  "You have class at NTHU Delta soon, this place is on the way!",
-                  style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                ),
-                kGap8,
-                RestaurantCardHorizontal(
-                  place: Place(
-                    id: 'sample-id',
-                    name: 'Chefoo Featured Restaurant',
-                    address: '123 Flavor St.',
-                    rating: 4.5,
-                    distance: 0.3,
-                    lat: 25.0330,
-                    lng: 121.5654,
-                    pictureUrls: ['sample-photo-ref'],
-                    pictureCategory: 'default',
-                    tags: ['Fusion'],
-                    walkingDistance: 250.0,
-                    reviews: [],
-                  ),
-                ),
-                kGap20,
-
-                // Other Recommendations (auto-scroll carousel)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Other Recommendations", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OtherRecomScreen(places: mainProvider.recommendations),
-                          ),
-                        );
-                      },
+                    kGap8,
+                    RestaurantCardHorizontal(
+                      place: restaurantProvider.places[0],
+                      isLoading: isLoading,
                     ),
-                  ],
-                ),
-                kGap5,
-                Text("Here are some options only for you!", style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
-                kGap8,
-                GestureDetector(
-                  onTap: resetInactivityTimer,
-                  onPanDown: (_) => resetInactivityTimer(),
-                  child: SizedBox(
-                    height: 270,
-                    child: RestaurantCardListHorizontal(
-                      places: mainProvider.recommendations,
-                      isLoading: mainProvider.isLoading,
+                    kGap20,
+          
+                    // Other Recommendations (auto-scroll carousel)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Other Recommendations", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right, color: AppColors.primary),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OtherRecomScreen(places: mainProvider.recommendations),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                kGap20,
-
-                // Your Meals Lately (static list)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Your Meals Lately...", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HistoryScreen(places: mainProvider.recentMeals),
-                          ),
-                        );
-                      },
+                    kGap5,
+                    Text("Here are some options only for you!", style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                    kGap8,
+                    GestureDetector(
+                      onTap: resetInactivityTimer,
+                      onPanDown: (_) => resetInactivityTimer(),
+                      child: SizedBox(
+                        height: 270,
+                        child: RestaurantCardListHorizontal(
+                          places: restaurantProvider.places,
+                          isLoading: isLoading,
+                        ),
+                      ),
+                    ),
+                    kGap20,
+          
+                    // Your Meals Lately (static list)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Your Meals Lately...", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right, color: AppColors.primary),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HistoryScreen(places: mainProvider.recentMeals),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    kGap8,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: SizedBox(
+                        height: 270,
+                        child: RestaurantCardListHorizontal(
+                          places: mainProvider.recentMeals,
+                          isLoading: mainProvider.isLoading,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                kGap8,
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: SizedBox(
-                    height: 270,
-                    child: RestaurantCardListHorizontal(
-                      places: mainProvider.recentMeals,
-                      isLoading: mainProvider.isLoading,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        }
       ),
     );
   }

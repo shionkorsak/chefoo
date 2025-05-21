@@ -144,34 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 24),
                           Text('Favorites', style: AppTextStyles.headline2),
                           const SizedBox(height: 8),
-                          SizedBox(
-                            height: 240,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 5,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) => Container(
-                                width: 160,
-                                height: 220,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text('TO DO',
-                                      style: AppTextStyles.detail),
-                                ),
-                              ),
-                            ),
-                          ),
+                          FavoriteList(),
                           const SizedBox(height: 24),
                           Text('History', style: AppTextStyles.headline2),
                           const SizedBox(height: 8),
