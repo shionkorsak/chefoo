@@ -455,7 +455,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     provider.allergiesController.text.trim(),
                 ];
 
-                final success = await userAccountProvider.updateUserPreferences(dietaryPreferences, allergies);
+                final success = await userAccountProvider.addUserPreferences(dietaryPreferences, allergies);
 
                 if(success) {
                   await Future.delayed(Duration(milliseconds: 300), () {
