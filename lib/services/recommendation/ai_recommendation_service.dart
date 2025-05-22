@@ -43,8 +43,16 @@ class RecommendationService  {
           log('AI returned no recommendations. Falling back to raw places.');
           
         }
-        final List<Place> allCachedPlaces = placeService.cachedPlaces.values.expand((list) => list).toList();
+        final allCachedPlaces = placeService.cachedPlaces.values
+          .expand((list) => list)
+          .fold<Map<String, Place>>({}, (map, place) {
+            map[place.id] = place;
+            return map;
+          })
+          .values
+          .toList();
 
+        print('all cached: ${allCachedPlaces.length}');
         final List<Place> recommendedPlaces = [];
 
         for (var rec in recommendations) {
@@ -64,11 +72,46 @@ class RecommendationService  {
         }
 
         final Set<String> recommendedIds = recommendedPlaces.map((p) => p.id).toSet();
-        final List<Place> filteredPlaces = allCachedPlaces.where((p) => !recommendedIds.contains(p.id)).toList();
-        print('Filtered places count: ${filteredPlaces.length}');
+        print('[AI] Recommended IDs: $recommendedIds');
 
-        restaurantProvider.setPlaces(filteredPlaces);
+        final List<Place> filteredPlaces = allCachedPlaces.where((p) => !recommendedIds.contains(p.id)).toList();
+        final List<Place> filteredOut = allCachedPlaces.where((p) => recommendedIds.contains(p.id)).toList();
+
+        print('[AI] Filtered out (recommended):');
+        for (final p in filteredOut) {
+          print(' - ${p.name} (ID: ${p.id})');
+        }
+
+        final List<Place> enrichedFilteredPlaces = [];
+        print('[AI] Generating banner and tags:');
+        for (final place in filteredPlaces) {
+          try {
+            final response = await functions.httpsCallable('generateTagsAndBanner').call({'name': place.name});
+            final List<String> tags = List<String>.from(response.data['tags']);
+            final String banner = response.data['pictureCategory'];
+
+            final enriched = place.copyWith(
+              tags: tags,
+              pictureCategory: banner,
+            );
+
+            enrichedFilteredPlaces.add(enriched);
+            print('- ${enriched.name}; Tags: ${enriched.tags}; Banner: ${enriched.pictureCategory}');
+          } catch (e) {
+            print('Failed to enrich "${place.name}": $e');
+            enrichedFilteredPlaces.add(place);
+          }
+        }
+        restaurantProvider.setPlaces(enrichedFilteredPlaces);
         
+        final printPlaces = restaurantProvider.places;
+
+        for (final place in printPlaces) {
+          print('${place.name} - Tags: ${place.tags.join(", ")} | Banner: ${place.pictureCategory}');
+        }
+
+        log('Returning ${recommendedPlaces.length} recommended places to controller.');
+
         return recommendedPlaces;
       } else {
         print('Failed to load places: ${response.message}');
@@ -138,6 +181,29 @@ class RecommendationService  {
       }
     } catch (e) {
       print('Error fetching nearby places with message: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> generateTagsAndBannerForPlace(String restaurantName, Function(String tag, String banner)? onResult) async {
+    try {
+      final HttpsCallable callable = functions.httpsCallable('generateTagsAndBanner');
+      final response = await callable.call({'name': restaurantName});
+
+      final data = response.data;
+      final List<String> tags = List<String>.from(data['tags']);
+      final String pictureCategory = data['pictureCategory'];
+
+      print('Tags for $restaurantName: $tags');
+      print('Picture category: $pictureCategory');
+
+      if (onResult != null) {
+        for (final tag in tags) {
+          onResult(tag, pictureCategory);
+        }
+      }
+    } catch (e) {
+      print('Failed to generate tags and banner for "$restaurantName": $e');
       rethrow;
     }
   }

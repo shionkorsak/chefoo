@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
+import 'package:chefoo/screens/main_test.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -84,6 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
         final position = locationService.currentPosition;
         if (position == null) throw Exception("No location found");
 
+        print("hahaha");
         final result = await placeService.getNearbyPlaces(
           lat: position.latitude,
           lng: position.longitude,
@@ -99,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, animation, __) => const MainNavigation(),
+            pageBuilder: (_, animation, __) => const MainScreen(),
             transitionsBuilder: (_, animation, __, child) =>
                 FadeTransition(opacity: animation, child: child),
             transitionDuration: const Duration(milliseconds: 500),

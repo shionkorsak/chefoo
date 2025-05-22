@@ -37,12 +37,15 @@ class RestaurantList extends StatefulWidget {
 
 class _RestaurantListState extends State<RestaurantList> {
   bool _isLoading = true;
+  List<Place> _recommendedPlaces = [];
 
   @override
   void initState() {
     super.initState();
     _initializeLocation();
   }
+
+  
 
   Future<void> _initializeLocation() async {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
@@ -70,26 +73,29 @@ class _RestaurantListState extends State<RestaurantList> {
   }
 
   Future<void> _fetchandRecommend(Position position) async {
-    final placeService = 
-      Provider.of<PlaceService>(context, listen: false);
-    final restaurantProvider = 
-      Provider.of<RestaurantProvider>(context, listen: false);
-
-    final service = RecommendationService (
-      placeService: placeService, 
-      restaurantProvider: restaurantProvider
-      );
+    final placeService = Provider.of<PlaceService>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final service = RecommendationService(
+      placeService: placeService,
+      restaurantProvider: restaurantProvider,
+    );
 
     try {
-      await service.fetchAndRecommendNearbyPlaces(position, context);
+      print('[MainController] Calling RecommendationService...');
+      final recommendations = await service.fetchAndRecommendNearbyPlaces(position, context);
+      print('length: ${recommendations.length}');
+      setState(() {
+        _recommendedPlaces = recommendations;
+      });
     } catch (e) {
-      log('Error fetching recommendations: $e');
+      log('[MainController] Error in recommendation fetch: $e');
     } finally {
-        setState(() {
-          _isLoading = false;
-        });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
+
 
   @override
   void didChangeDependencies() {
@@ -125,9 +131,9 @@ class _RestaurantListState extends State<RestaurantList> {
             children: [
               // TODO: search bar for AI
               SizedBox(height: 100),
-              restaurantProvider.places.isNotEmpty
+              _recommendedPlaces.isNotEmpty
                 ? RestaurantCardHorizontal(
-                  place: restaurantProvider.places[0],
+                  place: _recommendedPlaces[0],
                   isLoading: _isLoading,
                   )
                 : SizedBox(height: 10),
@@ -138,6 +144,7 @@ class _RestaurantListState extends State<RestaurantList> {
                   // places: restaurantProvider.places.length > 1
                   //   ? restaurantProvider.places.sublist(1)
                   //   : restaurantProvider.places, 
+                  without: false,
                   places: restaurantProvider.places,
                   isLoading: _isLoading
                 ),

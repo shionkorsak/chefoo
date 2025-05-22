@@ -201,7 +201,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
               Container(
                 height: 220,
                 child: RestaurantCardListHorizontal(
-                    places: restaurantProvider.places, isLoading: _isLoading),
+                    without: false, places: restaurantProvider.places, isLoading: _isLoading),
               ),
             ],
           ),

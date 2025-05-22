@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUserAccount = exports.createUserAccount = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
+const schema_1 = require("../schema");
 const admin_1 = require("../admin");
 exports.createUserAccount = functions.auth.user().onCreate(async (user) => {
     const { uid, displayName, email, photoURL } = user;
@@ -64,7 +65,7 @@ exports.createUserAccount = functions.auth.user().onCreate(async (user) => {
     };
     console.log("Creating user for", uid);
     try {
-        // userAccountSchema.parse(userAccount);
+        schema_1.userAccountSchema.parse(userAccount);
         const userRef = admin_1.db.collection('users').doc(uid);
         await userRef.set({
             profile: userAccount.profile,
