@@ -5,6 +5,9 @@ import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'package:chefoo/providers/calendar_state.dart';
+import 'package:chefoo/services/calendar_service.dart';
+import 'package:chefoo/models/api_response.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
@@ -23,10 +26,16 @@ abstract class MainController extends State<MainScreen> {
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
+  String? _eventLocation;
+  String get eventLocation => _eventLocation ?? "";
+
   @override
   void initState() {
     super.initState();
+
+    _loadCalendarData();
     _initializeLocation();
+
     carouselController = PageController(
       initialPage: 2,
       viewportFraction: 0.6,
@@ -77,7 +86,7 @@ abstract class MainController extends State<MainScreen> {
     final service = AIRecommendationService(
       placeService: placeService, 
       restaurantProvider: restaurantProvider
-      );
+      placeService: placeService, restaurantProvider: restaurantProvider);
 
     try {
       await service.fetchAndRecommendNearbyPlaces(position, context);
@@ -158,6 +167,57 @@ abstract class MainController extends State<MainScreen> {
     );
     _carouselPage = nextPage;
     _startInactivityTimer(); // restart the loop
+  }
+
+  Future<void> _loadCalendarData() async {
+    try {
+      print('Loading calendar data directly');
+      
+      final calendarService = CalendarService();
+      
+      setState(() {
+        _isLoading = true;
+      });
+      
+      final response = await calendarService.getNextEvent(forceRefresh: true);
+      
+      print('Calendar API response: ${response.success}, message: ${response.message}');
+      
+      if (response.success && response.data != null) {
+        final event = response.data!;
+        print('Event title: ${event.title}');
+        print('Event location: ${event.location}');
+        
+        if (event.location != null && event.location.isNotEmpty) {
+          final fullLocation = event.location;
+          setState(() {
+            _eventLocation = fullLocation.contains(',') 
+                ? fullLocation.substring(0, fullLocation.indexOf(','))
+                : fullLocation;
+          });
+          print('Event location set to: $_eventLocation');
+        } else {
+          print('Event has no location data');
+          setState(() {
+            _eventLocation = null;
+          });
+        }
+      } else {
+        print('No calendar event data available');
+        setState(() {
+          _eventLocation = null;
+        });
+      }
+    } catch (e) {
+      print('Error loading calendar data: $e');
+      setState(() {
+        _eventLocation = null;
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override

@@ -186,10 +186,15 @@ class _MainScreenState extends MainController {
                         ),
                       ),
                     kGap5,
-                    Text(
-                      "You have class at NTHU Delta soon, this place is on the way!",
-                      style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                    ),
+                    eventLocation.isNotEmpty
+                      ? Text(
+                          "You have class at $eventLocation soon, this place is on the way!",
+                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                        )
+                      : Text(
+                          "Check out this restaurant near you!",
+                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                        ),
                     kGap8,
                     RestaurantCardHorizontal(
                       place: restaurantProvider.places[0],
