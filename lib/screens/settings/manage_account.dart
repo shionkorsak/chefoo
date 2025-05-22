@@ -109,7 +109,7 @@ class ManageAccountScreen extends StatelessWidget {
                                           await _auth.deleteAccount();
 
                                           navigator.pushReplacement(
-                                            MaterialPageRoute(builder: (_) => SplashScreen()),
+                                            MaterialPageRoute(builder: (_) => SplashScreen(isLoggedIn: false,)),
                                           );
                                         },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
@@ -161,7 +161,7 @@ class ManageAccountScreen extends StatelessWidget {
                                           Navigator.pushReplacement(
                                             context, 
                                             MaterialPageRoute(
-                                              builder: (BuildContext context) => SplashScreen()
+                                              builder: (BuildContext context) => SplashScreen(isLoggedIn: false,)
                                             )
                                           );
                                         },

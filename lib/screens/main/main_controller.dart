@@ -11,6 +11,9 @@ import 'package:chefoo/models/api_response.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
+  List<Place> _recommendedPlaces = [];
+  List<Place> get recommendedPlaces => _recommendedPlaces;
+
   late PageController carouselController;
   Timer? _inactivityTimer;
   int _carouselPage = 2;
@@ -77,24 +80,27 @@ abstract class MainController extends State<MainScreen> {
   }
 
   Future<void> _fetchandRecommend(Position position) async {
-    final placeService = 
-      Provider.of<PlaceService>(context, listen: false);
+    final placeService = Provider.of<PlaceService>(context, listen: false);
     final restaurantProvider = 
       Provider.of<RestaurantProvider>(context, listen: false);
 
-    final service = AIRecommendationService(
-      placeService: placeService, 
+    final service = RecommendationService (
+      placeService: placeService,
       restaurantProvider: restaurantProvider
     );
 
     try {
-      await service.fetchAndRecommendNearbyPlaces(position, context);
+      final List<Place> recommendations = await service.fetchAndRecommendNearbyPlaces(position, context);
+
+      setState(() {
+        _recommendedPlaces = recommendations;
+      });
     } catch (e) {
       log('Error fetching recommendations: $e');
     } finally {
-        setState(() {
-          _isLoading = false;
-        });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 

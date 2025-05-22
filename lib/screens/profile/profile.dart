@@ -184,30 +184,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             }),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: CustomBottomNavigationBar(
-              currentIndex: 2,
-              onTap: (index) {
-                if (index == 1) {
-                  // Replace this with your actual GPS toggle or navigation logic
-                  print('Map tab tapped');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MapViewScreen(
-                              places: Provider.of<RestaurantProvider>(context, listen: false).places,
-                            )),
-                  );
-                } else if (index == 0) {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                  print('Home tab tapped');
-                }
-              },
-            ),
-          ),
         ],
       ),
     );

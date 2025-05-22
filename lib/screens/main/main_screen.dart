@@ -21,87 +21,9 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends MainController {
-  int _currentIndex = 0;
-
-  final List<Place> mockListWheelPlaces = [
-    Place(
-      id: '1',
-      name: 'Sunset Grill',
-      address: '45 Sunset Blvd',
-      rating: 4.3,
-      distance: 0.5,
-      lat: 25.0331,
-      lng: 121.5641,
-      pictureUrls: ['sample-photo-ref'],
-      pictureCategory: 'default',
-      tags: ['Grill'],
-      walkingDistance: 300.0,
-      reviews: [],
-    ),
-    Place(
-      id: '2',
-      name: 'Bubble Tea Express',
-      address: '90 Boba Rd',
-      rating: 4.6,
-      distance: 0.2,
-      lat: 25.0332,
-      lng: 121.5642,
-      pictureUrls: ['sample-photo-ref'],
-      pictureCategory: 'default',
-      tags: ['Drinks'],
-      walkingDistance: 150.0,
-      reviews: [],
-    ),
-    Place(
-      id: '3',
-      name: 'Veggie Delight',
-      address: '12 Green St',
-      rating: 4.4,
-      distance: 0.4,
-      lat: 25.0333,
-      lng: 121.5643,
-      pictureUrls: ['sample-photo-ref'],
-      pictureCategory: 'default',
-      tags: ['Vegetarian'],
-      walkingDistance: 280.0,
-      reviews: [],
-    ),
-    Place(
-      id: '4',
-      name: 'Ramen Rumble',
-      address: '21 Broth Ave',
-      rating: 4.8,
-      distance: 0.7,
-      lat: 25.0334,
-      lng: 121.5644,
-      pictureUrls: ['sample-photo-ref'],
-      pictureCategory: 'default',
-      tags: ['Ramen'],
-      walkingDistance: 500.0,
-      reviews: [],
-    ),
-    Place(
-      id: '5',
-      name: 'Curry Kingdom',
-      address: '33 Spice Rd',
-      rating: 4.5,
-      distance: 0.6,
-      lat: 25.0335,
-      lng: 121.5645,
-      pictureUrls: ['sample-photo-ref'],
-      pictureCategory: 'default',
-      tags: ['Curry'],
-      walkingDistance: 460.0,
-      reviews: [],
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   Provider.of<MainScreenProvider>(context, listen: false).loadMockData();
-    // });
   }
 
   Widget _buildChefoosPick(RestaurantProvider restaurantProvider) {
@@ -117,7 +39,7 @@ class _MainScreenState extends MainController {
     }
 
     return RestaurantCardHorizontal(
-      place: restaurantProvider.places[0],
+      place: recommendedPlaces[0],
       isLoading: false,
     );
   }
@@ -155,25 +77,6 @@ class _MainScreenState extends MainController {
     }
     return Scaffold(
       backgroundColor: AppColors.background,
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          switch (index) {
-            case 1:
-              setState(() => _currentIndex = index);
-              toggleGps(); // temporary trigger
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-              break;
-            default:
-              setState(() => _currentIndex = index);
-          }
-        },
-      ),
       body: Consumer2<LocationService, RestaurantProvider>(
         builder: (context, locationService, restaurantProvider, _) { 
           return SafeArea(
@@ -186,7 +89,6 @@ class _MainScreenState extends MainController {
                     // Search Bar
                     const AIInputField(),
                     kGap20,
-          
                     // Chefoo’s Pick
                     if (!shouldShowGpsWarning)
                       Animate(

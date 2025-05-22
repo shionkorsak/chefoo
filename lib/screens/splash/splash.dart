@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:developer';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final bool isLoggedIn;
+  const SplashScreen({super.key, required this.isLoggedIn});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -40,28 +43,81 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.6, 1.0, curve: Curves.easeIn),
     ));
 
-    
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _controller.forward().then((_) {
+    Future.delayed(const Duration(milliseconds: 300), handleSplashFlow);
+    // Future.delayed(const Duration(milliseconds: 300), () {
+    //   _controller.forward().then((_) {
         
-        Future.delayed(const Duration(milliseconds: 500), () {
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const GetStartedScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 500),
-            ),
-          );
-        });
-      });
-    });
+        // Future.delayed(const Duration(milliseconds: 500), () {
+        //   Navigator.of(context).pushReplacement(
+        //     PageRouteBuilder(
+        //       pageBuilder: (context, animation, secondaryAnimation) =>
+        //           const GetStartedScreen(),
+        //       transitionsBuilder:
+        //           (context, animation, secondaryAnimation, child) {
+        //         return FadeTransition(
+        //           opacity: animation,
+        //           child: child,
+        //         );
+        //       },
+        //       transitionDuration: const Duration(milliseconds: 500),
+        //     ),
+        //   );
+        // });
+
+    //   });
+    // });
+  }
+
+  Future<void> handleSplashFlow() async {
+    await _controller.forward();
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    if (widget.isLoggedIn) {
+      try {
+        final placeService = Provider.of<PlaceService>(context, listen: false);
+        final locationService = 
+          Provider.of<LocationService>(context, listen: false);
+
+        await locationService.getCurrentLocation();
+        final position = locationService.currentPosition;
+        if (position == null) throw Exception("No location found");
+
+        final result = await placeService.getNearbyPlaces(
+          lat: position.latitude,
+          lng: position.longitude,
+          radius: 1000.0,
+          apiKey: MapsConstants.mapsKey,
+          addToCache: true,
+        );
+
+        if (!result.success) {
+          log("Failed to fetch restaurants: ${result.message}");
+        }
+
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (_, animation, __) => const MainNavigation(),
+            transitionsBuilder: (_, animation, __, child) =>
+                FadeTransition(opacity: animation, child: child),
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        );
+      } catch (e) {
+        log("Splash fetch error: $e");
+      }
+    } else {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, animation, __) => const GetStartedScreen(),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
+      );
+    }
   }
 
   @override

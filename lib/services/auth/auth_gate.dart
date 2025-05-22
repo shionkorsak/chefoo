@@ -21,10 +21,10 @@ class AuthGate extends StatelessWidget {
           if(snapshot.hasData) {
             log("User has signed in.");
             // return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
-            return MainScreen();
+            return SplashScreen(isLoggedIn: true);
           } else {
             log("User has not signed in.");
-            return SplashScreen(); //TODO: will change this to onboarding screens when frontend has made it
+            return SplashScreen(isLoggedIn: false); //TODO: will change this to onboarding screens when frontend has made it
           }
         }
       )

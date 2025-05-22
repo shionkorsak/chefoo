@@ -14,28 +14,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        bottomNavigationBar: BottomNavigationBar(
-            currentIndex: 0,
-            onTap: (index) {
-                if (index == 1) {
-                    // Replace this with your actual GPS toggle or navigation logic
-                    print('Map tab tapped');
-                } else if (index == 2) {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => ProfileScreen()),
-                        (route) => false,
-                    );
-                }
-            },
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.textSecondary,
-            items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-            ],
-        ),
         body: SingleChildScrollView(
             child: const Column(
                 children: [
@@ -97,7 +75,7 @@ class _RestaurantListState extends State<RestaurantList> {
     final restaurantProvider = 
       Provider.of<RestaurantProvider>(context, listen: false);
 
-    final service = AIRecommendationService(
+    final service = RecommendationService (
       placeService: placeService, 
       restaurantProvider: restaurantProvider
       );
