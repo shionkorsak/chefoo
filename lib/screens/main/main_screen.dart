@@ -31,7 +31,7 @@ class _MainScreenState extends MainController {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (restaurantProvider.places.isEmpty) {
+    if (recommendedPlaces.isEmpty) {
       return const Text(
         "No recommendation found.",
         style: AppTextStyles.body,
@@ -146,8 +146,9 @@ class _MainScreenState extends MainController {
                       child: SizedBox(
                         height: 270,
                         child: RestaurantCardListHorizontal(
-                          places: restaurantProvider.places,
-                          isLoading: isLoading,
+                            without: false,
+                            places: restaurantProvider.places,
+                            isLoading: isLoading,
                         ),
                       ),
                     ),
@@ -177,8 +178,9 @@ class _MainScreenState extends MainController {
                       child: SizedBox(
                         height: 270,
                         child: RestaurantCardListHorizontal(
-                          places: mainProvider.recentMeals,
-                          isLoading: mainProvider.isLoading,
+                            without: false,
+                            places: mainProvider.recentMeals,
+                            isLoading: mainProvider.isLoading,
                         ),
                       ),
                     ),

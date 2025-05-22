@@ -155,7 +155,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
           //   isLoading: _isLoading,
           // ),
           body: RestaurantCardListHorizontal(
-              places: restaurantProvider.places, isLoading: _isLoading),
+              without: false, places: restaurantProvider.places, isLoading: _isLoading),
           floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

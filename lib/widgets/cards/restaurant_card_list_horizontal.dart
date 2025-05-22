@@ -1,13 +1,16 @@
+import 'package:chefoo/widgets/cards/restaurant_card_vertical_without.dart';
 import 'package:flutter/material.dart';
 import '../../models/restaurant.dart';
 import 'restaurant_card_vertical.dart';
 
 class RestaurantCardListHorizontal extends StatelessWidget {
+  final bool without;
   final List<Place> places;
   final bool isLoading;
 
   const RestaurantCardListHorizontal({
     Key? key,
+    required this.without,
     required this.places,
     this.isLoading = false,
   }) : super(key: key);

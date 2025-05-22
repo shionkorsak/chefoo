@@ -22,7 +22,7 @@ exports.userPreferenceSchema = zod_1.z.object({
     cuisine: zod_1.z.array(zod_1.z.string()).default([]),
     dietaryPreferences: zod_1.z.array(zod_1.z.string()).default([]),
     allergies: zod_1.z.array(zod_1.z.string()).default([]),
-    lastAnalyzedfromHistory: zod_1.z.string().time(),
+    lastAnalyzedfromHistory: zod_1.z.string(),
 });
 exports.mealProfile = zod_1.z.object({
     time: zod_1.z.string(),
@@ -70,7 +70,7 @@ exports.healthInsightSchema = zod_1.z.object({
     weeklyData: zod_1.z.array(zod_1.z.object({
         date: zod_1.z.string(),
         mealInput: zod_1.z.array(exports.mealInputSchema),
-        ratio: zod_1.z.number().min(0).max(1),
+        ratio: zod_1.z.number().min(0).max(100),
         comment: zod_1.z.string()
     })).length(7),
     lastAnalyzedAt: zod_1.z.string()

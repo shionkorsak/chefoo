@@ -33,24 +33,27 @@ abstract class MainController extends State<MainScreen> {
   String get eventLocation => _eventLocation ?? "";
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
 
-    _loadCalendarData();
-    _initializeLocation();
 
     carouselController = PageController(
       initialPage: 0,
       viewportFraction: 0.6,
     );
 
-    carouselController.addListener(() {
-      final current = carouselController.page?.round();
-      if (current != null && current != _carouselPage) {
-        _carouselPage = current;
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      carouselController.addListener(() {
+        if (!carouselController.hasClients) return;
+        final current = carouselController.page?.round();
+        if (current != null && current != _carouselPage) {
+          _carouselPage = current;
+        }
+      });
     });
 
+    _loadCalendarData();
+    await _initializeLocation();
     checkGpsStatus();
     _startInactivityTimer();
   }
@@ -58,11 +61,11 @@ abstract class MainController extends State<MainScreen> {
   Future<void> _initializeLocation() async {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
-    if(restaurantProvider.places.isNotEmpty) {
+    if(restaurantProvider.places.isNotEmpty && recommendedPlaces.isNotEmpty) {
       setState(() {
         _isLoading = false;
       });
-      // return;
+      return;
     }
 
     setState(() {
@@ -75,6 +78,7 @@ abstract class MainController extends State<MainScreen> {
 
     final position = locationService.currentPosition;
     if(position != null) {
+      print("[MainController] Calling _fetchandRecommend with position $position");
       await _fetchandRecommend(position);
     }
   }
@@ -91,6 +95,7 @@ abstract class MainController extends State<MainScreen> {
 
     try {
       final List<Place> recommendations = await service.fetchAndRecommendNearbyPlaces(position, context);
+      log('Recommendations received: ${recommendations.length}');
 
       setState(() {
         _recommendedPlaces = recommendations;

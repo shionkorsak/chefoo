@@ -54,6 +54,7 @@ class _FavoriteListState extends State<FavoriteList> {
                         SizedBox(
                             height: 220,
                             child: RestaurantCardListHorizontal(
+                                without: true,
                                 places: favorites,
                                 isLoading: false,
                             ),
