@@ -28,7 +28,7 @@ abstract class MainController extends State<MainScreen> {
     super.initState();
     _initializeLocation();
     carouselController = PageController(
-      initialPage: 2,
+      initialPage: 0,
       viewportFraction: 0.6,
     );
 
@@ -43,7 +43,6 @@ abstract class MainController extends State<MainScreen> {
     _startInactivityTimer();
   }
 
-  //! CHEFOO'S PICK CONTROLLER
   Future<void> _initializeLocation() async {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
@@ -150,7 +149,12 @@ abstract class MainController extends State<MainScreen> {
 
   void _goToNextPage() {
     if (!mounted) return;
-    final nextPage = (_carouselPage + 1) % 5; // 5 cards assumed
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final itemCount = restaurantProvider.places.length;
+    if (itemCount == 0) return; // avoid division by zero
+
+    final nextPage = (_carouselPage + 1) % itemCount;
+
     carouselController.animateToPage(
       nextPage,
       duration: const Duration(milliseconds: 500),

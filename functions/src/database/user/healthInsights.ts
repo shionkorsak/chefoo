@@ -127,7 +127,7 @@ export const analyzeHealthInsightsDailyFlow = ai.defineFlow(
         parsedMeals.map(m => `-${m.profile.name}, tags: ${m.analysis?.tags?.join(', ') ?? 'N/A'}`).join('\n');
 
       const { text } = await ai.generate({ prompt });
-      const ratio = Number(text.match(/ratio.*?([0-9.]+)/i)?.[1]) || 0;
+      const ratio = Number(text.match(/ratio.*?([0-9.]+)/i)?.[1]) * 100 || 0;
       const comment = text.replace(/.*ratio.*?[0-9.]+/i, '').trim();
 
       dailyEntry = {
