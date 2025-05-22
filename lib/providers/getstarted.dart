@@ -18,6 +18,7 @@ class GetStartedProvider extends ChangeNotifier {
 
   void setState(int newState) {
     _state = newState;
+    print("Onboarding state: $_state");
     notifyListeners();
   }
 

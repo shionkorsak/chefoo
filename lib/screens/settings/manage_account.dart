@@ -104,13 +104,12 @@ class ManageAccountScreen extends StatelessWidget {
                                       CupertinoDialogAction(
                                         isDefaultAction: true,
                                         onPressed: () async {
-                                          Navigator.of(context).pop();
+                                          final navigator = Navigator.of(context); // Save BEFORE pop
+                                          navigator.pop(); // Close the dialog
                                           await _auth.deleteAccount();
-                                          Navigator.pushReplacement(
-                                            context, 
-                                            MaterialPageRoute(
-                                              builder: (BuildContext context) => SplashScreen()
-                                            )
+
+                                          navigator.pushReplacement(
+                                            MaterialPageRoute(builder: (_) => SplashScreen()),
                                           );
                                         },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
