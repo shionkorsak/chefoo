@@ -99,9 +99,27 @@ class _MainScreenState extends MainController {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MainScreenProvider>(context, listen: false).loadMockData();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Provider.of<MainScreenProvider>(context, listen: false).loadMockData();
+    // });
+  }
+
+  Widget _buildChefoosPick(RestaurantProvider restaurantProvider) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (restaurantProvider.places.isEmpty) {
+      return const Text(
+        "No recommendation found.",
+        style: AppTextStyles.body,
+      );
+    }
+
+    return RestaurantCardHorizontal(
+      place: restaurantProvider.places[0],
+      isLoading: false,
+    );
   }
 
   @override
@@ -191,10 +209,7 @@ class _MainScreenState extends MainController {
                       style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                     ),
                     kGap8,
-                    RestaurantCardHorizontal(
-                      place: restaurantProvider.places[0],
-                      isLoading: isLoading,
-                    ),
+                    _buildChefoosPick(restaurantProvider),
                     kGap20,
           
                     // Other Recommendations (auto-scroll carousel)

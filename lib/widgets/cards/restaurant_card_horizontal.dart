@@ -19,12 +19,18 @@ class RestaurantCardHorizontal extends StatelessWidget {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    print('place.pictureCategory = ${place.pictureCategory}');
+    print('_banner has keys: ${_banner.pictureCategoryAssets.keys}');
+
     
     final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] 
     ?? 'https://maps.googleapis.com/maps/api/place/photo'
         '?maxwidth=400'
         '&photo_reference=${place.pictureUrls.first}'
         '&key=${MapsConstants.mapsKey}';
+
+    print('pictureUrl: $pictureUrl');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
