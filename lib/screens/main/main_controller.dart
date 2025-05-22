@@ -85,7 +85,7 @@ abstract class MainController extends State<MainScreen> {
     final service = AIRecommendationService(
       placeService: placeService, 
       restaurantProvider: restaurantProvider
-      placeService: placeService, restaurantProvider: restaurantProvider);
+    );
 
     try {
       await service.fetchAndRecommendNearbyPlaces(position, context);
