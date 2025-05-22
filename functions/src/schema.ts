@@ -22,7 +22,7 @@ export const userPreferenceSchema = z.object({
     cuisine: z.array(z.string()).default([]),
     dietaryPreferences: z.array(z.string()).default([]),
     allergies: z.array(z.string()).default([]),
-    lastAnalyzedfromHistory: z.string().time(),
+    lastAnalyzedfromHistory: z.string(),
 })
 
 export const mealProfile = z.object({
@@ -78,7 +78,7 @@ export const healthInsightSchema = z.object({
         z.object({
             date: z.string(),
             mealInput: z.array(mealInputSchema),
-            ratio: z.number().min(0).max(1),
+            ratio: z.number().min(0).max(100),
             comment: z.string()
         })
     ).length(7),
