@@ -268,7 +268,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               onPressed: () async {
                 await Future.delayed(Duration(milliseconds: 300), () async {
                   await _auth.signInWithGoogle();
-
+                  await Future.delayed(Duration(seconds: 1)); 
                   await userAccountProvider.fetchUserAccount();
 
                   final account = userAccountProvider.userAccount;

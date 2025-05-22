@@ -28,6 +28,7 @@ class UserAccountProvider with ChangeNotifier {
     }
 
     Future<bool> updateUserPreferences(List<String> dietaryPreferences, List<String> allergies) async {
+      print(dietaryPreferences);
         final success = await _service.updateUserPreferences(
             dietaryPreferences: dietaryPreferences,
             allergies: allergies,

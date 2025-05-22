@@ -30,6 +30,7 @@ export const createUserAccount =
             lastAnalyzedAt: new Date().toISOString(),
           },
       };
+      console.log("Creating user for", uid);
 
       try {
         userAccountSchema.parse(userAccount);
@@ -38,7 +39,7 @@ export const createUserAccount =
         await userRef.set({
             profile: userAccount.profile,
             preferences: userAccount.preferences,
-            healthInsights: userAccount.healthInsight,
+            healthInsight: userAccount.healthInsight,
         });
 
         console.log(`Created user doc and subcollections (empty for favorites & history) for UID ${uid}`);
