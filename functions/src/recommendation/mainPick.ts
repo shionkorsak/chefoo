@@ -85,6 +85,32 @@ export const restaurantBannerFlow = ai.defineFlow(
     }
 );
 
+export const generateTagsAndBanner = functions.https.onCall(async (data, context) => {
+  try {
+    const { name } = data;
+    if (typeof name !== 'string' || name.trim() === '') {
+      throw new functions.https.HttpsError("invalid-argument", "Restaurant name must be a non-empty string.");
+    }
+
+    const tagsResult = await restaurantTagsFlow.run(name);
+    const tags = tagsResult.result;
+
+    const bannerResult = await restaurantBannerFlow.run({ name, tags });
+
+    return {
+      name,
+      tags,
+      pictureCategory: bannerResult.result.pictureCategory,
+    };
+  } catch (err: any) {
+    console.error("generateTagsAndBanner error:", err);
+    throw new functions.https.HttpsError(
+      "internal",
+      `Failed to generate tags and banner: ${err.message || err.toString()}`
+    );
+  }
+});
+
 export const mainPickFlow = ai.defineFlow(
     {
         name: 'mainPickFlow',

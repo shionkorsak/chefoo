@@ -1,4 +1,5 @@
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/main_test.dart';
 import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/screens/profile/profile.dart';
@@ -75,7 +76,7 @@ class _MainNavigationState extends State<MainNavigation> {
     final places = Provider.of<RestaurantProvider>(context).places;
 
     final List<Widget> screens = [
-      HomeScreen(),
+      MainScreen(),
       MapViewScreen(places: places),
       ProfileScreen()
     ];

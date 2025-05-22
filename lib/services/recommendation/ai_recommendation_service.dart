@@ -7,18 +7,18 @@ import 'package:chefoo/services/maps.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
-class AIRecommendationService {
+class RecommendationService  {
   final PlaceService placeService;
   final RestaurantProvider restaurantProvider;
   final FirebaseFunctions functions;
 
-  AIRecommendationService({
+  RecommendationService ({
     required this.placeService,
     required this.restaurantProvider,
     FirebaseFunctions? firebaseFunctions,
   }) : functions = firebaseFunctions ?? FirebaseFunctions.instance;
 
-  Future<void> fetchAndRecommendNearbyPlaces(Position position, BuildContext context) async {
+  Future<List<Place>> fetchAndRecommendNearbyPlaces(Position position, BuildContext context) async {
     final cacheKey = '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}_1000';
     print('Fetching places for location: ${position.latitude}, ${position.longitude}');
     print('Using cache key: $cacheKey for nearby places');
@@ -45,13 +45,12 @@ class AIRecommendationService {
         }
         final List<Place> allCachedPlaces = placeService.cachedPlaces.values.expand((list) => list).toList();
 
-        final Map<String, List<Place>> newCache = {};
+        final List<Place> recommendedPlaces = [];
 
         for (var rec in recommendations) {
           final String recId = rec['id'];
           final List<String> recTags = List<String>.from(rec['tags']);
           final String recCat = rec['pictureCategory'];
-          print("recCat: $recCat");
 
           Place? match = allCachedPlaces.where((p) => p.id == recId).firstOrNull;
 
@@ -60,17 +59,20 @@ class AIRecommendationService {
               tags: recTags, 
               pictureCategory: recCat
             );
-            newCache.putIfAbsent('recommended', () => []).add(updatedPlace);
+            recommendedPlaces.add(updatedPlace);
           }
         }
 
-        restaurantProvider.setPlaces(newCache['recommended'] ?? []);
+        final Set<String> recommendedIds = recommendedPlaces.map((p) => p.id).toSet();
+        final List<Place> filteredPlaces = allCachedPlaces.where((p) => !recommendedIds.contains(p.id)).toList();
+        print('Filtered places count: ${filteredPlaces.length}');
 
-        if (response.message.contains('cache') == true) {
-          print('Used cache with ${response.data!.length} places');
-        }
+        restaurantProvider.setPlaces(filteredPlaces);
+        
+        return recommendedPlaces;
       } else {
         print('Failed to load places: ${response.message}');
+        return [];
       }
     } catch (e) {
       print('Error fetching nearby places: $e');

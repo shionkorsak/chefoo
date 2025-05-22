@@ -33,7 +33,7 @@ class PlaceholderScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(
-                  builder: (BuildContext context) => SplashScreen()
+                  builder: (BuildContext context) => SplashScreen(isLoggedIn: false,)
                 )
               );
             },
@@ -46,7 +46,7 @@ class PlaceholderScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context, 
                 MaterialPageRoute(
-                  builder: (BuildContext context) => SplashScreen()
+                  builder: (BuildContext context) => SplashScreen(isLoggedIn: false,)
                 )
               );
             },
