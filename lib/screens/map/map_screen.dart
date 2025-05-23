@@ -4,13 +4,13 @@ import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:chefoo/screens/map/map_controller.dart';
 
 class MapScreen extends StatefulWidget {
-  final List<Place> places; // Make it optional with nullable type
+  final List<Place> places;
   final LatLng? destination;
   final String? destinationName;
 
   const MapScreen({
     Key? key,
-    required this.places, // No longer required
+    required this.places,
     this.destination,
     this.destinationName,
   }) : super(key: key);
@@ -227,13 +227,11 @@ class _MapScreenState extends MapController {
               minMaxZoomPreference: MinMaxZoomPreference(minZoom, maxZoom),
             ),
             
-            // Custom pretty zoom controls
             Positioned(
               right: 16,
               bottom: showPlaceCard ? 220 : 16,  // Position above the restaurant card if shown
               child: Column(
                 children: [
-                  // Zoom in button
                   Container(
                     height: 40,
                     width: 40,
@@ -257,7 +255,6 @@ class _MapScreenState extends MapController {
                       },
                     ),
                   ),
-                  // Zoom out button
                   Container(
                     height: 40,
                     width: 40,

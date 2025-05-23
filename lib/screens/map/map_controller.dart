@@ -31,7 +31,6 @@ abstract class MapController extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    // Removed initializeMap() call since we now use forceDrawRoute
   }
 
   // Basic map setup functions
@@ -162,11 +161,11 @@ abstract class MapController extends State<MapScreen> {
 
   // SECTION 5: ROUTE FUNCTIONS
   Future<void> drawRouteToDestination(LatLng destination, String destinationName) async {
-    print('🚀 STARTING ROUTE DRAWING to $destinationName');
+    print('STARTING ROUTE DRAWING to $destinationName');
     print('Destination: ${destination.latitude}, ${destination.longitude}');
 
     if (mapController == null) {
-      print('❌ Map controller is null');
+      print('Map controller is null');
       return;
     }
 
@@ -182,7 +181,7 @@ abstract class MapController extends State<MapScreen> {
       final position = locationService.currentPosition;
 
       if (position == null) {
-        print('❌ Current location not available');
+        print('Current location not available');
         throw Exception('Current location not available');
       }
 
@@ -198,19 +197,18 @@ abstract class MapController extends State<MapScreen> {
       print('Direction API response: success=${response.success}, error=${response.error}, points=${response.data?.length ?? 0}');
 
       if (!response.success || response.data == null || response.data!.isEmpty) {
-        print('❌ Failed to get directions: ${response.error}');
+        print('Failed to get directions: ${response.error}');
         throw Exception("Couldn't get directions: ${response.error ?? 'Unknown error'}");
       }
 
       print('Got route with ${response.data!.length} points');
 
-      // Make the polyline more visible
       final newPolyline = Polyline(
         polylineId: const PolylineId('event_route'),
         color: Colors.blue,
-        width: 4, // CHANGED: Thinner line (was 8)
+        width: 4,
         points: response.data!,
-        visible: true, // Explicitly set visible
+        visible: true,
       );
       
       setState(() {
@@ -224,9 +222,9 @@ abstract class MapController extends State<MapScreen> {
       print('Fitting bounds to route');
       fitRouteAndDestination(position, destination);
       
-      print('🏁 ROUTE DRAWING COMPLETE');
+      print('ROUTE DRAWING COMPLETE');
     } catch (e) {
-      print('❌ Error drawing route: $e');
+      print('Error drawing route: $e');
     } finally {
       setState(() {
         isLoadingRoute = false;
@@ -375,13 +373,11 @@ abstract class MapController extends State<MapScreen> {
       ),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       zIndex: 10,
-      visible: true, // Make sure it's visible
+      visible: true,
     );
 
-    // Remove the destination marker if it already exists
     markers.removeWhere((m) => m.markerId.value == 'event_destination');
     
-    // Add the new marker and force a rebuild
     setState(() {
       markers.add(marker);
       print('Destination marker added, total markers: ${markers.length}');
@@ -396,7 +392,6 @@ abstract class MapController extends State<MapScreen> {
     
     print("Fitting bounds for route");
     
-    // For very short routes, add more padding
     final double distanceKm = calculateDistance(
       position.latitude, position.longitude,
       destination.latitude, destination.longitude
@@ -404,7 +399,6 @@ abstract class MapController extends State<MapScreen> {
     
     print("Route distance: ${distanceKm.toStringAsFixed(3)} km");
     
-    // Use more padding for very short routes to make them visible
     final padding = distanceKm < 0.5 ? 100.0 : 50.0;
     
     final LatLngBounds bounds = LatLngBounds(
@@ -459,16 +453,13 @@ abstract class MapController extends State<MapScreen> {
         ? restaurantProvider.places 
         : widget.places;
         
-    // Take at most 50 places at a time for better performance
     final placesToShow = places.length > 50 ? places.sublist(0, 50) : places;
         
     final Set<Marker> newMarkers = {};
 
-    // Process markers in batches
     for (var place in placesToShow) {
       final isSelected = place.id == selectedPlace?.id;
       
-      // Create new marker
       final marker = Marker(
         markerId: MarkerId(place.id),
         position: LatLng(place.lat, place.lng),
@@ -482,7 +473,6 @@ abstract class MapController extends State<MapScreen> {
       newMarkers.add(marker);
     }
 
-    // Add destination marker if needed
     if (widget.destination != null) {
       newMarkers.add(
         Marker(
@@ -567,13 +557,11 @@ abstract class MapController extends State<MapScreen> {
     );
   }
 
-  // Force draw route method
   void forceDrawRoute() {
     print("Attempting to force draw route...");
     final locationService = Provider.of<LocationService>(context, listen: false);
     final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
     
-    // Check current position
     if (locationService.currentPosition == null) {
       print("Cannot draw route: Current location unavailable");
       return;
