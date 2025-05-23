@@ -27,8 +27,29 @@ class UserAccountProvider with ChangeNotifier {
         }
     }
 
-    Future<bool> updateUserPreferences(List<String> dietaryPreferences, List<String> allergies) async {
+    Future<bool> updateUserPreferences(
+      List<String> dietaryPreferences, 
+      List<String> allergies
+    ) async {
+      print(dietaryPreferences);
         final success = await _service.updateUserPreferences(
+            dietaryPreferences: dietaryPreferences,
+            allergies: allergies,
+        );
+
+        if (success) {
+            await fetchUserAccount();
+        }
+
+        return success;
+    }
+
+    Future<bool> addUserPreferences(
+      List<String> dietaryPreferences, 
+      List<String> allergies
+    ) async {
+      print(dietaryPreferences);
+        final success = await _service.addUserPreference(
             dietaryPreferences: dietaryPreferences,
             allergies: allergies,
         );

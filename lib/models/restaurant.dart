@@ -18,6 +18,7 @@ class Place {
   bool _popularTimesLoaded = false;
   double walkingDistance;
   bool _detailsLoaded = false;
+  final String pictureCategory;
 
   Place({
     required this.id,
@@ -35,6 +36,7 @@ class Place {
     this.isOpenNow,
     List<Map<String, dynamic>>? popularTimes,
     this.walkingDistance = 0.0,
+    required this.pictureCategory
   }) : _popularTimes = popularTimes;
 
   factory Place.fromJson(Map<String, dynamic> json) {
@@ -53,8 +55,58 @@ class Place {
       reviews: [],
       openingHours: null,
       walkingDistance: json['walkingDistance'] as double? ?? 0.0,
+      pictureCategory: ''
     );
   }
+
+  factory Place.fromPlaceDetails(Map<String, dynamic> details) {
+    final photoRefs = <String>{};
+    final photos = (details['photos'] ?? []) as List;
+    for (var photo in photos) {
+      if (photo['photo_reference'] != null) {
+        photoRefs.add(photo['photo_reference'] as String);
+      }
+    }
+
+    final reviews = (details['reviews'] as List?)?.map((r) {
+      String? photoRef;
+      try {
+        if ((r['photos'] as List?)?.isNotEmpty ?? false) {
+          photoRef = r['photos'][0]['photo_reference'];
+        }
+      } catch (_) {}
+
+      return Review(
+        authorName: r['author_name'] ?? 'Anonymous',
+        rating: (r['rating'] ?? 0).toDouble(),
+        text: r['text'] ?? '',
+        time: r['time']?.toString(),
+        photoReference: photoRef,
+      );
+    }).toList() ?? [];
+
+    return Place(
+      id: details['place_id'] ?? '',
+      name: details['name'] ?? 'Unnamed',
+      rating: (details['rating'] ?? 0).toDouble(),
+      address: details['formatted_address'] ?? '',
+      phone: details['formatted_phone_number'] ?? '',
+      lat: details['geometry']?['location']?['lat']?.toDouble() ?? 0.0,
+      lng: details['geometry']?['location']?['lng']?.toDouble() ?? 0.0,
+      isOpenNow: details['opening_hours']?['open_now'] ?? false,
+      openingHours: (details['opening_hours']?['weekday_text'] as List?)
+          ?.map((e) => e.toString())
+          .toList(),
+      reviews: reviews,
+      pictureUrls: photoRefs.toList(),
+      tags: List<String>.from(details['tags'] ?? []),
+      distance: 0.0,
+      walkingDistance: (details['walking_distance'] ?? 0.0).toDouble(),
+      popularTimes: null,
+      pictureCategory: details['pictureCategory'] ?? ''
+    );
+  }
+
 
   factory Place.fromGooglePlace(Map<String, dynamic> place, Map<String, dynamic> details) {
     final List<String> allTypes = [
@@ -123,13 +175,13 @@ class Place {
     }
 
     return Place(
-      id: place['place_id'] as String,
-      name: place['name'] as String,
+      id: place['place_id'] as String? ?? '',
+      name: place['name'] as String? ?? '',
       rating: (place['rating'] ?? 0.0).toDouble(),
-      address: place['vicinity'] as String,
+      address: place['vicinity'] as String? ?? '',
       distance: 0.0,
       tags: [],
-      phone: details['formatted_phone_number'] as String?,
+      phone: details['formatted_phone_number'] as String? ?? '',
       openingHours: details['opening_hours']?['weekday_text']?.cast<String>(),
       reviews: reviews,
       pictureUrls: photoRefs.toList(),
@@ -138,6 +190,7 @@ class Place {
       isOpenNow: details['opening_hours']?['open_now'] as bool?,
       popularTimes: popularTimesData,
       walkingDistance: 0.0, 
+      pictureCategory: ''
     );
   }
 
@@ -175,6 +228,7 @@ class Place {
     bool? popularTimesLoaded,
     double? walkingDistance,
     bool? detailsLoaded,
+    String? pictureCategory
   }) {
     final updated = Place(
       id: id ?? this.id,
@@ -192,6 +246,7 @@ class Place {
       isOpenNow: isOpenNow ?? this.isOpenNow,
       popularTimes: popularTimes ?? _popularTimes,
       walkingDistance: walkingDistance ?? this.walkingDistance,
+      pictureCategory: pictureCategory ?? ''
    );
 
   if (popularTimesLoaded ?? _popularTimesLoaded) {

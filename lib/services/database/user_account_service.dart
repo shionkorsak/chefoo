@@ -52,8 +52,20 @@ class UserAccountService {
     }
   }
 
-  // Future<bool> checkLocation({
-  //   required double latitude,
-  //   required double longitude
-  // })
+  Future<bool> addUserPreference({
+    required List<String> dietaryPreferences,
+    required List<String> allergies
+  }) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid);
+      await doc.update({
+        'preferences.dietaryPreferences': dietaryPreferences,
+        'preferences.allergies': allergies
+      });
+      log('Update successful.');
+      return true;
+    } catch (e) {
+      throw Exception('Update unsuccessful.');
+    }
+  }
 }

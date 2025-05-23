@@ -1,6 +1,8 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/getstarted.dart';
+import 'package:chefoo/providers/mainscreen.dart';
 import 'package:chefoo/providers/user_account.dart';
+import 'package:chefoo/screens/calendar_screen.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:chefoo/services/calendar_service.dart';
@@ -29,6 +31,7 @@ import 'package:chefoo/screens/rating/rating_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
 
 import 'package:chefoo/screens/profile/profile.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
 
 Future<void> initializeApp() async {
   try {
@@ -57,7 +60,7 @@ void main() async {
           create: (_) => LocationService(),
         ),
         ChangeNotifierProvider(
-          create: (_) => FavoritesProvider(),
+          create: (_) => FavoritesProvider()..loadFavorites(),
         ),
         ChangeNotifierProvider(
           create: (_) => UserAccountProvider(),
@@ -74,6 +77,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RestaurantProvider()),
         ChangeNotifierProvider<GetStartedProvider>(
           create: (_) => GetStartedProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MainScreenProvider(),
         ),
       ],
       child: const MyApp(),
@@ -103,32 +109,26 @@ class MyApp extends StatelessWidget {
     });
 
     return MaterialApp(
-        theme: lightTheme,
-        navigatorKey: navigatorKey,
+        theme: lightTheme, navigatorKey: navigatorKey, 
+      home: AuthGate());
 
-        // home: AuthGate());
+    ///Screen names used from file screens.dart
+    // routes: {Screens.profile: (_) => const ProfileScreen()},
 
-        ///Screen names used from file screens.dart
-
-        // routes: {Screens.profile: (_) => const ProfileScreen()},
-        //home: GetStarted());
-        //home: TestScreen());
-        //home: GetStartedScreen());
-        //home: WidgetTestScreen());
-
-        // home: const SplashScreen());
-        //home: SettingsScreen());
-        //home: MapViewScreen());
-        //home: ProfileScreen());
-        // home: GetStarted());
-        // home: WidgetTestScreen());
-        home: WidgetTestScreen2());
+    // Commented out alternative home screens for testing:
+    // home: CalendarScreen());
+    // home: GetStarted());
     // home: TestScreen());
     // home: GetStartedScreen());
+    // home: WidgetTestScreen());
     // home: const SplashScreen());
     // home: SettingsScreen());
-    // home: RatingScreen());
     // home: MapViewScreen());
+    // home: ProfileScreen());
+    // home: WidgetTestScreen2());
+    // home: RatingScreen());
+    // home: MainScreen());
+
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
   }

@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:chefoo/screens/main/main_screen.dart';
+import 'package:chefoo/screens/main_test.dart';
 import 'package:chefoo/screens/placeholder/placeholder_screen.dart';
 import 'package:chefoo/screens/placeholder/playground.dart';
 import 'package:chefoo/screens/profile/profile.dart';
@@ -18,8 +20,8 @@ class AuthGate extends StatelessWidget {
         builder: (context, snapshot) {
           if(snapshot.hasData) {
             log("User has signed in.");
-            return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
-            // return ProfileScreen();
+            // return PlaceholderScreen(); //TODO [FRONTEND]: change this to home screen
+            return MainScreen();
           } else {
             log("User has not signed in.");
             return SplashScreen(); //TODO: will change this to onboarding screens when frontend has made it

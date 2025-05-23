@@ -106,5 +106,8 @@ class RestaurantProvider with ChangeNotifier {
     }
   }
 
+  Future<void> loadPlacesIfNotFetched() async {
+    await _loadPlacesFromPrefs();
+  }
   
 }

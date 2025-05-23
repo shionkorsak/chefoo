@@ -1,4 +1,7 @@
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/screens/main_test.dart';
+import 'package:chefoo/screens/map_view.dart';
+import 'package:chefoo/screens/profile/profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -53,6 +56,39 @@ class CustomBottomNavigationBar extends StatelessWidget {
           onTap: onTap,
         ),
       ),
+    );
+  }
+}
+
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final places = Provider.of<RestaurantProvider>(context).places;
+
+    final List<Widget> screens = [
+      HomeScreen(),
+      MapViewScreen(places: places),
+      ProfileScreen()
+    ];
+
+    return Scaffold(
+      body: screens[_currentIndex],
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex, 
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }),
     );
   }
 }

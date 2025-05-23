@@ -268,7 +268,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               onPressed: () async {
                 await Future.delayed(Duration(milliseconds: 300), () async {
                   await _auth.signInWithGoogle();
-
+                  await Future.delayed(Duration(seconds: 1)); 
                   await userAccountProvider.fetchUserAccount();
 
                   final account = userAccountProvider.userAccount;
@@ -455,7 +455,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     provider.allergiesController.text.trim(),
                 ];
 
-                final success = await userAccountProvider.updateUserPreferences(dietaryPreferences, allergies);
+                final success = await userAccountProvider.addUserPreferences(dietaryPreferences, allergies);
 
                 if(success) {
                   await Future.delayed(Duration(milliseconds: 300), () {

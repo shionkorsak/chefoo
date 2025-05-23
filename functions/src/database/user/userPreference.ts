@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions/v1";
-import { clientUpdatePreferenceSchema } from "../schema";
-import { db } from "../admin";
-import { ai } from "../config";
+import { clientUpdatePreferenceSchema } from "../../schema";
+import { db } from "../../admin";
+import { ai } from "../../config";
 
 export const updateClientPreferences = functions.https.onCall(async (data, context) => {
     const uid = context.auth?.uid;
