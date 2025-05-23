@@ -14,7 +14,8 @@ import 'package:chefoo/screens/history/history_screen.dart';
 
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final List<Place> recommendedPlaces;
+  const MainScreen({super.key, required this.recommendedPlaces});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -26,7 +27,7 @@ class _MainScreenState extends MainController {
     super.initState();
   }
 
-  Widget _buildChefoosPick(RestaurantProvider restaurantProvider) {
+  Widget _buildChefoosPick() {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -116,7 +117,7 @@ class _MainScreenState extends MainController {
                           style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                         ),
                     kGap8,
-                    _buildChefoosPick(restaurantProvider),
+                    _buildChefoosPick(),
                     kGap20,
           
                     // Other Recommendations (auto-scroll carousel)

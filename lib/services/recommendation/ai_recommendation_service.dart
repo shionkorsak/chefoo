@@ -28,7 +28,7 @@ class RecommendationService  {
         lat: position.latitude,
         lng: position.longitude,
         radius: 1000.0,
-        apiKey: MapsConstants.mapsKey,
+        apiKey: MapsConstants.mapsKey
       );
 
       if (response.success && response.data != null) {
