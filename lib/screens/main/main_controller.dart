@@ -35,7 +35,7 @@ abstract class MainController extends State<MainScreen> {
   @override
   void initState() async {
     super.initState();
-
+    _recommendedPlaces = widget.recommendedPlaces;
 
     carouselController = PageController(
       initialPage: 0,
@@ -53,35 +53,39 @@ abstract class MainController extends State<MainScreen> {
     });
 
     _loadCalendarData();
-    await _initializeLocation();
+    // await _initializeLocation();
     checkGpsStatus();
     _startInactivityTimer();
   }
 
-  Future<void> _initializeLocation() async {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+  // Future<void> _initializeLocation() async {
+  //   final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
-    if(restaurantProvider.places.isNotEmpty && recommendedPlaces.isNotEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
+  //   if(restaurantProvider.places.isNotEmpty && recommendedPlaces.isNotEmpty) {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //     return;
+  //   }
 
-    setState(() {
-      _isLoading = true;
-    });
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
 
-    final locationService = 
-      Provider.of<LocationService>(context, listen: false);
-    await locationService.getCurrentLocation();
+  //   final locationService = 
+  //     Provider.of<LocationService>(context, listen: false);
+  //   await locationService.getCurrentLocation();
 
-    final position = locationService.currentPosition;
-    if(position != null) {
-      print("[MainController] Calling _fetchandRecommend with position $position");
-      await _fetchandRecommend(position);
-    }
-  }
+  //   final position = locationService.currentPosition;
+  //   if(position != null) {
+  //     print("[MainController] Calling _fetchandRecommend with position $position");
+  //     await _fetchandRecommend(position);
+  //   }
+
+  //   setState(() {
+  //     _isLoading = false;
+  //   });
+  // }
 
   Future<void> _fetchandRecommend(Position position) async {
     final placeService = Provider.of<PlaceService>(context, listen: false);
@@ -98,7 +102,7 @@ abstract class MainController extends State<MainScreen> {
       log('Recommendations received: ${recommendations.length}');
 
       setState(() {
-        _recommendedPlaces = recommendations;
+        _recommendedPlaces = recommendations; 
       });
     } catch (e) {
       log('Error fetching recommendations: $e');

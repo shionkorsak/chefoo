@@ -3,6 +3,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/main_test.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
+import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -80,28 +81,24 @@ class _SplashScreenState extends State<SplashScreen>
         final placeService = Provider.of<PlaceService>(context, listen: false);
         final locationService = 
           Provider.of<LocationService>(context, listen: false);
+        final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+        final aiService = RecommendationService(
+          placeService: placeService,
+          restaurantProvider: restaurantProvider
+        );
 
         await locationService.getCurrentLocation();
         final position = locationService.currentPosition;
         if (position == null) throw Exception("No location found");
 
-        print("hahaha");
-        final result = await placeService.getNearbyPlaces(
-          lat: position.latitude,
-          lng: position.longitude,
-          radius: 1000.0,
-          apiKey: MapsConstants.mapsKey,
-          addToCache: true,
-        );
-
-        if (!result.success) {
-          log("Failed to fetch restaurants: ${result.message}");
-        }
+        final List<Place> recommended = await aiService.fetchAndRecommendNearbyPlaces(position, context);
+        log('[SplashScreen] recommendedPlaces count: ${recommended.length}');
 
         if (!mounted) return;
+
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, animation, __) => const MainScreen(),
+            pageBuilder: (_, animation, __) => MainScreen(recommendedPlaces: recommended),
             transitionsBuilder: (_, animation, __, child) =>
                 FadeTransition(opacity: animation, child: child),
             transitionDuration: const Duration(milliseconds: 500),
