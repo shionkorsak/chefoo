@@ -1,5 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:async';
+
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
@@ -22,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _circleAnimation;
   late Animation<double> _logoOpacity;
+  StreamSubscription<Position>? _locationSub;
 
   @override
   void initState() {
@@ -63,26 +66,34 @@ class _SplashScreenState extends State<SplashScreen>
 
     final restaurantProvider = 
         Provider.of<RestaurantProvider>(context, listen: false);
+    final locationService = Provider.of<LocationService>(context, listen: false);
 
     try {
-      final success = 
-        await preload.PreloadService.preloadData(context, restaurantProvider);
+      print('[SPLASH] Waiting for GPS position...');
 
-      if (!mounted) return;
+      _locationSub = locationService.locationChangedStream.listen((position) async {
+        print('[SPLASH] GPS available at ${position.latitude}, ${position.longitude}');
 
-      if (!success) {
-        _showRetryDialog("Failed to load nearby restaurants. Please check your connection and try again.");
-        return;
-      }
+        _locationSub?.cancel(); // Stop listening once we got it
 
-      bool isReady = await _waitForRecommendations(restaurantProvider);
-      if (!isReady) {
-        _showRetryDialog(
-            "Took too long to load recommendations. Please try again.");
-        return;
-      }
+        final success = await preload.PreloadService.preloadData(context, restaurantProvider);
+        if (!mounted) return;
 
-      _goToMainScreen();
+        if (!success) {
+          _showRetryDialog("Failed to load nearby restaurants. Please check your connection and try again.");
+          return;
+        }
+
+        final isReady = await _waitForRecommendations(restaurantProvider);
+        if (!isReady) {
+          _showRetryDialog("Took too long to load recommendations. Please try again.");
+          return;
+        }
+
+        _goToMainScreen();
+      });
+
+        await locationService.getCurrentLocation();
     } catch (e) {
       print("[SplashScreen] Error during preload: $e");
       if (mounted) {
@@ -157,6 +168,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _locationSub?.cancel();
     _controller.dispose();
     super.dispose();
   }

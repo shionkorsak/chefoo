@@ -53,7 +53,6 @@ class PreloadService {
   ) async {
     try {
       print('[PRELOAD GET NEARBY]');
-      await locationService.getCurrentLocation();
       final position = locationService.currentPosition;
       if (position == null) {
         print('[PRELOAD] Current location not available for preloading');
