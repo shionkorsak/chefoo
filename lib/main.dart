@@ -33,7 +33,6 @@ import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/screens/profile/profile.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 
-
 Future<void> initializeApp() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
@@ -46,10 +45,10 @@ Future<void> initializeApp() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-    await initializeApp();
+  await initializeApp();
 
   runApp(
     MultiProvider(
@@ -75,9 +74,7 @@ void main() async {
         ChangeNotifierProvider<CalendarStateProvider>(
           create: (_) => CalendarStateProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => RestaurantProvider()
-        ),
+        ChangeNotifierProvider(create: (_) => RestaurantProvider()),
         ChangeNotifierProvider<GetStartedProvider>(
           create: (_) => GetStartedProvider(),
         ),
@@ -99,7 +96,8 @@ class MyApp extends StatelessWidget {
     
     // location monitoring after app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final locationService = Provider.of<LocationService>(context, listen: false);
+      final locationService =
+          Provider.of<LocationService>(context, listen: false);
       locationService.startLocationUpdates(context);
       
       try {
@@ -110,11 +108,8 @@ class MyApp extends StatelessWidget {
     });
 
     return MaterialApp(
-        theme: lightTheme,
-        navigatorKey: navigatorKey,
-
-        home: AuthGate()
+        theme: lightTheme, navigatorKey: navigatorKey, 
+      home: AuthGate()
     );
   }
 }
-
