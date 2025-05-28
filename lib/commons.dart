@@ -15,17 +15,16 @@ export 'package:url_launcher/url_launcher.dart';
 /// Constants and styles
 export 'constants.dart';
 export 'models/api_response.dart';
-import 'package:iconsax_plus/iconsax_plus.dart';
 // Models
 export 'models/restaurant.dart';
 export 'providers/calendar_state.dart';
 export 'providers/favorites.dart';
 // Providers
 export 'providers/restaurant.dart';
-export 'services/auth/auth_service.dart';
-export 'services/calendar_service.dart';
 // Services
 export 'services/auth/auth_gate.dart';
+export 'services/auth/auth_service.dart';
+export 'services/calendar_service.dart';
 export 'services/database/user_account_service.dart';
 export 'services/location.dart';
 export 'services/maps.dart';
@@ -34,10 +33,6 @@ export 'styles/colors.dart';
 export 'styles/sizes.dart';
 export 'styles/styles.dart';
 export 'styles/text_style.dart';
-
-// Widgets
-export 'widgets/restaurant_card.dart';
-export 'widgets/restaurant_list.dart';
 export 'styles/themes.dart';
 // Utils
 export 'utils/img_preloader.dart';
@@ -48,6 +43,7 @@ export 'widgets/photo_grid.dart';
 export 'widgets/popular_times_chart.dart';
 // Widgets
 export 'widgets/restaurant_card.dart';
+// Widgets
 export 'widgets/restaurant_elements.dart';
 export 'widgets/restaurant_list.dart';
 export 'widgets/tags/tag_map.dart';
