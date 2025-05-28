@@ -5,6 +5,7 @@ import 'package:chefoo/screens/main/other_recom_screen.dart';
 import 'package:chefoo/widgets/ai_input_field.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import 'main_controller.dart';
@@ -18,6 +19,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends MainController {
+  int _currentIndex = 0;
+  
   Widget _buildChefoosPick() {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -69,6 +72,14 @@ class _MainScreenState extends MainController {
     }
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex, 
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
+      ),
       body: Consumer2<LocationService, RestaurantProvider>(
         builder: (context, locationService, restaurantProvider, _) { 
           return SafeArea(

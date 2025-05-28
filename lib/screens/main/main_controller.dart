@@ -35,7 +35,6 @@ abstract class MainController extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // _initializeController();
 
     carouselController = PageController(
       initialPage: 0,
@@ -55,25 +54,8 @@ abstract class MainController extends State<MainScreen> {
     _loadCalendarData();
     checkGpsStatus();
     _startInactivityTimer();
+    _setRecommendedPlace();
   }
-
-  Future<void> _initializeController() async {
-    print('[MAIN CTRL]');
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    await locationService.getCurrentLocation();
-
-    final position = locationService.currentPosition;
-    if (position != null) {
-        log("[MainController] Calling _fetchNearbyData with position $position");
-        // await _fetchNearbyData(position);
-    }
-
-    if (mounted) {
-        setState(() {
-        _isLoading = false;
-        });
-    }
-    }
 
   @override
   void didChangeDependencies() {
@@ -94,31 +76,14 @@ abstract class MainController extends State<MainScreen> {
     }
   }
 
-  Future<void> _fetchNearbyData(Position position) async {
-    final placeService = 
-        Provider.of<PlaceService>(context, listen: false);
-    final restaurantProvider =
-        Provider.of<RestaurantProvider>(context, listen: false);
+  Future<void> _setRecommendedPlace() async {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final recommended = restaurantProvider.recommendedPlaces;
 
-    try {
-        final recommendationService = RecommendationService(
-            placeService: placeService, 
-            restaurantProvider: restaurantProvider
-            );
-
-        final result = 
-            await recommendationService
-            .fetchAndRecommendNearbyPlaces(position, context);
-
-        _recommendedPlaces = result['recommended'] ?? [];
-        restaurantProvider.setPlaces(result['enriched'] ?? []);
-        restaurantProvider.setRecommendedPlaces(_recommendedPlaces);
-
-        log('[MAIN CTRL] Fetched ${_recommendedPlaces.length} recommended places');
-    } catch (e) {
-        log('[MAIN CTRL] Error during recommendation fetch: $e');
-    } finally {
-        if (mounted) setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() {
+        _recommendedPlaces = recommended;
+      });
     }
   }
 
