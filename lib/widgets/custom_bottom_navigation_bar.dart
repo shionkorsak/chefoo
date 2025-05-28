@@ -1,11 +1,6 @@
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/screens/main/main_screen.dart';
-import 'package:chefoo/screens/main_test.dart';
 import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/screens/profile/profile.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:iconsax_plus/iconsax_plus.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;

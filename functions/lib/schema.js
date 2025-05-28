@@ -46,20 +46,6 @@ exports.mealInputSchema = zod_1.z.object({
         notes: zod_1.z.string().optional(),
     }).optional()
 });
-// export const restaurantReview = z.object({
-//     author: z.string(),
-//     rating: z.number(),
-//     text: z.string(),
-// })
-// export const restaurantSchema =  z.object({
-//     id: z.string(),
-//     name: z.string(),
-//     overallRating: z.number().min(0).max(5),
-//     isFavorite: z.boolean().default(false),
-//     tags: z.array(z.string()),
-//     notes: z.string().optional(),
-//     review: z.array(restaurantReview)
-// })
 exports.restaurantSchema = zod_1.z.object({
     id: zod_1.z.string(),
     tags: zod_1.z.array(zod_1.z.string()),

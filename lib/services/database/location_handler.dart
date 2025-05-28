@@ -8,6 +8,7 @@ import 'dart:convert';
 
 class LocationHandler {
   static Future<void> initializeLocation(BuildContext context) async {
+    print('[LOCATION HANDLER]');
     final locationService = Provider.of<LocationService>(context, listen: false);
     await locationService.getCurrentLocation();
     

@@ -38,6 +38,7 @@ class _BaseLayoutState extends State<BaseLayout> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
+              print('[BASE LAYOUT]');
               Provider.of<LocationService>(context, listen: false)
                   .getCurrentLocation();
             },

@@ -126,9 +126,7 @@ export const mainPickFlow = ai.defineFlow(
                 })
             ),
         }),
-        outputSchema: z.array(
-            restaurantSchema
-        )
+        outputSchema: restaurantSchema
     },
     async ({ uid, restaurants }) => {
         const userSnap = await db.collection("users").doc(uid).get();
@@ -137,55 +135,48 @@ export const mainPickFlow = ai.defineFlow(
         const preferences = userPreferenceSchema.parse(rawPreferences || {});
 
         const preferenceText = `
-        User Preferences:
-        - Food Personality: ${preferences.description.join('; ') || 'None'}
-        - Liked Food: ${preferences.likedFood.join(', ') || 'None'}
-        - Disliked Food: ${preferences.dislikedFood.join(', ') || 'None'}
-        - Preferred Cuisine: ${preferences.cuisine.join(', ') || 'None'}
-        - Dietary Restrictions: ${preferences.dietaryPreferences.join(', ') || 'None'}
-        - Allergies: ${preferences.allergies.join(', ') || 'None'}
+User Preferences:
+- Food Personality: ${preferences.description.join('; ') || 'None'}
+- Liked Food: ${preferences.likedFood.join(', ') || 'None'}
+- Disliked Food: ${preferences.dislikedFood.join(', ') || 'None'}
+- Preferred Cuisine: ${preferences.cuisine.join(', ') || 'None'}
+- Dietary Restrictions: ${preferences.dietaryPreferences.join(', ') || 'None'}
+- Allergies: ${preferences.allergies.join(', ') || 'None'}
         `;
 
         console.log("Flow input length:", restaurants.length);
-        const enriched = await Promise.all(
-            restaurants.map(async (restaurant) => {
-                const res = await restaurantTagsFlow.run(restaurant.name);
-                const newTags = res.result;
-                console.log(`Generated tags for ${restaurant.name}:`, newTags);
-                return { ...restaurant, tags: newTags };
+
+        const restaurantList = restaurants
+            .map((r, i) => {
+                return `#${i+1}
+ID: ${r.id}
+Name: ${r.name}
+Rating: ${r.rating}
+Tags: ${r.tags.join(', ')}
+Favorite: ${r.isFavorite ? 'Yes' : 'No'}`;
             })
-        );
-
-
-        const restaurantList = enriched.map((r, i) => {
-            return `#${i+1}
-            ID: ${r.id}
-            Name: ${r.name}
-            Rating: ${r.rating}
-            Tags: ${r.tags.join(', ')}
-            Favorite: ${r.isFavorite ? 'Yes' : 'No'}`;
-        }).join('\n\n');
+            .join('\n\n');
 
         const prompt = `
-        You are a smart restaurant recommendation AI.
+You are a smart restaurant recommendation AI.
 
-        You will be given a user's food preferences and a list of restaurants. Your job is to recommend the BEST matching restaurants (can be multiple) — you MUST return at least one. If none are perfect, pick the closest matches.
+You will be given a user's food preferences and a list of restaurants. Your job is to recommend the SINGLE BEST matching restaurant.
 
-        Return ONLY a valid JavaScript array of restaurant IDs (as strings), like: ["id1", "id2"]
+Return ONLY a valid JavaScript array with one restaurant ID (as strings), like: ["id1"]
 
-        DO NOT explain. DO NOT return an empty array.
-        ${preferenceText}
+DO NOT explain. DO NOT return an empty array.
+${preferenceText}
 
-        Restaurants:
-        ${restaurantList}
-        
-        Recommended restaurant IDs:
-        `;
+Restaurants:
+${restaurantList}
+
+Recommended restaurant IDs:
+`;
 
         const response = await ai.generate({prompt});
         console.log(response.text);
-        let recommendedIds: string[] = [];
-        let recommendedRestaurants: typeof enriched = [];
+        let recommendedId: string;
+        let selectedRestaurant: typeof restaurants[0];
 
         try {
             const cleanedText = response.text
@@ -198,39 +189,35 @@ export const mainPickFlow = ai.defineFlow(
                 throw new Error(`No array found in AI response: "${cleanedText}"`);
             }
 
-            recommendedIds = JSON.parse(match[0]);
+            const recommendedIds = JSON.parse(match[0]);
 
-            if (!Array.isArray(recommendedIds)) {
-                throw new Error("Parsed data is not an array");
+            if (!Array.isArray(recommendedIds) || recommendedIds.length === 0) {
+                throw new Error("Parsed data is not a valid array with at least one ID");
             }
 
-            recommendedRestaurants = enriched.filter(r =>
-                recommendedIds.includes(r.id)
-            );
+            recommendedId = recommendedIds[0];
+            selectedRestaurant = restaurants.find(r => r.id === recommendedId)!;
+            if(!selectedRestaurant) throw new Error("Selected restaurant not found.");
         } catch (err) {
             console.error("Failed to parse recommended restaurant IDs:", err);
             console.error("Raw AI output was:", response.text);
             throw new Error("Invalid AI output — could not extract restaurant IDs.");
         }
 
+        const bannerRes = await restaurantBannerFlow.run({
+            name: selectedRestaurant.name,
+            tags: selectedRestaurant.tags
+        });
 
-        const finalResults = await Promise.all(
-            recommendedRestaurants.map(async (r) => {
-                const bannerRes = await restaurantBannerFlow.run({
-                    name: r.name,
-                    tags: r.tags
-                });
 
-                return {
-                    id: r.id,
-                    tags: r.tags,
-                    pictureCategory: bannerRes.result.pictureCategory
-                }
-            })
-        )
+        const finalResult = {
+            id: selectedRestaurant.id,
+            tags: selectedRestaurant.tags,
+            pictureCategory: bannerRes.result.pictureCategory
+        };
 
-        console.log(finalResults);
-        return finalResults;
+        console.log(finalResult);
+        return finalResult;
     }
 )
 
@@ -250,9 +237,7 @@ export const msgAIFlow = ai.defineFlow(
                 })
             ),
         }),
-        outputSchema: z.array(
-            restaurantSchema
-        )
+        outputSchema: restaurantSchema,
     },
     async ({ uid, message, restaurants }) => {
         const userSnap = await db.collection("users").doc(uid).get();
@@ -261,58 +246,52 @@ export const msgAIFlow = ai.defineFlow(
         const preferences = userPreferenceSchema.parse(rawPreferences || {});
 
         const restrictionText = `
-        User Restriction:
-        - Dietary Restrictions: ${preferences.dietaryPreferences.join(', ') || 'None'}
-        - Allergies: ${preferences.allergies.join(', ') || 'None'}
-        `;
+User Restriction:
+- Dietary Restrictions: ${preferences.dietaryPreferences.join(', ') || 'None'}
+- Allergies: ${preferences.allergies.join(', ') || 'None'}
+`;
 
         console.log("Flow input length:", restaurants.length);
-        const enriched = await Promise.all(
-            restaurants.map(async (restaurant) => {
-                const res = await restaurantTagsFlow.run(restaurant.name);
-                const newTags = res.result;
-                console.log(`Generated tags for ${restaurant.name}:`, newTags);
-                return { ...restaurant, tags: newTags };
-            })
-        );
 
-        const restaurantList = enriched.map((r, i) => {
+        const restaurantList = restaurants.map((r, i) => {
             return `#${i+1}
-            ID: ${r.id}
-            Name: ${r.name}
-            Rating: ${r.rating}
-            Tags: ${r.tags.join(', ')}
-            Favorite: ${r.isFavorite ? 'Yes' : 'No'}`;
-        }).join('\n\n');
+ID: ${r.id}
+Name: ${r.name}
+Rating: ${r.rating}
+Tags: ${r.tags.join(', ')}
+Favorite: ${r.isFavorite ? 'Yes' : 'No'}`;
+            })
+            .join('\n\n');
 
         const prompt = `
-        You are a smart restaurant recommendation AI.
+You are a smart restaurant recommendation AI.
 
-        You will be given:
-        - A user message describing what they want to eat
-        - Their dietary restrictions and allergies
-        - A list of available restaurants
+You will be given:
+- A user message describing what they want to eat
+- Their dietary restrictions and allergies
+- A list of available restaurants
 
-        Recommend the best restaurants that match the user's message and restrictions. You MUST return at least one result. If none are perfect, choose the closest matches.
+Recommend the best restaurant that match the user's message and restrictions. Your job is to recommend the SINGLE BEST matching restaurant.
 
-        Return ONLY a valid JavaScript array of restaurant IDs (as strings), like: ["id1", "id2"]
-        DO NOT explain anything. DO NOT return an empty array.
+Return ONLY a valid JavaScript array of restaurant IDs (as strings), like: ["id1"]
 
-        ${restrictionText}
+DO NOT explain anything. DO NOT return an empty array.
 
-        User Message:
-        "${message}"
+${restrictionText}
 
-        Restaurants:
-        ${restaurantList}
+User Message:
+"${message}"
 
-        Recommended restaurant IDs:
+Restaurants:
+${restaurantList}
+
+Recommended restaurant IDs:
         `;
 
         const response = await ai.generate({ prompt });
         console.log(response.text);
-        let recommendedIds: string[] = [];
-        let recommendedRestaurants: typeof enriched = [];
+        let recommendedId: string;
+        let selectedRestaurant: typeof restaurants[0];
 
         try {
             const cleanedText = response.text
@@ -325,38 +304,34 @@ export const msgAIFlow = ai.defineFlow(
                 throw new Error(`No array found in AI response: "${cleanedText}"`);
             }
 
-            recommendedIds = JSON.parse(match[0]);
+            const recommendedIds = JSON.parse(match[0]);
 
-            if (!Array.isArray(recommendedIds)) {
-                throw new Error("Parsed data is not an array");
+            if (!Array.isArray(recommendedIds) || recommendedIds.length === 0) {
+                throw new Error("Parsed data is not a valid array with at least one ID.");
             }
 
-            recommendedRestaurants = enriched.filter(r =>
-                recommendedIds.includes(r.id)
-            );
+            recommendedId = recommendedIds[0];
+            selectedRestaurant = restaurants.find(r => r.id === recommendedId)!;
+            if (!selectedRestaurant) throw new Error("Selected restaurant not found.");
         } catch (err) {
             console.error("Failed to parse recommended restaurant IDs:", err);
             console.error("Raw AI output was:", response.text);
             throw new Error("Invalid AI output — could not extract restaurant IDs.");
         }
 
-        const finalResults = await Promise.all(
-            recommendedRestaurants.map(async (r) => {
-                const bannerRes = await restaurantBannerFlow.run({
-                    name: r.name,
-                    tags: r.tags
-                });
+        const bannerRes = await restaurantBannerFlow.run({
+            name: selectedRestaurant.name,
+            tags: selectedRestaurant.tags
+        });
 
-                return {
-                    id: r.id,
-                    tags: r.tags,
-                    pictureCategory: bannerRes.result.pictureCategory
-                };
-            })
-        );
+        const finalResult = {
+            id: selectedRestaurant.id,
+            tags: selectedRestaurant.tags,
+            pictureCategory: bannerRes.result.pictureCategory
+        }
 
-        console.log(finalResults);
-        return finalResults;
+        console.log(finalResult);
+        return finalResult;
     }
 )
 

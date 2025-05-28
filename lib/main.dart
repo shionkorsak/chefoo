@@ -85,15 +85,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     
     // location monitoring after app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationService = Provider.of<LocationService>(context, listen: false);
       locationService.startLocationUpdates(context);
-    
+      
       try {
-        preload.PreloadService.preloadData(context, restaurantProvider);
+        // final done = preload.PreloadService.preloadData(context, restaurantProvider);
       } catch (e) {
         print('Error preloading data: $e');
       }
