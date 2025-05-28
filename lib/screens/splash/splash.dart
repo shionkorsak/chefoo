@@ -1,15 +1,17 @@
-import 'dart:developer';
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
-import 'package:chefoo/screens/main_test.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
-import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
-import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
+import 'package:chefoo/services/preload_service.dart' as preload;
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isLoggedIn;
-  const SplashScreen({super.key, required this.isLoggedIn});
+  const SplashScreen({
+    super.key, 
+    required this.isLoggedIn, 
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -31,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _circleAnimation = Tween<double>(
       begin: 0,
-      end: 3.5, // Increased to ensure circle extends beyond screen edges
+      end: 3.5,
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
@@ -46,28 +48,6 @@ class _SplashScreenState extends State<SplashScreen>
     ));
 
     Future.delayed(const Duration(milliseconds: 300), handleSplashFlow);
-    // Future.delayed(const Duration(milliseconds: 300), () {
-    //   _controller.forward().then((_) {
-        
-        // Future.delayed(const Duration(milliseconds: 500), () {
-        //   Navigator.of(context).pushReplacement(
-        //     PageRouteBuilder(
-        //       pageBuilder: (context, animation, secondaryAnimation) =>
-        //           const GetStartedScreen(),
-        //       transitionsBuilder:
-        //           (context, animation, secondaryAnimation, child) {
-        //         return FadeTransition(
-        //           opacity: animation,
-        //           child: child,
-        //         );
-        //       },
-        //       transitionDuration: const Duration(milliseconds: 500),
-        //     ),
-        //   );
-        // });
-
-    //   });
-    // });
   }
 
   Future<void> handleSplashFlow() async {
@@ -76,48 +56,104 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    if (widget.isLoggedIn) {
-      try {
-        final placeService = Provider.of<PlaceService>(context, listen: false);
-        final locationService = 
-          Provider.of<LocationService>(context, listen: false);
-        final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-        final aiService = RecommendationService(
-          placeService: placeService,
-          restaurantProvider: restaurantProvider
-        );
+    if (!widget.isLoggedIn) {
+      _goToGetStarted();
+      return;
+    }
 
-        await locationService.getCurrentLocation();
-        final position = locationService.currentPosition;
-        if (position == null) throw Exception("No location found");
+    final restaurantProvider = 
+        Provider.of<RestaurantProvider>(context, listen: false);
 
-        final List<Place> recommended = await aiService.fetchAndRecommendNearbyPlaces(position, context);
-        log('[SplashScreen] recommendedPlaces count: ${recommended.length}');
+    try {
+      final success = 
+        await preload.PreloadService.preloadData(context, restaurantProvider);
 
-        if (!mounted) return;
+      if (!mounted) return;
 
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, animation, __) => MainScreen(recommendedPlaces: recommended),
-            transitionsBuilder: (_, animation, __, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 500),
-          ),
-        );
-      } catch (e) {
-        log("Splash fetch error: $e");
+      if (!success) {
+        _showRetryDialog("Failed to load nearby restaurants. Please check your connection and try again.");
+        return;
       }
-    } else {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, animation, __) => const GetStartedScreen(),
-          transitionsBuilder: (_, animation, __, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+
+      bool isReady = await _waitForRecommendations(restaurantProvider);
+      if (!isReady) {
+        _showRetryDialog(
+            "Took too long to load recommendations. Please try again.");
+        return;
+      }
+
+      _goToMainScreen();
+    } catch (e) {
+      print("[SplashScreen] Error during preload: $e");
+      if (mounted) {
+        _showRetryDialog("Something went wrong while preparing your experience.");
+      }
     }
   }
+
+  Future<bool> _waitForRecommendations(RestaurantProvider provider, {int retries = 10, Duration delay = const Duration(milliseconds: 300)}) async {
+    for (int i = 0; i < retries; i++) {
+      if (provider.recommendedPlaces.isNotEmpty) {
+        print('[SplashScreen] Recommended places are ready.');
+        return true;
+      }
+      print('[SplashScreen] Waiting for recommended places... attempt ${i + 1}');
+      await Future.delayed(delay);
+    }
+    return false;
+  }
+
+  void _goToMainScreen() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, animation, __) => MainScreen(),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  void _goToGetStarted() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, animation, __) => const GetStartedScreen(),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+
+  void _showRetryDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Oops"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              handleSplashFlow();
+            },
+            child: const Text("Retry"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const GetStartedScreen()),
+              );
+            },
+            child: const Text("Skip"),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   @override
   void dispose() {
