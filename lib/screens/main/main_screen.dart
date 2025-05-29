@@ -164,6 +164,7 @@ class _MainScreenState extends MainController {
                       child: SizedBox(
                         height: 270,
                         child: RestaurantCardListHorizontal(
+                          without: false,
                           places: restaurantProvider.places,
                           isLoading: isLoading,
                         ),
@@ -195,6 +196,7 @@ class _MainScreenState extends MainController {
                       child: SizedBox(
                         height: 270,
                         child: RestaurantCardListHorizontal(
+                          without: false, 
                           places: mainProvider.recentMeals,
                           isLoading: mainProvider.isLoading,
                         ),
