@@ -98,12 +98,27 @@ class MyApp extends StatelessWidget {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     
     // location monitoring after app starts
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final locationService = Provider.of<LocationService>(context, listen: false);
       locationService.startLocationUpdates(context);
-    
+      
+      locationService.addListener(() {
+        if (locationService.currentPosition != null && 
+            Provider.of<RestaurantProvider>(context, listen: false).places.isEmpty) {
+          print('Location available now, loading places...');
+          _loadPlacesForLocation(context, locationService.currentPosition!);
+        }
+      });
+      
+      LocationHandler.startLocationUpdates(context);
+
+      if (locationService.currentPosition != null) {
+        LocationHandler.fetchNearbyPlaces(context, locationService.currentPosition!);
+      }
+      
       try {
-        preload.PreloadService.preloadData(context, restaurantProvider);
+        await preload.PreloadService.preloadData(context, restaurantProvider);
+        print('Places loaded: ${restaurantProvider.places.length}');
       } catch (e) {
         print('Error preloading data: $e');
       }
@@ -141,6 +156,27 @@ class MyApp extends StatelessWidget {
         // home: MainScreen());
     // this testScreen is only to visualize google maps info
     // which we are importing, and related widgets
+  }
+  
+  void _loadPlacesForLocation(BuildContext context, Position position) async {
+    final placeService = Provider.of<PlaceService>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    
+    try {
+      final response = await placeService.getNearbyPlaces(
+        lat: position.latitude,
+        lng: position.longitude,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
+      );
+      
+      if (response.success && response.data != null) {
+        print('Loaded ${response.data!.length} places at current location');
+        restaurantProvider.setPlaces(response.data!);
+      }
+    } catch (e) {
+      print('Error loading places: $e');
+    }
   }
 }
 

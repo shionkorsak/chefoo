@@ -164,19 +164,24 @@ abstract class MainController extends State<MainScreen> {
 
   void _goToNextPage() {
     if (!mounted) return;
+    
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final itemCount = restaurantProvider.places.length;
     if (itemCount == 0) return; // avoid division by zero
 
-    final nextPage = (_carouselPage + 1) % itemCount;
+    //final nextPage = (_carouselPage + 1) % itemCount;
+    // Only try to animate if the controller is attached
+    if (carouselController.hasClients) {
+      final nextPage = (_carouselPage + 1) % itemCount;
 
-    carouselController.animateToPage(
-      nextPage,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
-    _carouselPage = nextPage;
-    _startInactivityTimer(); // restart the loop
+      carouselController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      _carouselPage = nextPage;
+      _startInactivityTimer(); // restart the loop
+    }
   }
 
   Future<void> _loadCalendarData() async {

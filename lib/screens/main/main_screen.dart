@@ -116,7 +116,8 @@ class _MainScreenState extends MainController {
                           style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                         ),
                     kGap8,
-                    _buildChefoosPick(restaurantProvider),
+                    //[UNCOMMENT LATER]
+                    //_buildChefoosPick(restaurantProvider),
                     kGap20,
           
                     // Other Recommendations (auto-scroll carousel)
@@ -127,10 +128,27 @@ class _MainScreenState extends MainController {
                         IconButton(
                           icon: const Icon(Icons.chevron_right, color: AppColors.primary),
                           onPressed: () {
+                            final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                            
+                            final Map<String, Place> uniquePlaces = {};
+                            
+                            for (var place in restaurantProvider.routePlaces) {
+                              uniquePlaces[place.id] = place;
+                            }
+                            
+                            for (var place in restaurantProvider.places) {
+                              uniquePlaces[place.id] = place;
+                            }
+                            
+                            final List<Place> combinedPlaces = uniquePlaces.values.toList();
+                            
+                            print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
+                            print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
+                            
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OtherRecomScreen(places: mainProvider.recommendations),
+                                builder: (context) => OtherRecomScreen(places: combinedPlaces),
                               ),
                             );
                           },
