@@ -36,72 +36,25 @@ abstract class MainController extends State<MainScreen> {
   void initState() {
     super.initState();
 
-    _loadCalendarData();
-    _initializeLocation();
-
     carouselController = PageController(
       initialPage: 0,
       viewportFraction: 0.6,
     );
 
-    carouselController.addListener(() {
-      final current = carouselController.page?.round();
-      if (current != null && current != _carouselPage) {
-        _carouselPage = current;
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      carouselController.addListener(() {
+        if (!carouselController.hasClients) return;
+        final current = carouselController.page?.round();
+        if (current != null && current != _carouselPage) {
+          _carouselPage = current;
+        }
+      });
     });
 
+    _loadCalendarData();
     checkGpsStatus();
     _startInactivityTimer();
-  }
-
-  Future<void> _initializeLocation() async {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-
-    if(restaurantProvider.places.isNotEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
-      // return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final locationService = 
-      Provider.of<LocationService>(context, listen: false);
-    await locationService.getCurrentLocation();
-
-    final position = locationService.currentPosition;
-    if(position != null) {
-      await _fetchandRecommend(position);
-    }
-  }
-
-  Future<void> _fetchandRecommend(Position position) async {
-    final placeService = Provider.of<PlaceService>(context, listen: false);
-    final restaurantProvider = 
-      Provider.of<RestaurantProvider>(context, listen: false);
-
-    final service = RecommendationService (
-      placeService: placeService,
-      restaurantProvider: restaurantProvider
-    );
-
-    try {
-      final List<Place> recommendations = await service.fetchAndRecommendNearbyPlaces(position, context);
-
-      setState(() {
-        _recommendedPlaces = recommendations;
-      });
-    } catch (e) {
-      log('Error fetching recommendations: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    _setRecommendedPlace();
   }
 
   @override
@@ -112,19 +65,25 @@ abstract class MainController extends State<MainScreen> {
       Provider.of<LocationService>(context);
 
     if(locationService.locationChangedSignificantly) {
-      log('Location changed significantly, fetching new places');
-
       final position = locationService.currentPosition;
       if(position != null) {
-        setState(() {
-          _isLoading = true;
-        });
-        _fetchandRecommend(position);
+        log('[MAIN CTRL] Location changed significantly, fetching new places');
       } else {
         log('position is null');
       }
 
       locationService.resetLocationChangedFlag();
+    }
+  }
+
+  Future<void> _setRecommendedPlace() async {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final recommended = restaurantProvider.recommendedPlaces;
+
+    if (mounted) {
+      setState(() {
+        _recommendedPlaces = recommended;
+      });
     }
   }
 
@@ -135,25 +94,19 @@ abstract class MainController extends State<MainScreen> {
       enabled = await location.requestService();
     }
     if (mounted) {
-      setState(() {
-        isGpsEnabled = enabled;
-      });
+      setState(() => isGpsEnabled = enabled);
     }
   }
 
   void toggleGps() {
-    setState(() {
-      isGpsEnabled = !isGpsEnabled;
-    });
+    setState(() => isGpsEnabled = !isGpsEnabled);
   }
 
   void _startInactivityTimer() {
     _inactivityTimer?.cancel();
     _inactivityTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
-      setState(() {
-        shakeTarget++;
-      });
+      setState(() => shakeTarget++);
       _goToNextPage();
     });
   }

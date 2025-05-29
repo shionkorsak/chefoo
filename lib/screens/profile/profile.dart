@@ -1,13 +1,7 @@
-import 'package:chefoo/models/user/user_account.dart';
-import 'package:chefoo/providers/user_account.dart';
-import 'package:chefoo/screens/main_test.dart';
-import 'package:chefoo/widgets/cards/favorite_list.dart';
-import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
-import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
-import 'package:chefoo/screens/map_view.dart';
-import 'package:chefoo/providers/restaurant.dart';
+import 'package:chefoo/widgets/cards/favorite_list.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -32,8 +26,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SafeArea(
             child: Consumer<UserAccountProvider>(
                 builder: (context, provider, child) {
-              if (provider.isLoading)
+              if (provider.isLoading) {
                 return Center(child: CircularProgressIndicator());
+              }
               if (provider.errorMessage != null) {
                 return Center(
                     child: Text(provider.errorMessage!,
@@ -41,9 +36,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
 
               final account = provider.userAccount;
-              if (account == null)
+              if (account == null) {
                 return Center(child: Text("No user data available."));
-
+              }
+              
               return Column(
                 children: [
                   Expanded(

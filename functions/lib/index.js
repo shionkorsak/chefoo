@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updatePreferenceAI = exports.msgAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
+exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updatePreferenceAI = exports.generateTagsAndBanner = exports.msgAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
 const https_1 = require("firebase-functions/https");
 const personality_1 = require("./database/ai/personality");
 const processMeal_1 = require("./database/ai/processMeal");
@@ -15,6 +15,7 @@ Object.defineProperty(exports, "updateClientPreferences", { enumerable: true, ge
 var mainPick_2 = require("./recommendation/mainPick");
 Object.defineProperty(exports, "mainPick", { enumerable: true, get: function () { return mainPick_2.mainPick; } });
 Object.defineProperty(exports, "msgAI", { enumerable: true, get: function () { return mainPick_2.msgAI; } });
+Object.defineProperty(exports, "generateTagsAndBanner", { enumerable: true, get: function () { return mainPick_2.generateTagsAndBanner; } });
 exports.updatePreferenceAI = (0, https_1.onCallGenkit)(personality_1.processMealBatchFlow);
 exports.processMealAnalysisAI = (0, https_1.onCallGenkit)(processMeal_1.processMealAnalysisFlow);
 exports.mainPickAI = (0, https_1.onCallGenkit)(mainPick_1.mainPickFlow);

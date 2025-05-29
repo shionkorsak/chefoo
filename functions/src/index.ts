@@ -6,7 +6,7 @@ import { analyzeHealthInsightsFlow, analyzeHealthInsightsDailyFlow } from "./dat
 export { createUserAccount } from "./auth/userAuth";
 export { deleteUserAccount } from "./auth/userAuth";
 export { updateClientPreferences } from "./database/user/userPreference";
-export { mainPick, msgAI } from "./recommendation/mainPick"
+export { mainPick, msgAI, generateTagsAndBanner } from "./recommendation/mainPick"
 
 export const updatePreferenceAI = onCallGenkit(processMealBatchFlow);
 export const processMealAnalysisAI = onCallGenkit(processMealAnalysisFlow);

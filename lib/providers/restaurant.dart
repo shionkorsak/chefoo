@@ -4,29 +4,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/restaurant.dart';
 
 class RestaurantProvider with ChangeNotifier {
+  List<Place> _recommendedPlaces = [];
   List<Place> _places = [];
   List<Place> _routePlaces = [];
-  Place? _selectedPlace;
   bool _isLoading = false;
   String? _error;
   bool _routePlacesLoaded = false;
   Map<String, List<Place>> _routePlacesCache = {};
 
+  List<Place> get recommendedPlaces => _recommendedPlaces;
   List<Place> get places => _places;
   List<Place> get routePlaces => _routePlaces;
-  Place? get selectedPlace => _selectedPlace;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get routePlacesLoaded => _routePlacesLoaded;
 
-  void setPlaces(List<Place> places) {
-    _places = places;
-    _savePlacesToPrefs();
+  void setRecommendedPlaces(List<Place> place) {
+    _recommendedPlaces = place;
     notifyListeners();
   }
 
-  void setSelectedPlace(Place? place) {
-    _selectedPlace = place;
+  void setPlaces(List<Place> places) {
+    _places = places;
+    _savePlacesToPrefs();
     notifyListeners();
   }
 
