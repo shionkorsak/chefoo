@@ -1012,7 +1012,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 ),
                 
                 Text(
-                  '${_selectedPlace!.walkingDistance.toStringAsFixed(1)}km',
+                  '${(_selectedPlace!.walkingDistance * 1000).round()}m',
                   style: AppTextStyles.detail,
                 ),
                 

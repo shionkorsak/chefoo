@@ -1,5 +1,3 @@
-// ignore_for_file: lines_longer_than_80_chars
-
 import 'dart:async';
 
 import 'package:chefoo/commons.dart';
@@ -7,6 +5,7 @@ import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -89,11 +88,13 @@ class _SplashScreenState extends State<SplashScreen>
             return;
             }
 
+            /*
             final isReady = await _waitForRecommendations(restaurantProvider);
             if (!isReady) {
             _showRetryDialog("Took too long to load recommendations. Please try again.");
             return;
             }
+            */
 
             _goToMainScreen();
         } catch (e) {
@@ -104,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen>
         }
     }
 
-
+  /*
   Future<bool> _waitForRecommendations(RestaurantProvider provider, {int retries = 10, Duration delay = const Duration(milliseconds: 300)}) async {
     for (int i = 0; i < retries; i++) {
       if (provider.recommendedPlaces.isNotEmpty) {
@@ -116,11 +117,12 @@ class _SplashScreenState extends State<SplashScreen>
     }
     return false;
   }
+  */
 
   void _goToMainScreen() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => MainScreen(),
+        pageBuilder: (_, animation, __) => MainNavigation(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 500),

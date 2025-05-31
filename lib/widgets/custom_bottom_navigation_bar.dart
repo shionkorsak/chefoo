@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/screens/profile/profile.dart';
+import 'package:chefoo/screens/map/map_screen.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -73,11 +74,12 @@ class _MainNavigationState extends State<MainNavigation> {
 
     final List<Widget> screens = [
       MainScreen(),
-      MapViewScreen(places: places),
+      MapScreen(places: places),
       ProfileScreen()
     ];
 
     return Scaffold(
+      extendBody: true,
       body: screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex, 
