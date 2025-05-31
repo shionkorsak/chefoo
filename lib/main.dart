@@ -128,10 +128,10 @@ class MyApp extends StatelessWidget {
         theme: lightTheme,
         navigatorKey: navigatorKey,
 
-        //home: AuthGate());
+        home: AuthGate());
         //home: MainScreen());
         //home: CalendarScreen());
-        home: MapScreen(places: restaurantProvider.places.isNotEmpty ? restaurantProvider.places : [],));
+        //home: MapScreen(places: restaurantProvider.places.isNotEmpty ? restaurantProvider.places : [],));
 
         ///Screen names used from file screens.dart
 

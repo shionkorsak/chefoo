@@ -1,3 +1,4 @@
+import 'package:chefoo/commons.dart';
 import 'package:flutter/material.dart';
 
 class PopularTimesChart extends StatefulWidget {
@@ -148,8 +149,11 @@ class _PopularTimesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final double leftPadding = 20;
+    final double rightPadding = 20;
+
     final paint = Paint()
-      ..color = Colors.blue.withOpacity(0.5)
+      ..color = AppColors.primary
       ..strokeWidth = 2
       ..style = PaintingStyle.fill;
 
@@ -160,13 +164,13 @@ class _PopularTimesPainter extends CustomPainter {
     if (showAxis) {
       // Draw axes
       canvas.drawLine(
-        Offset(40, 10),
-        Offset(40, size.height - 20),
+        Offset(leftPadding, 10),
+        Offset(leftPadding, size.height - 20),
         axisPaint,
       );
       canvas.drawLine(
-        Offset(40, size.height - 20),
-        Offset(size.width - 10, size.height - 20),
+        Offset(leftPadding, size.height - 20),
+        Offset(size.width - rightPadding, size.height - 20),
         axisPaint,
       );
 
@@ -190,7 +194,7 @@ class _PopularTimesPainter extends CustomPainter {
       final labelWidth = textPainter.width + 10; // Add some padding
       
       // Calculate how many labels can fit without overlapping
-      final availableWidth = size.width - 50;  // Total width minus padding
+      final availableWidth = size.width - leftPadding - rightPadding;
       final possibleLabels = (availableWidth / labelWidth).floor();
       final stepSize = ((hoursRange + 1) / possibleLabels).ceil();
 
@@ -205,7 +209,7 @@ class _PopularTimesPainter extends CustomPainter {
         );
         textPainter.layout();
 
-        final x = 40 + (hour - startHour) * (size.width - 50) / hoursRange;
+        final x = leftPadding + (hour - startHour) * availableWidth / hoursRange;
         textPainter.paint(
           canvas,
           Offset(
@@ -216,15 +220,15 @@ class _PopularTimesPainter extends CustomPainter {
       }
 
       // Draw popularity data for opening hours only
-      final width = (size.width - 50) / hoursRange;
+      final width = availableWidth / hoursRange;
       final maxValue = hourlyData.reduce((curr, next) => curr > next ? curr : next).toDouble();
       final height = size.height - 30;
 
       final path = Path();
-      path.moveTo(40, size.height - 20);
+      path.moveTo(leftPadding, size.height - 20);
 
       for (var i = 0; i < hourlyData.length; i++) {
-        final x = 40 + i * width;
+        final x = leftPadding + i * width;
         final y = size.height - 20 - (hourlyData[i] / maxValue * height);
         
         if (i == 0) {

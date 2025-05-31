@@ -97,7 +97,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: LikeButton(place: widget.place),
+            //child: LikeButton(place: widget.place),
           ),
         ],
         leading: const BackButton(),
@@ -112,64 +112,61 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (widget.place.pictureUrls.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PhotoGrid(
-                              photoRefs: widget.place.pictureUrls,
-                              placeName: widget.place.name,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Stack(
-                        children: [
-                          Container(
-                            height: 300,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: NetworkImage(
-                                  'https://maps.googleapis.com/maps/api/place/photo'
-                                  '?maxwidth=800'
-                                  '&photo_reference=${widget.place.pictureUrls.first}'
-                                  '&key=${MapsConstants.mapsKey}',
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Outer stack for image and overlays
+                        Stack(
+                          children: [
+                            Container(
+                              height: 320,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: NetworkImage(
+                                    'https://maps.googleapis.com/maps/api/place/photo'
+                                    '?maxwidth=800'
+                                    '&photo_reference=${widget.place.pictureUrls.first}'
+                                    '&key=${MapsConstants.mapsKey}',
+                                  ),
+                                  fit: BoxFit.cover,
                                 ),
-                                fit: BoxFit.cover,
                               ),
                             ),
-                          ),
-                          Positioned(
-                            bottom: 12,
-                            right: 12,
-                            child: Row(
-                              children: [
-                                ActionCircleButton(
-                                  icon: Icons.share,
-                                  backgroundColor:
-                                      Colors.white.withOpacity(0.8),
-                                  iconColor: AppColors.primary,
-                                  onPressed: () {
-                                    // TODO: Share functionality
-                                  },
-                                ),
-                                SizedBox(width: 12),
-                                ActionCircleButton(
-                                  icon: Icons.chat_bubble_outline,
-                                  backgroundColor:
-                                      Colors.white.withOpacity(0.8),
-                                  iconColor: AppColors.primary,
-                                  onPressed: () {
-                                    // TODO: Chat or review action
-                                  },
-                                ),
-                              ],
+                            Positioned(
+                              bottom: 12,
+                              right: 12,
+                              child: Row(
+                                children: [
+                                  ActionCircleButton(
+                                    icon: Icons.share,
+                                    backgroundColor:
+                                        Colors.white.withOpacity(0.8),
+                                    iconColor: AppColors.primary,
+                                    onPressed: () {
+                                      // TODO: Share functionality
+                                    },
+                                  ),
+                                  SizedBox(width: 12),
+                                  ActionCircleButton(
+                                    icon: Icons.chat_bubble_outline,
+                                    backgroundColor:
+                                        Colors.white.withOpacity(0.8),
+                                    iconColor: AppColors.primary,
+                                    onPressed: () {
+                                      // TODO: Chat or review action
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                        // The overlay AuthCard has been removed as requested.
+                      ],
                     ),
+                  //const SizedBox(height: 100),
+                  // if (widget.place.pictureUrls.isNotEmpty)
+                  //   const SizedBox(height: 40),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: Row(
@@ -179,12 +176,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           widget.place.name,
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
-                        OpenStatusBadge(isOpen: widget.place.isOpenNow ?? false),
+                        OpenStatusBadge(
+                            isOpen: widget.place.isOpenNow ?? false),
                       ],
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -233,120 +231,264 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   ),
                                   const SizedBox(width: 16),
                                   LikeButton(place: widget.place),
+                                  
+                                  
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right side: Tags card
-                        Expanded(
-                          child: AuthCard(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 0),
-                            children: [
-                              Text(
-                                'Tags',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                              const SizedBox(height: 16),
+                              
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Tags",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    height: 40,
+                                    child: ListView.separated(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: widget.place.tags.length,
+                                      separatorBuilder: (context, index) =>
+                                          const SizedBox(width: 8),
+                                      itemBuilder: (context, index) {
+                                        return TagChip(
+                                            label: widget.place.tags[index]);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                ],
+                              ),
+                              if (widget.place.openingHours != null &&
+                                  widget.place.openingHours!.isNotEmpty) ...[
+                                // Opening hours block: always start from Monday, expanded view reorders, no duplicate today entry
+                                StatefulBuilder(
+                                  builder: (context, setState) {
+                                    final now = DateTime.now();
+                                    final currentWeekdayIndex =
+                                        now.weekday == 7 ? 6 : now.weekday - 1;
+                                    bool isExpanded = false;
+                                    // Reorder opening hours so Monday is first, Sunday is last
+                                    final reorderedHours = List.generate(
+                                      7,
+                                      (index) => widget
+                                          .place.openingHours![(index + 0) % 7],
+                                    );
+                                    return StatefulBuilder(
+                                      builder: (context, innerSetState) {
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                const Text(
+                                                  'Opening Hours',
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                    isExpanded
+                                                        ? Icons
+                                                            .keyboard_arrow_up
+                                                        : Icons
+                                                            .keyboard_arrow_down,
+                                                  ),
+                                                  onPressed: () {
+                                                    innerSetState(() {
+                                                      isExpanded = !isExpanded;
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            AnimatedCrossFade(
+                                              crossFadeState: isExpanded
+                                                  ? CrossFadeState.showSecond
+                                                  : CrossFadeState.showFirst,
+                                              duration: const Duration(
+                                                  milliseconds: 300),
+                                              firstChild: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 8.0),
+                                                child: Row(
+                                                  children: [
+                                                    SizedBox(
+                                                      width: 120,
+                                                      child: Text(
+                                                        widget
+                                                            .place
+                                                            .openingHours![
+                                                                currentWeekdayIndex]
+                                                            .split(': ')[0],
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: AppColors
+                                                              .textSecondary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      widget
+                                                                  .place
+                                                                  .openingHours![
+                                                                      currentWeekdayIndex]
+                                                                  .split(': ')
+                                                                  .length >
+                                                              1
+                                                          ? widget
+                                                              .place
+                                                              .openingHours![
+                                                                  currentWeekdayIndex]
+                                                              .split(': ')[1]
+                                                          : '',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.normal,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              secondChild: Column(
+                                                children: reorderedHours
+                                                    .asMap()
+                                                    .entries
+                                                    .map((entry) {
+                                                  final index = entry.key;
+                                                  final value = entry.value;
+                                                  final trueIndex =
+                                                      (index + 0) % 7;
+                                                  final isToday = trueIndex ==
+                                                      currentWeekdayIndex;
+                                                  final parts =
+                                                      value.split(': ');
+                                                  final dayLabel = parts.first;
+                                                  final hourRange =
+                                                      parts.length > 1
+                                                          ? parts[1]
+                                                          : '';
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            bottom: 4.0),
+                                                    child: Row(
+                                                      children: [
+                                                        SizedBox(
+                                                          width: 120,
+                                                          child: Text(
+                                                            dayLabel,
+                                                            style: TextStyle(
+                                                              fontWeight: isToday
+                                                                  ? FontWeight
+                                                                      .bold
+                                                                  : FontWeight
+                                                                      .normal,
+                                                              color: isToday
+                                                                  ? AppColors
+                                                                      .primary
+                                                                  : AppColors
+                                                                      .textPrimary,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          hourRange,
+                                                          style: TextStyle(
+                                                            fontWeight: isToday
+                                                                ? FontWeight
+                                                                    .bold
+                                                                : FontWeight
+                                                                    .normal,
+                                                            color: isToday
+                                                                ? AppColors
+                                                                    .primary
+                                                                : AppColors
+                                                                    .textPrimary,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            const Divider(),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: widget.place.tags
-                                    .map((tag) => TagChip(label: tag))
-                                    .toList(),
-                              ),
+                              ],
                             ],
                           ),
                         ),
+                        //const SizedBox(width: 16),
+                        // Right side: (tags card removed)
                       ],
                     ),
                   ),
-                  
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        if (_isLoadingPopularTimes ||
+                            (widget.place.popularTimes != null &&
+                                widget.place.popularTimes!.isNotEmpty)) ...[
+                          if (_isLoadingPopularTimes)
+                            const Center(child: CircularProgressIndicator())
+                          else
+                            AuthCard(
+                              padding: const EdgeInsets.all(16),
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              children: [
+                                Text(
+                                  'Busy time',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  height: 250,
+                                  child: PopularTimesChart(
+                                    popularTimes: widget.place.popularTimes!,
+                                    openingHours: widget.place.openingHours,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 16),
+                          const Divider(),
+                        ],
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              widget.place.name,
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            OpenStatusBadge(
-                                isOpen: widget.place.isOpenNow ?? false),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        RestaurantAddress(widget.place.address),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            StarRating(rating: widget.place.rating),
-                            const SizedBox(width: 16),
-                            RestaurantDistance(
-                                distanceKm: widget.place.walkingDistance),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        const Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            if (widget.place.phone != null)
-                              PhoneButton(phoneNumber: widget.place.phone!),
-                            DirectionsButton(
-                                lat: widget.place.lat, lng: widget.place.lng),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        const Divider(),
-                        if (widget.place.openingHours != null &&
-                            widget.place.openingHours!.isNotEmpty) ...[
-                          const Text(
-                            'Opening Hours',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          ...widget.place.openingHours!.map((hour) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: Text(hour),
-                              )),
-                          const SizedBox(height: 16),
-                          const Divider(),
-                        ],
-                        if (_isLoadingPopularTimes ||
-                            (widget.place.popularTimes != null &&
-                                widget.place.popularTimes!.isNotEmpty)) ...[
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Popular Times',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          if (_isLoadingPopularTimes)
-                            const Center(child: CircularProgressIndicator())
-                          else
-                            SizedBox(
-                              height: 200,
-                              child: PopularTimesChart(
-                                popularTimes: widget.place.popularTimes!,
-                                openingHours: widget.place.openingHours,
-                              ),
-                            ),
-                          const SizedBox(height: 16),
-                          const Divider(),
-                        ],
                         if (_detailsLoaded &&
                             widget.place.reviews.isNotEmpty) ...[
                           Row(
@@ -362,43 +504,70 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                           ...widget.place.reviews.map((review) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: kRadius30,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: Colors.grey.shade300,
+                                    child: Text(
+                                      review.authorName.isNotEmpty ? review.authorName[0].toUpperCase() : '?',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                review.authorName,
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text('${review.rating}'),
-                                              const Icon(Icons.star, size: 16),
-                                            ],
-                                          ),
+                                        Row(
+                                          children: List.generate(5, (index) {
+                                            return Icon(
+                                              index < review.rating.round()
+                                                  ? Icons.star
+                                                  : Icons.star_border,
+                                              size: 16,
+                                              color: AppColors.primary,
+                                            );
+                                          }),
                                         ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          review.text,
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                        const SizedBox(height: 4),
                                         Text(
                                           review.formattedTime,
                                           style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
+                                            color: Colors.grey.shade500,
+                                            fontSize: 11,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(review.text),
-                                  ],
-                                ),
-                              )),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )),
                           const SizedBox(height: 16),
                           const Divider(),
                         ],
@@ -430,52 +599,67 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          SizedBox(
-                            height: 100,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: widget.place.pictureUrls.length > 5
-                                  ? 5
-                                  : widget.place.pictureUrls.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PhotoGrid(
-                                            photoRefs: widget.place.pictureUrls,
-                                            initialIndex: index,
-                                            placeName: widget.place.name,
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1,
+                            ),
+                            itemCount: widget.place.pictureUrls.length > 4 ? 4 : widget.place.pictureUrls.length,
+                            itemBuilder: (context, index) {
+                              final imageUrl =
+                                  'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${widget.place.pictureUrls[index]}&key=${MapsConstants.mapsKey}';
+                              final isLast = index == 3 || index == widget.place.pictureUrls.length - 1;
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PhotoGrid(
+                                        photoRefs: widget.place.pictureUrls,
+                                        initialIndex: index,
+                                        placeName: widget.place.name,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.network(
+                                        imageUrl,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (context, child, progress) {
+                                          if (progress == null) return child;
+                                          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                                        },
+                                        errorBuilder: (context, error, stackTrace) =>
+                                            const Center(child: Icon(Icons.broken_image)),
+                                      ),
+                                      if (isLast)
+                                        Container(
+                                          color: Colors.black.withOpacity(0.5),
+                                          alignment: Alignment.center,
+                                          child: const Text(
+                                            'See More',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
-                                      );
-                                    },
-                                    child: Image.network(
-                                      'https://maps.googleapis.com/maps/api/place/photo'
-                                      '?maxwidth=400'
-                                      '&photo_reference=${widget.place.pictureUrls[index]}'
-                                      '&key=${MapsConstants.mapsKey}',
-                                      height: 100,
-                                      width: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          height: 100,
-                                          width: 100,
-                                          color: Colors.grey[300],
-                                          child: const Icon(
-                                              Icons.image_not_supported),
-                                        );
-                                      },
-                                    ),
+                                    ],
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ],
