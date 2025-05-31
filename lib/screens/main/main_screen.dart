@@ -1,14 +1,16 @@
-import 'package:chefoo/commons.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:chefoo/providers/mainscreen.dart';
-import 'package:chefoo/screens/history/history_screen.dart';
-import 'package:chefoo/screens/main/other_recom_screen.dart';
+import 'package:chefoo/commons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'main_controller.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
+import 'package:chefoo/screens/profile/profile.dart';
 import 'package:chefoo/widgets/ai_input_field.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
-import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
-import 'main_controller.dart';
+import 'package:chefoo/screens/main/other_recom_screen.dart';
+import 'package:chefoo/screens/history/history_screen.dart';
 
 
 class MainScreen extends StatefulWidget {
@@ -19,14 +21,17 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends MainController {
-  int _currentIndex = 0;
-  
-  Widget _buildChefoosPick() {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Widget _buildChefoosPick(RestaurantProvider restaurantProvider) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (recommendedPlaces.isEmpty) {
+    if (restaurantProvider.places.isEmpty) {
       return const Text(
         "No recommendation found.",
         style: AppTextStyles.body,
@@ -72,14 +77,6 @@ class _MainScreenState extends MainController {
     }
     return Scaffold(
       backgroundColor: AppColors.background,
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex, 
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        }
-      ),
       body: Consumer2<LocationService, RestaurantProvider>(
         builder: (context, locationService, restaurantProvider, _) { 
           return SafeArea(
@@ -119,7 +116,8 @@ class _MainScreenState extends MainController {
                           style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                         ),
                     kGap8,
-                    _buildChefoosPick(),
+                    //[UNCOMMENT LATER]
+                    //_buildChefoosPick(restaurantProvider),
                     kGap20,
           
                     // Other Recommendations (auto-scroll carousel)
@@ -130,10 +128,27 @@ class _MainScreenState extends MainController {
                         IconButton(
                           icon: const Icon(Icons.chevron_right, color: AppColors.primary),
                           onPressed: () {
+                            final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                            
+                            final Map<String, Place> uniquePlaces = {};
+                            
+                            for (var place in restaurantProvider.routePlaces) {
+                              uniquePlaces[place.id] = place;
+                            }
+                            
+                            for (var place in restaurantProvider.places) {
+                              uniquePlaces[place.id] = place;
+                            }
+                            
+                            final List<Place> combinedPlaces = uniquePlaces.values.toList();
+                            
+                            print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
+                            print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
+                            
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OtherRecomScreen(places: mainProvider.recommendations),
+                                builder: (context) => OtherRecomScreen(places: combinedPlaces),
                               ),
                             );
                           },
@@ -149,9 +164,9 @@ class _MainScreenState extends MainController {
                       child: SizedBox(
                         height: 270,
                         child: RestaurantCardListHorizontal(
-                            without: false,
-                            places: restaurantProvider.places,
-                            isLoading: isLoading,
+                          without: false,
+                          places: restaurantProvider.places,
+                          isLoading: isLoading,
                         ),
                       ),
                     ),
@@ -181,9 +196,9 @@ class _MainScreenState extends MainController {
                       child: SizedBox(
                         height: 270,
                         child: RestaurantCardListHorizontal(
-                            without: false,
-                            places: mainProvider.recentMeals,
-                            isLoading: mainProvider.isLoading,
+                          without: false, 
+                          places: mainProvider.recentMeals,
+                          isLoading: mainProvider.isLoading,
                         ),
                       ),
                     ),
