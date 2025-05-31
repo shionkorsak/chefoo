@@ -79,6 +79,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
 
     return Scaffold(
+      extendBody: true,
       body: screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex, 

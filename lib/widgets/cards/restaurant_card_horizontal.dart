@@ -135,7 +135,7 @@ class RestaurantCardHorizontal extends StatelessWidget {
                             style: AppTextStyles.detail,
                           ),
                           Text(
-                            '${place.walkingDistance.toStringAsFixed(1)}km',
+                            '${(place.walkingDistance * 1000).round()}m',
                             style: AppTextStyles.detail,
                           )
                         ],
