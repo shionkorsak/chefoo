@@ -66,11 +66,15 @@ class RestaurantDistance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String formattedDistance = distanceKm >= 1.0
+        ? '${distanceKm.toStringAsFixed(1)}km'
+        : '${(distanceKm * 1000).round()}m';
+    
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.directions_walk, size: iconSize),
-        Text('${distanceKm.toStringAsFixed(1)}km'),
+        Text(formattedDistance),
       ],
     );
   }

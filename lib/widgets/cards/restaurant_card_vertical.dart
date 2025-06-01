@@ -147,7 +147,7 @@ class RestaurantCardVertical extends StatelessWidget {
                 place.walkingDistance == 0
                 ? const SizedBox.shrink()
                 : Text(
-                    '${place.walkingDistance.toStringAsFixed(1)}km',
+                    '${(place.walkingDistance * 1000).round()}m',
                     style: AppTextStyles.detail,
                   )
               ],

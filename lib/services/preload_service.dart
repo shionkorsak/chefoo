@@ -56,6 +56,23 @@ class PreloadService {
       }
 
       print('Preloading nearby places...');
+      print('[PRELOAD] Loading basic places data...');
+      final response = await placeService.getNearbyPlaces(
+        lat: position.latitude,
+        lng: position.longitude,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
+      );
+      
+      if (response.success && response.data != null) {
+        print('[PRELOAD] Successfully loaded ${response.data!.length} places');
+        restaurantProvider.setPlaces(response.data!);
+      } else {
+        print('[PRELOAD] Failed to load places: ${response.message}');
+      }
+
+      /* 
+      print('[PRELOAD] Preloading nearby places...');
       
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude, 
@@ -67,7 +84,7 @@ class PreloadService {
         restaurantProvider.addPlaces(response.data!);
         print('Preloaded ${response.data!.length} nearby places');
       }
-
+      */
     } catch (e) {
       print('Error preloading nearby places: $e');
     }

@@ -1,5 +1,3 @@
-// ignore_for_file: lines_longer_than_80_chars
-
 import 'dart:async';
 
 import 'package:chefoo/commons.dart';
@@ -9,6 +7,7 @@ import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -100,10 +99,24 @@ class _SplashScreenState extends State<SplashScreen>
         }
     }
 
+  /*
+  Future<bool> _waitForRecommendations(RestaurantProvider provider, {int retries = 10, Duration delay = const Duration(milliseconds: 300)}) async {
+    for (int i = 0; i < retries; i++) {
+      if (provider.recommendedPlaces.isNotEmpty) {
+        print('[SplashScreen] Recommended places are ready.');
+        return true;
+      }
+      print('[SplashScreen] Waiting for recommended places... attempt ${i + 1}');
+      await Future.delayed(delay);
+    }
+    return false;
+  }
+  */
+
   void _goToMainScreen() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => MainScreen(),
+        pageBuilder: (_, animation, __) => MainNavigation(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 500),
