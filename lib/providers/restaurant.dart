@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,24 @@ class RestaurantProvider with ChangeNotifier {
     _savePlacesToPrefs();
     notifyListeners();
   }
+
+  Future<void> waitForPlacesReady(RestaurantProvider provider) async {
+    if (provider.places.isNotEmpty) return;
+
+    final completer = Completer<void>();
+
+    late VoidCallback listener;
+    listener = () {
+      if (provider.places.isNotEmpty && !completer.isCompleted) {
+        completer.complete();
+        provider.removeListener(listener); // ✅ Safe use after declaration
+      }
+    };
+
+    provider.addListener(listener);
+    return completer.future;
+  }
+
 
   void setLoading(bool loading) {
     _isLoading = loading;

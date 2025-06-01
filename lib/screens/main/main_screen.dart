@@ -1,3 +1,4 @@
+import 'package:chefoo/providers/recommended.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chefoo/providers/mainscreen.dart';
@@ -26,12 +27,12 @@ class _MainScreenState extends MainController {
     super.initState();
   }
 
-  Widget _buildChefoosPick(RestaurantProvider restaurantProvider) {
+  Widget _buildChefoosPick(RecommendedProvider recommendedProvider) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (restaurantProvider.places.isEmpty) {
+    if (recommendedProvider.recommended.isEmpty) {
       return const Text(
         "No recommendation found.",
         style: AppTextStyles.body,
@@ -77,8 +78,8 @@ class _MainScreenState extends MainController {
     }
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Consumer2<LocationService, RestaurantProvider>(
-        builder: (context, locationService, restaurantProvider, _) { 
+      body: Consumer2<LocationService, RecommendedProvider>(
+        builder: (context, locationService, recommendedProvider, _) { 
           return SafeArea(
             child: Padding(
               padding: kPadd20,
@@ -117,7 +118,7 @@ class _MainScreenState extends MainController {
                         ),
                     kGap8,
                     //[UNCOMMENT LATER]
-                    //_buildChefoosPick(restaurantProvider),
+                    _buildChefoosPick(recommendedProvider),
                     kGap20,
           
                     // Other Recommendations (auto-scroll carousel)
@@ -165,7 +166,7 @@ class _MainScreenState extends MainController {
                         height: 270,
                         child: RestaurantCardListHorizontal(
                           without: false,
-                          places: restaurantProvider.places,
+                          places: recommendedProvider.enriched,
                           isLoading: isLoading,
                         ),
                       ),

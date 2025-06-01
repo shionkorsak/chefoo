@@ -1,6 +1,7 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/getstarted.dart';
 import 'package:chefoo/providers/mainscreen.dart';
+import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/calendar_screen.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
@@ -84,6 +85,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => MainScreenProvider(),
         ),
+        ChangeNotifierProvider(create: (_) => RecommendedProvider()),
       ],
       child: const MyApp(),
     ),
@@ -158,7 +160,7 @@ class MyApp extends StatelessWidget {
     // which we are importing, and related widgets
   }
   
-  void _loadPlacesForLocation(BuildContext context, Position position) async {
+  Future<void> _loadPlacesForLocation(BuildContext context, Position position) async {
     final placeService = Provider.of<PlaceService>(context, listen: false);
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     
@@ -171,6 +173,7 @@ class MyApp extends StatelessWidget {
       );
       
       if (response.success && response.data != null) {
+        print('[MAIN]');
         print('Loaded ${response.data!.length} places at current location');
         restaurantProvider.setPlaces(response.data!);
       }

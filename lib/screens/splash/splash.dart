@@ -3,9 +3,11 @@
 import 'dart:async';
 
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
+import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -54,6 +56,9 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
     Future<void> handleSplashFlow() async {
+        final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+        final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
+        
         await _controller.forward();
         await Future.delayed(const Duration(milliseconds: 500));
 
@@ -64,36 +69,27 @@ class _SplashScreenState extends State<SplashScreen>
             return;
         }
 
-        final restaurantProvider = 
-            Provider.of<RestaurantProvider>(context, listen: false);
-        final locationService = Provider.of<LocationService>(context, listen: false);
-
         try {
-            print('[SPLASH] Waiting for GPS position...');
-
-            await locationService.getCurrentLocation();
-            final position = locationService.currentPosition;
-
-            if (position == null) {
-            _showRetryDialog("Failed to get GPS location.");
-            return;
-            }
-
-            print('[SPLASH] GPS available at ${position.latitude}, ${position.longitude}');
-
-            final success = await preload.PreloadService.preloadData(context, restaurantProvider);
+            // final success = await preload.PreloadService.preloadData(context, restaurantProvider);
             if (!mounted) return;
 
-            if (!success) {
-            _showRetryDialog("Failed to load nearby restaurants. Please check your connection and try again.");
-            return;
-            }
+            final result = await recommendationService.fetchRecommendedPlaces(
+              restaurantProvider.places,
+              context,
+            );
 
-            final isReady = await _waitForRecommendations(restaurantProvider);
-            if (!isReady) {
-            _showRetryDialog("Took too long to load recommendations. Please try again.");
-            return;
-            }
+            final recommendedProvider =
+                Provider.of<RecommendedProvider>(context, listen: false);
+
+            recommendedProvider.setRecommendations(
+              recommended: result['recommended'] ?? [],
+              enriched: result['enriched'] ?? [],
+            );
+
+            // if (!success) {
+            // _showRetryDialog("Failed to load nearby restaurants. Please check your connection and try again.");
+            // return;
+            // }
 
             _goToMainScreen();
         } catch (e) {
@@ -103,19 +99,6 @@ class _SplashScreenState extends State<SplashScreen>
             }
         }
     }
-
-
-  Future<bool> _waitForRecommendations(RestaurantProvider provider, {int retries = 10, Duration delay = const Duration(milliseconds: 300)}) async {
-    for (int i = 0; i < retries; i++) {
-      if (provider.recommendedPlaces.isNotEmpty) {
-        print('[SplashScreen] Recommended places are ready.');
-        return true;
-      }
-      print('[SplashScreen] Waiting for recommended places... attempt ${i + 1}');
-      await Future.delayed(delay);
-    }
-    return false;
-  }
 
   void _goToMainScreen() {
     Navigator.of(context).pushReplacement(

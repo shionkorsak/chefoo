@@ -1,6 +1,6 @@
-import 'dart:developer';
+import 'dart:async';
+
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/constants.dart';
 import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/services/maps.dart';
@@ -8,40 +8,22 @@ import 'package:geolocator/geolocator.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 class RecommendationService  {
-  final PlaceService placeService;
   final RestaurantProvider restaurantProvider;
   final FirebaseFunctions functions;
 
   RecommendationService ({
-    required this.placeService,
     required this.restaurantProvider,
     FirebaseFunctions? firebaseFunctions,
   }) : functions = firebaseFunctions ?? FirebaseFunctions.instance;
 
-  Future<Map<String, List<Place>>> fetchAndRecommendNearbyPlaces(
-    Position position,
+  Future<Map<String, List<Place>>> fetchRecommendedPlaces(
+    List<Place> availablePlaces,
     BuildContext context,
   ) async {
-    final cacheKey = '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}_1000';
-    print('[PLACE] Fetching places for location: ${position.latitude}, ${position.longitude}');
-    print('[PLACE] Using cache key: $cacheKey for nearby places');
-
+    print('[AI] Start AI recommendation');
     try {
-      final response = await placeService.getNearbyPlaces(
-        lat: position.latitude, 
-        lng: position.longitude, 
-        radius: 1000.0, 
-        apiKey: MapsConstants.mapsKey);
-
-      if(!response.success || response.data == null) {
-        print('[ERROR FETCH] Failed to load places: ${response.message}');
-        return _emptyResult();
-      }
-
-      print('[PLACE] Successfully loaded ${response.data!.length} places');
-
-      final allCachedPlaces = 
-        placeService.cachedPlaces.values.expand((list) => list).toList();
+      await waitForPlacesReady(restaurantProvider);
+      final allCachedPlaces = availablePlaces;
       final enrichedPlaceMap = 
         await _enrichPlacesWithTagsAndBanner(allCachedPlaces);
 
@@ -51,9 +33,14 @@ class RecommendationService  {
         await _getRecommendedPlacesFromAI(placesList, enrichedPlaceMap);
       print('[DEBUG] recommendedPlaces: ${recommendedPlaces.length}');
 
+      final Set<String> recommendedIds = recommendedPlaces.map((p) => p.id).toSet();
+      final List<Place> filteredEnriched = enrichedPlaceMap.values
+          .where((p) => !recommendedIds.contains(p.id))
+          .toList();
+
       return {
         'recommended': recommendedPlaces,
-        'enriched': enrichedPlaceMap.values.toList()
+        'enriched': filteredEnriched,
       };
     } catch (e) {
       print('[ERROR FETCH] Exception during fetchAndRecommendNearbyPlaces: $e');
@@ -106,50 +93,81 @@ class RecommendationService  {
   }
 
     Future<List<Place>> _getRecommendedPlacesFromAI(
-        List<Map<String, dynamic>> placesList,
-        Map<String, Place> enrichedPlaceMap,
-    ) async {
-        try {
-        final HttpsCallable mainPick = functions.httpsCallable('mainPick');
-        final HttpsCallableResult aiResponse = await mainPick.call({
-            'data': placesList.map((p) => {
-                'id': p['id'],
-                'name': p['name'],
-                'rating': p['rating'],
-                'tags': p['tags'],
-                'isFavorite': p['isFavorite'] ?? false,
-            }).toList()
+    List<Map<String, dynamic>> placesList,
+    Map<String, Place> enrichedPlaceMap,
+  ) async {
+    try {
+      final List<Map<String, dynamic>> enrichedListForAI = [];
+
+      // 🧠 Copy enriched fields before sending to AI
+      for (final placeJson in placesList) {
+        final String id = placeJson['id'];
+        final Place? enriched = enrichedPlaceMap[id];
+
+        enrichedListForAI.add({
+          'id': id,
+          'name': placeJson['name'],
+          'rating': placeJson['rating'],
+          'tags': enriched?.tags ?? [],
+          'pictureCategory': enriched?.pictureCategory ?? 'default',
+          'isFavorite': placeJson['isFavorite'] ?? false,
         });
+      }
 
-        final dynamic recommendation = aiResponse.data['result'];
-        print(recommendation);
+      final HttpsCallable mainPick = functions.httpsCallable('mainPick');
+      final HttpsCallableResult aiResponse = await mainPick.call({
+        'data': enrichedListForAI,
+      });
 
-        if (recommendation == null || recommendation.isEmpty) {
-            print('[AI] RECOMMENDATION EMPTY');
-            return [];
-        }
+      final dynamic recommendation = aiResponse.data['result'];
+      print(recommendation);
 
-        print('[AI] RECOMMENDATION RECEIVED: ${recommendation['id']}');
-
-        final String recId = recommendation['id'];
-        final List<String> recTags = List<String>.from(recommendation['tags'] ?? []);
-        final String recCat = recommendation['pictureCategory'] ?? 'default';
-
-        final Place? matched = enrichedPlaceMap[recId];
-        if (matched == null) {
-            print('[AI] No match found for recommended ID: $recId');
-            return [];
-        }
-
-        final updatedPlace = matched.copyWith(
-            tags: recTags,
-            pictureCategory: recCat,
-        );
-
-        return [updatedPlace];
-        } catch (e) {
-        print('[ERROR AI] Failed to get AI recommendations: $e');
+      if (recommendation == null || recommendation.isEmpty) {
+        print('[AI] RECOMMENDATION EMPTY');
         return [];
-        }
+      }
+
+      print('[AI] RECOMMENDATION RECEIVED: ${recommendation['id']}');
+
+      final String recId = recommendation['id'];
+      // final List<String> recTags = List<String>.from(recommendation['tags'] ?? []);
+      // final String recCat = recommendation['pictureCategory'] ?? 'default';
+
+      final Place? matched = enrichedPlaceMap[recId];
+      if (matched == null) {
+        print('[AI] No match found for recommended ID: $recId');
+        return [];
+      }
+
+      // final updatedPlace = matched.copyWith(
+      //   tags: recTags,
+      //   pictureCategory: recCat,
+      // );
+
+      return [matched];
+    } catch (e) {
+      print('[ERROR AI] Failed to get AI recommendations: $e');
+      return [];
     }
+  }
+
+  Future<void> waitForPlacesReady(RestaurantProvider provider) async {
+    if (provider.places.isNotEmpty) return;
+
+    final completer = Completer<void>();
+
+    late VoidCallback listener; 
+
+    listener = () {
+      if (provider.places.isNotEmpty && !completer.isCompleted) {
+        completer.complete();
+        provider.removeListener(listener);
+      }
+    };
+
+    provider.addListener(listener);
+    return completer.future;
+  }
+
+
 }

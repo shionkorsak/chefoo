@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:flutter/material.dart';
@@ -77,8 +78,8 @@ abstract class MainController extends State<MainScreen> {
   }
 
   Future<void> _setRecommendedPlace() async {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-    final recommended = restaurantProvider.recommendedPlaces;
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final recommended = recommendedProvider.recommended;
 
     if (mounted) {
       setState(() {

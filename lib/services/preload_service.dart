@@ -1,7 +1,4 @@
-import 'dart:developer';
 import 'dart:convert';
-import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:math' as math;
@@ -52,37 +49,23 @@ class PreloadService {
     RestaurantProvider restaurantProvider
   ) async {
     try {
-      print('[PRELOAD GET NEARBY]');
       final position = locationService.currentPosition;
       if (position == null) {
-        print('[PRELOAD] Current location not available for preloading');
+        print('Current location not available for preloading');
         return;
       }
 
-      print('[PRELOAD] Preloading nearby places...');
+      print('Preloading nearby places...');
       
-      final recommendationService = RecommendationService(
-        placeService: placeService, 
-        restaurantProvider: restaurantProvider
-        );
+      final response = await placeService.getNearbyPlaces(
+        lat: position.latitude, 
+        lng: position.longitude, 
+        radius: 1000.0, 
+        apiKey: MapsConstants.mapsKey);
 
-      final result = 
-        await recommendationService
-        .fetchAndRecommendNearbyPlaces(position, context);
-
-      final recommendedPlaces = result['recommended'] ?? [];
-      final enrichedPlaces = result['enriched'] ?? [];
-
-      if (recommendedPlaces.isNotEmpty) {
-        restaurantProvider.setRecommendedPlaces(recommendedPlaces);
-        print('[PRELOAD] Stored ${recommendedPlaces.length} recommended places');
-      } else {
-        print('[PRELOAD] NO RECOMMENDATION???');
-      }
-
-      if (enrichedPlaces.isNotEmpty) {
-        restaurantProvider.setPlaces(enrichedPlaces);
-        print('[PRELOAD] Stored ${enrichedPlaces.length} enriched places');
+      if (response.success && response.data != null) {
+        restaurantProvider.addPlaces(response.data!);
+        print('Preloaded ${response.data!.length} nearby places');
       }
 
     } catch (e) {
