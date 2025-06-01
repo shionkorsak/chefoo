@@ -590,6 +590,52 @@ abstract class MapController extends State<MapScreen> {
       print("No destination available for route drawing");
     }
   }
+
+void navigateToNextPlace() {
+  final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+  final places = restaurantProvider.places.isNotEmpty 
+      ? restaurantProvider.places 
+      : widget.places;
+      
+  if (places.isEmpty) return;
+  
+  int currentIndex = selectedPlace != null 
+      ? places.indexWhere((place) => place.id == selectedPlace!.id)
+      : -1;
+      
+  int nextIndex = (currentIndex + 1) % places.length;
+  selectPlace(places[nextIndex]);
+}
+
+void navigateToPreviousPlace() {
+  final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+  final places = restaurantProvider.places.isNotEmpty 
+      ? restaurantProvider.places 
+      : widget.places;
+      
+  if (places.isEmpty) return;
+  
+  int currentIndex = selectedPlace != null 
+      ? places.indexWhere((place) => place.id == selectedPlace!.id)
+      : -1;
+  
+  int previousIndex = (currentIndex - 1 + places.length) % places.length;
+  selectPlace(places[previousIndex]);
+}
+
+void selectPlace(Place place) {
+  setState(() {
+    selectedPlace = place;
+    showPlaceCard = true;
+    createMarkersWithDestination();
+  });
+  
+  if (mapController != null) {
+    mapController!.animateCamera(
+      CameraUpdate.newLatLng(LatLng(place.lat, place.lng))
+    );
+  }
+}
 }
 
 // Helper class for map bounds calculation

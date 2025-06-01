@@ -21,6 +21,38 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends MapController {
   // SECTION 8: UI COMPONENTS
+  Widget _buildNavigationButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    double size = 28,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(size / 2),
+          /*boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08), // More subtle shadow
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],*/
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: size * 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget buildRestaurantCard() {
     if (selectedPlace == null) {
       return const SizedBox.shrink();
@@ -45,108 +77,107 @@ class _MapScreenState extends MapController {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (pictureUrl != null)
-            Container(
-              height: 120,
-              width: 120,
-              child: ClipRRect(
-                borderRadius: kRadius10,
-                child: Image.network(
-                  'https://maps.googleapis.com/maps/api/place/photo'
-                  '?maxwidth=400'
-                  '&photo_reference=${pictureUrl}'
-                  '&key=${MapsConstants.mapsKey}',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Icon(Icons.image, color: Colors.grey[600]),
-                    );
-                  },
-                ),
-              ),
-            ),
-            
-          SizedBox(width: 12),
-          
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 28,
-                  width: double.infinity,
-                  child: Marquee(
-                    text: selectedPlace!.name,
-                    style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
-                    scrollAxis: Axis.horizontal,
-                    blankSpace: 20.0,
-                    velocity: 30.0,
-                    pauseAfterRound: Duration(seconds: 1),
-                    startPadding: 10.0,
-                    accelerationDuration: Duration(seconds: 1),
-                    accelerationCurve: Curves.linear,
-                    decelerationDuration: Duration(milliseconds: 500),
-                    decelerationCurve: Curves.easeOut,
-                  ),
-                ),
-                  
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 10,
-                          color: AppColors.primary,
-                        ),
-                        Text(
-                          selectedPlace!.rating.toString(),
-                          style: AppTextStyles.detail.copyWith(height: 1),
-                        )
-                      ],
-                    ),
-                    Text(
-                      selectedPlace!.tags.isNotEmpty
-                          ? selectedPlace!.tags.first
-                          : 'No tags available',
-                      style: AppTextStyles.detail,
-                    ),
-                  ],
-                ),
-                
-                Text(
-                  selectedPlace!.walkingDistance >= 1.0
-                      ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
-                      : '${(selectedPlace!.walkingDistance * 1000).round()}m',
-                  style: AppTextStyles.detail,
-                ),
-                
-                SizedBox(height: 8),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.info_outline),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RestaurantDetailScreen(place: selectedPlace!),
-                          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (pictureUrl != null)
+                Container(
+                  height: 120,
+                  width: 120,
+                  child: ClipRRect(
+                    borderRadius: kRadius10,
+                    child: Image.network(
+                      'https://maps.googleapis.com/maps/api/place/photo'
+                      '?maxwidth=400'
+                      '&photo_reference=${pictureUrl}'
+                      '&key=${MapsConstants.mapsKey}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Icon(Icons.image, color: Colors.grey[600]),
                         );
                       },
                     ),
+                  ),
+                ),
+                
+              SizedBox(width: 12),
+              
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 28,
+                      width: double.infinity,
+                      child: Marquee(
+                        text: selectedPlace!.name,
+                        style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
+                        scrollAxis: Axis.horizontal,
+                        blankSpace: 20.0,
+                        velocity: 30.0,
+                        pauseAfterRound: Duration(seconds: 1),
+                        startPadding: 10.0,
+                        accelerationDuration: Duration(seconds: 1),
+                        accelerationCurve: Curves.linear,
+                        decelerationDuration: Duration(milliseconds: 500),
+                        decelerationCurve: Curves.easeOut,
+                      ),
+                    ),
+                      
+                    Text(
+                      selectedPlace!.walkingDistance >= 1.0
+                          ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
+                          : '${(selectedPlace!.walkingDistance * 1000).round()}m',
+                      style: AppTextStyles.detail,
+                    ),
+                    
+                    SizedBox(height: 8),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.info_outline),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RestaurantDetailScreen(place: selectedPlace!),
+                              ),
+                            );
+                          },
+                        ),
+                        
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildNavigationButton(
+                              icon: Icons.arrow_back_ios_rounded,
+                              onTap: navigateToPreviousPlace,
+                              size: 28,
+                            ),
+                            
+                            SizedBox(width: 4),
+                            
+                            _buildNavigationButton(
+                              icon: Icons.arrow_forward_ios_rounded,
+                              onTap: navigateToNextPlace,
+                              size: 28,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
