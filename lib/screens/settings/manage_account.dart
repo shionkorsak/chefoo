@@ -157,13 +157,13 @@ class ManageAccountScreen extends StatelessWidget {
                                         isDefaultAction: true,
                                         onPressed: () async { 
                                           Navigator.of(context).pop();
-                                          await _auth.signOut();
                                           Navigator.pushReplacement(
                                             context, 
                                             MaterialPageRoute(
                                               builder: (BuildContext context) => SplashScreen(isLoggedIn: false,)
                                             )
                                           );
+                                          await _auth.signOut();
                                         },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
                                       ),
