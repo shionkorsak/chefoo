@@ -384,6 +384,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             kGap5,
             kGap5,
             TagMap(tags: [
+              'No Preference',
               'No Pork',
               'No Beef',
               'No Seafood',

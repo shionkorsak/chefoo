@@ -22,7 +22,7 @@ class RecommendationService  {
   ) async {
     print('[AI] Start AI recommendation');
     try {
-      await waitForPlacesReady(restaurantProvider);
+      print('[AI] Places provided $availablePlaces');
       final allCachedPlaces = availablePlaces;
       final enrichedPlaceMap = 
         await _enrichPlacesWithTagsAndBanner(allCachedPlaces);
@@ -115,6 +115,7 @@ class RecommendationService  {
       }
 
       final HttpsCallable mainPick = functions.httpsCallable('mainPick');
+      print('[LIST PASSED TO AI], $enrichedListForAI');
       final HttpsCallableResult aiResponse = await mainPick.call({
         'data': enrichedListForAI,
       });
@@ -152,8 +153,12 @@ class RecommendationService  {
   }
 
   Future<void> waitForPlacesReady(RestaurantProvider provider) async {
-    if (provider.places.isNotEmpty) return;
+    if (provider.places.isNotEmpty) {
+        print('[AI] Places are provided');
+        return;
+    }
 
+    print('[AI] Waiting for provider');
     final completer = Completer<void>();
 
     late VoidCallback listener; 
@@ -168,6 +173,4 @@ class RecommendationService  {
     provider.addListener(listener);
     return completer.future;
   }
-
-
 }

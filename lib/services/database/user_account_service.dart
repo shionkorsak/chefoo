@@ -65,7 +65,15 @@ class UserAccountService {
       log('Update successful.');
       return true;
     } catch (e) {
-      throw Exception('Update unsuccessful.');
+      throw Exception('Update unsuccessful: $e');
     }
+  }
+
+  Future<UserAccount?> watchUserAccountOnce() async {
+    if (uid == null) return null;
+
+    final docRef = _firestore.collection('users').doc(uid);
+    final snapshot = await docRef.snapshots().firstWhere((snap) => snap.exists && snap.data() != null);
+    return UserAccount.fromMap(snapshot.data()!);
   }
 }

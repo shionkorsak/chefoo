@@ -59,7 +59,6 @@ exports.createUserAccount = functions.auth.user().onCreate(async (user) => {
         },
         healthInsight: {
             healthScore: 0,
-            weeklyData: [],
             lastAnalyzedAt: new Date().toISOString(),
         },
     };

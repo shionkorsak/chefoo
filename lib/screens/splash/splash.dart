@@ -69,8 +69,9 @@ class _SplashScreenState extends State<SplashScreen>
         }
 
         try {
-            // final success = await preload.PreloadService.preloadData(context, restaurantProvider);
             if (!mounted) return;
+
+            await recommendationService.waitForPlacesReady(restaurantProvider);
 
             final result = await recommendationService.fetchRecommendedPlaces(
               restaurantProvider.places,

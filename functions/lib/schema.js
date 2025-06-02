@@ -52,19 +52,19 @@ exports.restaurantSchema = zod_1.z.object({
     pictureCategory: zod_1.z.string(),
 });
 exports.healthInsightSchema = zod_1.z.object({
-    healthScore: zod_1.z.number().min(0).max(100),
+    healthScore: zod_1.z.number().min(0).max(100).optional(),
     weeklyData: zod_1.z.array(zod_1.z.object({
         date: zod_1.z.string(),
         mealInput: zod_1.z.array(exports.mealInputSchema),
         ratio: zod_1.z.number().min(0).max(100),
         comment: zod_1.z.string()
-    })).length(7),
-    lastAnalyzedAt: zod_1.z.string()
+    })).length(7).optional(),
+    lastAnalyzedAt: zod_1.z.string().optional()
 });
 exports.userAccountSchema = zod_1.z.object({
     profile: exports.userProfileSchema,
     preferences: exports.userPreferenceSchema,
-    healthInsight: exports.healthInsightSchema
+    healthInsight: exports.healthInsightSchema.optional()
 });
 exports.clientUpdatePreferenceSchema = zod_1.z.object({
     dietaryPreferences: zod_1.z.array(zod_1.z.string()),

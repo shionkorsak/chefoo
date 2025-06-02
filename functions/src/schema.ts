@@ -57,7 +57,7 @@ export const restaurantSchema = z.object({
 })
 
 export const healthInsightSchema = z.object({
-    healthScore: z.number().min(0).max(100),
+    healthScore: z.number().min(0).max(100).optional(),
     weeklyData: z.array(
         z.object({
             date: z.string(),
@@ -65,14 +65,14 @@ export const healthInsightSchema = z.object({
             ratio: z.number().min(0).max(100),
             comment: z.string()
         })
-    ).length(7),
-    lastAnalyzedAt: z.string()
+    ).length(7).optional(),
+    lastAnalyzedAt: z.string().optional()
 })
 
 export const userAccountSchema = z.object({
     profile: userProfileSchema,
     preferences: userPreferenceSchema,
-    healthInsight: healthInsightSchema
+    healthInsight: healthInsightSchema.optional()
 })
 
 export const clientUpdatePreferenceSchema = z.object({

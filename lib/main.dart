@@ -144,7 +144,7 @@ class MyApp extends StatelessWidget {
         //home: WidgetTestScreen());
 
         // home: const SplashScreen());
-        //home: SettingsScreen());
+        // home: SettingsScreen());
         //home: MapViewScreen());
         //home: ProfileScreen());
         // home: GetStarted());
