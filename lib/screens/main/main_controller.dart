@@ -4,6 +4,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:chefoo/providers/calendar_state.dart';
@@ -69,6 +70,7 @@ abstract class MainController extends State<MainScreen> {
       final position = locationService.currentPosition;
       if(position != null) {
         log('[MAIN CTRL] Location changed significantly, fetching new places');
+        _refreshRecommendedPlaces();
       } else {
         log('position is null');
       }
@@ -87,6 +89,63 @@ abstract class MainController extends State<MainScreen> {
       });
     }
   }
+
+  Future<void> _refreshRecommendedPlaces() async {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
+    final placeService = Provider.of<PlaceService>(context, listen: false);
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    final position = locationService.currentPosition;
+
+    print('[MAIN-CTRL] Loading everything');
+      if (position == null) {
+        print('[MAIN-CTRL] Cannot load without position');
+        return;
+      }
+
+      final hasCache = await recommendedProvider.hasValidCacheNearby(uid, position);
+
+      if (!hasCache) {
+        print('[MAIN-CTRL] Fetching new recommendations.');
+        // TODO: [Laura] Please implement the refresh logic, just change the places in the restaurant provider with new ones
+        final response = await placeService.getNearbyPlaces(
+          lat: position.latitude,
+          lng: position.longitude,
+          radius: 1000,
+          apiKey: MapsConstants.mapsKey
+        );
+
+        if(response.success && response.data != null) {
+          print('[MAIN-CTRL] Successfully loaded ${response.data!.length} places');
+          restaurantProvider.places.clear();
+          restaurantProvider.setPlaces(response.data!);
+
+          print('[MAIN-CTRL] Waiting for restaurant provider.');
+          await recommendationService.waitForPlacesReady(restaurantProvider);
+          print('[MAIN-CTRL] Fetching recommendations.');
+          final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
+
+          recommendedProvider.setRecommendations(
+            recommended: result['recommended'] ?? [],
+            enriched: result['enriched'] ?? [],
+            uid: uid,
+            position: position,
+          );
+        }
+      } else {
+        print('[MAIN-CTRL] Using cached recommendations');
+        await recommendedProvider.loadFromPrefs(uid, position);
+      }
+
+      if (mounted) {
+        setState(() {
+          _recommendedPlaces = recommendedProvider.recommended;
+        });
+      }
+  }
+  
 
   Future<void> checkGpsStatus() async {
     final location = Location();

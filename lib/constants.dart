@@ -16,7 +16,7 @@ abstract class MapsConstants {
 }
 
 class AppConfig {
-  static const int MAX_PLACES_TO_LOAD = 5; // TODO: change for final presentation
+  static const int MAX_PLACES_TO_LOAD = 3; // TODO: change for final presentation
 }
 class PictureCategoryAssets {
   Map<String, String> get pictureCategoryAssets => _pictureCategoryAssets;

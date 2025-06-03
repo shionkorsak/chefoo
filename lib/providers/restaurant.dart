@@ -24,22 +24,22 @@ class RestaurantProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> waitForPlacesReady(RestaurantProvider provider) async {
-    if (provider.places.isNotEmpty) return;
+  // Future<void> waitForPlacesReady(RestaurantProvider provider) async {
+  //   if (provider.places.isNotEmpty) return;
 
-    final completer = Completer<void>();
+  //   final completer = Completer<void>();
 
-    late VoidCallback listener;
-    listener = () {
-      if (provider.places.isNotEmpty && !completer.isCompleted) {
-        completer.complete();
-        provider.removeListener(listener); // ✅ Safe use after declaration
-      }
-    };
+  //   late VoidCallback listener;
+  //   listener = () {
+  //     if (provider.places.isNotEmpty && !completer.isCompleted) {
+  //       completer.complete();
+  //       provider.removeListener(listener); // ✅ Safe use after declaration
+  //     }
+  //   };
 
-    provider.addListener(listener);
-    return completer.future;
-  }
+  //   provider.addListener(listener);
+  //   return completer.future;
+  // }
 
 
   void setLoading(bool loading) {

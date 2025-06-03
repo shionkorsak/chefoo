@@ -25,10 +25,10 @@ class AuthGate extends StatelessWidget {
           // print('[AUTH] snapshot: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
           // print('[AUTH] snapshot.data: ${snapshot.data}');
           if(snapshot.hasData) {
-            log("[AUTH] User has signed in: ${snapshot.data!.uid}");
+            print("[AUTH] User has signed in: ${snapshot.data!.uid}");
             return PostAuthLoader(user: snapshot.data!);
           } else {
-            log("[AUTH] User has not signed in.");
+            print("[AUTH] User has not signed in.");
             return GetStartedScreen(); 
           }
         }
@@ -65,17 +65,21 @@ class _PostAuthLoaderState extends State<PostAuthLoader> {
       Position? position = locationService.currentPosition;
       print('[POST-AUTH] Loading everything');
       if (position == null) {
-        log('[POST-AUTH] Cannot load without position');
+        print('[POST-AUTH] Cannot load without position');
         return;
       }
 
-      log('[POST-AUTH] Loading from SharedPreference.');
+      await recommendedProvider.cleanupOldEntries(uid);
+      print('[POST-AUTH] Loading from SharedPreference.');
       await recommendedProvider.loadFromPrefs(uid, position);
 
       final hasCache = recommendedProvider.recommended.isNotEmpty;
 
       if (!hasCache) {
-        log('[POST-AUTH] Fetching new recommendations');
+        print('[POST-AUTH] Fetching new recommendations.');
+        print('[POST-AUTH] Waiting for restaurant provider.');
+        await recommendationService.waitForPlacesReady(restaurantProvider);
+        print('[POST-AUTH] Fetching recommendations.');
         final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
 
         recommendedProvider.setRecommendations(
@@ -85,7 +89,7 @@ class _PostAuthLoaderState extends State<PostAuthLoader> {
           position: position,
         );
       } else {
-        log('[POST-AUTH] Using cached recommendations');
+        print('[POST-AUTH] Using cached recommendations');
       }
       
 
