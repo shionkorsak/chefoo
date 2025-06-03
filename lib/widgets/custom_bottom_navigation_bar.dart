@@ -59,7 +59,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
 }
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final bool showWelcomeDialog;
+  const MainNavigation({super.key, required this.showWelcomeDialog});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -73,7 +74,7 @@ class _MainNavigationState extends State<MainNavigation> {
     final places = Provider.of<RestaurantProvider>(context).places;
 
     final List<Widget> screens = [
-      MainScreen(showWelcomeDialog: false),
+      MainScreen(showWelcomeDialog: widget.showWelcomeDialog),
       MapScreen(places: places),
       ProfileScreen()
     ];

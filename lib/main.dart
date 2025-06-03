@@ -7,7 +7,6 @@ import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/providers/app_state.dart';
 import 'package:chefoo/screens/calendar_screen.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
-import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:chefoo/services/calendar_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -49,10 +48,10 @@ Future<void> initializeApp() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-    await initializeApp();
+  await initializeApp();
 
   runApp(
     MultiProvider(

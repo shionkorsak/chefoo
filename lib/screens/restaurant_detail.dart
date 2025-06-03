@@ -6,6 +6,7 @@ import 'package:chefoo/widgets/cards/auth_card.dart';
 import 'package:chefoo/widgets/tags/unclickable_tag.dart';
 import 'package:chefoo/widgets/buttons/circle_button.dart';
 import 'package:chefoo/widgets/star_ratings/star_rating.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
   final Place place;
@@ -225,6 +226,14 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   ActionCircleButton(
                                     icon: Icons.navigation,
                                     onPressed: () {
+                                      final user = FirebaseAuth.instance.currentUser;
+                                      final uid = user?.uid;
+
+                                      if (uid == null) {
+                                        print("User not logged in. Skipping session start.");
+                                        return;
+                                      }
+
                                       final ratingSession = Provider.of<RatingSessionProvider>(context, listen: false);
                                       ratingSession.startSession(
                                         name: widget.place.name,
@@ -232,6 +241,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                             ? widget.place.pictureUrls.first
                                             : '',
                                         id: widget.place.id,
+                                        uid: uid,
                                       );
 
                                       launchUrl(Uri.parse(

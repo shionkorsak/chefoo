@@ -2,6 +2,8 @@ import 'package:chefoo/models/restaurant.dart';
 import 'package:flutter/material.dart';
 
 class RecommendedProvider with ChangeNotifier {
+  static const _recommendedKey = 'recommended_places';
+
   List<Place> _recommended = [];
   List<Place> _enriched = [];
 

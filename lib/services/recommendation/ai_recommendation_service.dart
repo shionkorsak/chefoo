@@ -23,9 +23,9 @@ class RecommendationService  {
     print('[AI] Start AI recommendation');
     try {
       print('[AI] Places provided $availablePlaces');
-      final allCachedPlaces = availablePlaces;
+      final allPlaces = availablePlaces;
       final enrichedPlaceMap = 
-        await _enrichPlacesWithTagsAndBanner(allCachedPlaces);
+        await _enrichPlacesWithTagsAndBanner(allPlaces);
 
       final placesList = enrichedPlaceMap.values.map((p) => p.toJson()).toList();
 

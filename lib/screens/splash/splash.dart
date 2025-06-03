@@ -51,73 +51,55 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.6, 1.0, curve: Curves.easeIn),
     ));
 
-    Future.delayed(const Duration(milliseconds: 300), handleSplashFlow);
+    // Future.delayed(const Duration(milliseconds: 300), handleSplashFlow);
+    _controller.forward();
   }
 
-    Future<void> handleSplashFlow() async {
-        final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-        final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
+    // Future<void> handleSplashFlow() async {
+    //     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    //     final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
         
-        await _controller.forward();
-        await Future.delayed(const Duration(milliseconds: 500));
+    //     await _controller.forward();
+    //     await Future.delayed(const Duration(milliseconds: 500));
 
-        if (!mounted) return;
+    //     if (!mounted) return;
 
-        if (!widget.isLoggedIn) {
-            _goToGetStarted();
-            return;
-        }
+    //     if (!widget.isLoggedIn) {
+    //         _goToGetStarted();
+    //         return;
+    //     }
 
-        try {
-            if (!mounted) return;
+    //     try {
+    //         if (!mounted) return;
 
-            await recommendationService.waitForPlacesReady(restaurantProvider);
+    //         await recommendationService.waitForPlacesReady(restaurantProvider);
 
-            final result = await recommendationService.fetchRecommendedPlaces(
-              restaurantProvider.places,
-              context,
-            );
+    //         final result = await recommendationService.fetchRecommendedPlaces(
+    //           restaurantProvider.places,
+    //           context,
+    //         );
 
-            final recommendedProvider =
-                Provider.of<RecommendedProvider>(context, listen: false);
+    //         final recommendedProvider =
+    //             Provider.of<RecommendedProvider>(context, listen: false);
 
-            recommendedProvider.setRecommendations(
-              recommended: result['recommended'] ?? [],
-              enriched: result['enriched'] ?? [],
-            );
+    //         recommendedProvider.setRecommendations(
+    //           recommended: result['recommended'] ?? [],
+    //           enriched: result['enriched'] ?? [],
+    //         );
 
-            // if (!success) {
-            // _showRetryDialog("Failed to load nearby restaurants. Please check your connection and try again.");
-            // return;
-            // }
-
-            _goToMainScreen();
-        } catch (e) {
-            print("[SplashScreen] Error during preload: $e");
-            if (mounted) {
-            _showRetryDialog("Something went wrong while preparing your experience.");
-            }
-        }
-    }
-
-  /*
-  Future<bool> _waitForRecommendations(RestaurantProvider provider, {int retries = 10, Duration delay = const Duration(milliseconds: 300)}) async {
-    for (int i = 0; i < retries; i++) {
-      if (provider.recommendedPlaces.isNotEmpty) {
-        print('[SplashScreen] Recommended places are ready.');
-        return true;
-      }
-      print('[SplashScreen] Waiting for recommended places... attempt ${i + 1}');
-      await Future.delayed(delay);
-    }
-    return false;
-  }
-  */
+    //         _goToMainScreen();
+    //     } catch (e) {
+    //         print("[SplashScreen] Error during preload: $e");
+    //         if (mounted) {
+    //         _showRetryDialog("Something went wrong while preparing your experience.");
+    //         }
+    //     }
+    // }
 
   void _goToMainScreen() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => MainNavigation(),
+        pageBuilder: (_, animation, __) => MainNavigation(showWelcomeDialog: true,),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 500),
@@ -147,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen>
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              handleSplashFlow();
+              // handleSplashFlow();
             },
             child: const Text("Retry"),
           ),
