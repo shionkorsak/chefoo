@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/getstarted.dart';
 import 'package:chefoo/providers/mainscreen.dart';
@@ -98,70 +100,89 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Future<void> _runPreload(BuildContext context) async {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+
+    locationService.startLocationUpdates(context);
+    LocationHandler.startLocationUpdates(context);
+
+    // Wait until currentPosition is available
+    if (locationService.currentPosition == null) {
+      final completer = Completer<void>();
+      late VoidCallback listener;
+      listener = () {
+        if (locationService.currentPosition != null) {
+          locationService.removeListener(listener);
+          completer.complete();
+        }
+      };
+      locationService.addListener(listener);
+      await completer.future;
+    }
+
+    // Fetch location-based places for preload
+    await preload.PreloadService.preloadData(context, restaurantProvider);
+    print('Places loaded: ${restaurantProvider.places.length}');
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    
+  //   // location monitoring after app starts
+  //   WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //     final locationService = Provider.of<LocationService>(context, listen: false);
+  //     locationService.startLocationUpdates(context);
+      
+  //     locationService.addListener(() {
+  //       if (locationService.currentPosition != null && 
+  //           Provider.of<RestaurantProvider>(context, listen: false).places.isEmpty) {
+  //         print('Location available now, loading places...');
+  //         _loadPlacesForLocation(context, locationService.currentPosition!);
+  //       }
+  //     });
+      
+  //     LocationHandler.startLocationUpdates(context);
+
+  //     if (locationService.currentPosition != null) {
+  //       LocationHandler.fetchNearbyPlaces(context, locationService.currentPosition!);
+  //     }
+      
+  //     try {
+  //       await preload.PreloadService.preloadData(context, restaurantProvider);
+  //       print('Places loaded: ${restaurantProvider.places.length}');
+  //     } catch (e) {
+  //       print('Error preloading data: $e');
+  //     }
+  //   });
+
+  //   return MaterialApp(
+  //       theme: lightTheme,
+  //       navigatorKey: navigatorKey,
+
+  //       home: AuthGate());
+  // }
+
   @override
   Widget build(BuildContext context) {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-    
-    // location monitoring after app starts
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      locationService.startLocationUpdates(context);
-      
-      locationService.addListener(() {
-        if (locationService.currentPosition != null && 
-            Provider.of<RestaurantProvider>(context, listen: false).places.isEmpty) {
-          print('Location available now, loading places...');
-          _loadPlacesForLocation(context, locationService.currentPosition!);
+    return FutureBuilder<void>(
+      future: _runPreload(context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return MaterialApp(
+            theme: lightTheme,
+            home: const SplashScreen(isLoggedIn: false),
+          );
         }
-      });
-      
-      LocationHandler.startLocationUpdates(context);
 
-      if (locationService.currentPosition != null) {
-        LocationHandler.fetchNearbyPlaces(context, locationService.currentPosition!);
-      }
-      
-      try {
-        await preload.PreloadService.preloadData(context, restaurantProvider);
-        print('Places loaded: ${restaurantProvider.places.length}');
-      } catch (e) {
-        print('Error preloading data: $e');
-      }
-    });
-
-    return MaterialApp(
-        theme: lightTheme,
-        navigatorKey: navigatorKey,
-
-        home: AuthGate());
-        //home: MainScreen());
-        //home: CalendarScreen());
-        //home: MapScreen(places: restaurantProvider.places.isNotEmpty ? restaurantProvider.places : [],));
-
-        ///Screen names used from file screens.dart
-
-        // routes: {Screens.profile: (_) => const ProfileScreen()},
-        //home: GetStarted());
-        //home: TestScreen());
-        //home: GetStartedScreen());    
-        //home: WidgetTestScreen());
-
-        // home: const SplashScreen());
-        // home: SettingsScreen());
-        //home: MapViewScreen());
-        //home: ProfileScreen());
-        // home: GetStarted());
-        // home: WidgetTestScreen());
-        // home: WidgetTestScreen2());
-        // home: TestScreen());
-        // home: GetStartedScreen());
-        // home: const SplashScreen());
-        // home: SettingsScreen());
-        // home: RatingScreen());
-        // home: MapViewScreen());
-        // home: MainScreen());
-    // this testScreen is only to visualize google maps info
-    // which we are importing, and related widgets
+        return MaterialApp(
+          theme: lightTheme,
+          navigatorKey: navigatorKey,
+          home: const AuthGate(),
+        );
+      },
+    );
   }
   
   Future<void> _loadPlacesForLocation(BuildContext context, Position position) async {

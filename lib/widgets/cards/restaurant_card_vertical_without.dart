@@ -30,12 +30,6 @@ class RestaurantCardVerticalWithout extends StatelessWidget {
             builder: (context) => RestaurantDetailScreen(place: place),
           ),
         );
-        // [DATABASE]: same here. you can add the same function here so that
-        // the place ID gets sent to database
-        /*
-          String placeId = place.id;
-          saveToDatabase(placeId);
-        */
       },
       child: Container(
         width: 200,

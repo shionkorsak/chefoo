@@ -1,6 +1,7 @@
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/rating/rating_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chefoo/providers/mainscreen.dart';
@@ -240,12 +241,51 @@ class _MainScreenState extends MainController {
                         ),
                       ),
                     ),
+                    ClearPreferencesButton()
                   ],
                 ),
               ),
             ),
           );
         }
+      ),
+    );
+  }
+}
+
+class ClearPreferencesButton extends StatelessWidget {
+  const ClearPreferencesButton({super.key});
+
+  Future<void> clearRecommendationPrefs(BuildContext context) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    final prefs = await SharedPreferences.getInstance();
+    final keys = [
+      '${uid}_recommended',
+      '${uid}_enriched',
+      '${uid}_lat',
+      '${uid}_lng',
+      '${uid}_timestamp',
+    ];
+
+    for (final key in keys) {
+      await prefs.remove(key);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Recommendation prefs cleared.')),
+    );
+
+    debugPrint('[DEBUG] Cleared preferences for user: $uid');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: () => clearRecommendationPrefs(context),
+      icon: const Icon(Icons.delete_forever),
+      label: const Text('Clear Recommendation Cache'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.redAccent,
       ),
     );
   }

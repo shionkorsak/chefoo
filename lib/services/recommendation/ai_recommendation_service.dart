@@ -22,7 +22,7 @@ class RecommendationService  {
   ) async {
     print('[AI] Start AI recommendation');
     try {
-      print('[AI] Places provided $availablePlaces');
+      print('[AI] Places provided: ${availablePlaces.map((p) => p.toJson()).toList()}');
       final allPlaces = availablePlaces;
       final enrichedPlaceMap = 
         await _enrichPlacesWithTagsAndBanner(allPlaces);

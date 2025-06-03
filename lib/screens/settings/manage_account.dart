@@ -1,4 +1,5 @@
 import 'package:chefoo/screens/splash/splash.dart';
+import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/cupertino.dart';
@@ -108,7 +109,7 @@ class ManageAccountScreen extends StatelessWidget {
                                           navigator.pop(); // Close the dialog
                                           await _auth.deleteAccount();
                                           navigator.pushReplacement(
-                                            MaterialPageRoute(builder: (_) => SplashScreen(isLoggedIn: false,)),
+                                            MaterialPageRoute(builder: (_) => GetStartedScreen()),
                                           );
                                         },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
@@ -159,7 +160,7 @@ class ManageAccountScreen extends StatelessWidget {
                                           Navigator.pushReplacement(
                                             context, 
                                             MaterialPageRoute(
-                                              builder: (BuildContext context) => SplashScreen(isLoggedIn: false,)
+                                              builder: (BuildContext context) => GetStartedScreen()
                                             )
                                           );
                                           await _auth.signOut();

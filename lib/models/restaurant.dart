@@ -59,7 +59,7 @@ class Place {
       reviews: [],
       openingHours: null,
       walkingDistance: json['walkingDistance'] as double? ?? 0.0,
-      pictureCategory: ''
+      pictureCategory: json['pictureCategory']
     );
   }
 
@@ -211,6 +211,7 @@ class Place {
       'lng': lng,
       'isOpenNow': isOpenNow,
       'pictureUrls': pictureUrls,
+      'pictureCategory': pictureCategory // added
     };
   }
 

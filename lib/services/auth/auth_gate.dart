@@ -5,6 +5,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/splash/splash.dart';
+import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,12 +22,14 @@ class AuthGate extends StatelessWidget {
       body: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(), 
         builder: (context, snapshot) {
+          // print('[AUTH] snapshot: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
+          // print('[AUTH] snapshot.data: ${snapshot.data}');
           if(snapshot.hasData) {
-            log("[AUTH] User has signed in.");
+            log("[AUTH] User has signed in: ${snapshot.data!.uid}");
             return PostAuthLoader(user: snapshot.data!);
           } else {
             log("[AUTH] User has not signed in.");
-            return SplashScreen(isLoggedIn: false); 
+            return GetStartedScreen(); 
           }
         }
       )
@@ -36,7 +39,9 @@ class AuthGate extends StatelessWidget {
 
 class PostAuthLoader extends StatefulWidget {
   final User user;
-  const PostAuthLoader({super.key, required this.user});
+  PostAuthLoader({super.key, required this.user}) {
+    print('[POST-AUTH] Constructor called');
+  }
 
   @override
   State<PostAuthLoader> createState() => _PostAuthLoaderState();
@@ -51,39 +56,45 @@ class _PostAuthLoaderState extends State<PostAuthLoader> {
 
   Future<void> _loadEverything() async {
     try {
-      final restaurantProvider =
-          Provider.of<RestaurantProvider>(context, listen: false);
-      final recommendedProvider =
-          Provider.of<RecommendedProvider>(context, listen: false);
-      final ratingSessionProvider =
-          Provider.of<RatingSessionProvider>(context, listen: false);
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+      final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
+      final uid = widget.user.uid;
 
-      print('[RATING] Load last sessions.');
-      await ratingSessionProvider.loadSession(uid: widget.user.uid);
+      Position? position = locationService.currentPosition;
+      print('[POST-AUTH] Loading everything');
+      if (position == null) {
+        log('[POST-AUTH] Cannot load without position');
+        return;
+      }
 
-      final recommendationService = RecommendationService(
-        restaurantProvider: restaurantProvider,
-      );
+      log('[POST-AUTH] Loading from SharedPreference.');
+      await recommendedProvider.loadFromPrefs(uid, position);
 
-      print('[RECOMMENDATION] Waiting for restaurant\'s provider.');
-      await recommendationService.waitForPlacesReady(restaurantProvider);
-      print('[RECOMMENDATION] Fetching recommendation');
-      final result = await recommendationService.fetchRecommendedPlaces(
-        restaurantProvider.places,
-        context,
-      );
+      final hasCache = recommendedProvider.recommended.isNotEmpty;
 
-      recommendedProvider.setRecommendations(
-        recommended: result['recommended'] ?? [],
-        enriched: result['enriched'] ?? [],
-      );
+      if (!hasCache) {
+        log('[POST-AUTH] Fetching new recommendations');
+        final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
+
+        recommendedProvider.setRecommendations(
+          recommended: result['recommended'] ?? [],
+          enriched: result['enriched'] ?? [],
+          uid: uid,
+          position: position,
+        );
+      } else {
+        log('[POST-AUTH] Using cached recommendations');
+      }
+      
 
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => MainNavigation(showWelcomeDialog: true,)),
       );
     } catch (e) {
-      print('[POST AUTH] Error: $e');
+      print('[POST-AUTH] Error: $e');
     }
   }
 
