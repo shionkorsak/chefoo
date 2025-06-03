@@ -575,10 +575,8 @@ class PlaceService {
     double endLng
   ) async {
     try {
-      // First check if we have cached this distance
       final cacheKey = '${startLat.toStringAsFixed(6)},${startLng.toStringAsFixed(6)}-${endLat.toStringAsFixed(6)},${endLng.toStringAsFixed(6)}';
       
-      // Try to get from API first
       final apiKey = MapsConstants.mapsKey;
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/directions/json'

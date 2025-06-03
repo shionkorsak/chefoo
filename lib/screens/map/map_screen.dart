@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:chefoo/screens/map/map_controller.dart';
+import 'package:chefoo/utils/place_utils.dart';
+import 'package:chefoo/widgets/tags/unclickable_tag.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Place> places;
@@ -62,126 +64,293 @@ class _MapScreenState extends MapController {
       ? selectedPlace!.pictureUrls.first 
       : null;
       
-    return Container(
-      margin: EdgeInsets.only(bottom: 110, left: 24, right: 24),
-      width: double.infinity,
-      padding: kPadd10,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: kRadius15,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 6,
-            offset: const Offset(0, 4),
+    final crowdednessStatus = PlaceUtils.getCrowdednessStatus(selectedPlace!);
+    
+    String? todayOpeningHours;
+    if (selectedPlace!.openingHours != null && selectedPlace!.openingHours!.isNotEmpty) {
+      final now = DateTime.now();
+      final currentWeekdayIndex = now.weekday == 7 ? 6 : now.weekday - 1;
+      
+      if (currentWeekdayIndex < selectedPlace!.openingHours!.length) {
+        final fullHours = selectedPlace!.openingHours![currentWeekdayIndex];
+        final parts = fullHours.split(': ');
+        if (parts.length > 1) {
+          todayOpeningHours = "Opening hours: ${parts[1]}";
+        }
+      }
+    }
+      
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RestaurantDetailScreen(place: selectedPlace!),
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (pictureUrl != null)
-                Container(
-                  height: 120,
-                  width: 120,
-                  child: ClipRRect(
-                    borderRadius: kRadius10,
-                    child: Image.network(
-                      'https://maps.googleapis.com/maps/api/place/photo'
-                      '?maxwidth=400'
-                      '&photo_reference=${pictureUrl}'
-                      '&key=${MapsConstants.mapsKey}',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: Icon(Icons.image, color: Colors.grey[600]),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                
-              SizedBox(width: 12),
-              
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 28,
-                      width: double.infinity,
-                      child: Marquee(
-                        text: selectedPlace!.name,
-                        style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
-                        scrollAxis: Axis.horizontal,
-                        blankSpace: 20.0,
-                        velocity: 30.0,
-                        pauseAfterRound: Duration(seconds: 1),
-                        startPadding: 10.0,
-                        accelerationDuration: Duration(seconds: 1),
-                        accelerationCurve: Curves.linear,
-                        decelerationDuration: Duration(milliseconds: 500),
-                        decelerationCurve: Curves.easeOut,
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 110, left: 24, right: 24),
+        width: double.infinity,
+        padding: kPadd10,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: kRadius15,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 6,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (pictureUrl != null)
+                  Container(
+                    height: 120,
+                    width: 120,
+                    child: ClipRRect(
+                      borderRadius: kRadius10,
+                      child: Image.network(
+                        'https://maps.googleapis.com/maps/api/place/photo'
+                        '?maxwidth=400'
+                        '&photo_reference=${pictureUrl}'
+                        '&key=${MapsConstants.mapsKey}',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: Icon(Icons.image, color: Colors.grey[600]),
+                          );
+                        },
                       ),
                     ),
+                  ),
+                  
+                SizedBox(width: 12),
+                
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 28,
+                        width: double.infinity,
+                        child: Marquee(
+                          text: selectedPlace!.name,
+                          style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
+                          scrollAxis: Axis.horizontal,
+                          blankSpace: 20.0,
+                          velocity: 30.0,
+                          pauseAfterRound: Duration(seconds: 1),
+                          startPadding: 10.0,
+                          accelerationDuration: Duration(seconds: 1),
+                          accelerationCurve: Curves.linear,
+                          decelerationDuration: Duration(milliseconds: 500),
+                          decelerationCurve: Curves.easeOut,
+                        ),
+                      ),
                       
-                    Text(
-                      selectedPlace!.walkingDistance >= 1.0
-                          ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
-                          : '${(selectedPlace!.walkingDistance * 1000).round()}m',
-                      style: AppTextStyles.detail,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: List.generate(5, (index) {
+                            final difference = selectedPlace!.rating - index;
+                            
+                            IconData icon;
+                            if (difference >= 1) {
+                              icon = Icons.star;
+                            } else if (difference >= 0.5) {
+                              icon = Icons.star_half;
+                            } else {
+                              icon = Icons.star_border;
+                            }
+                            
+                            return Icon(
+                              icon,
+                              size: 16,
+                              color: AppColors.primary,
+                            );
+                          }),
+                        ),
+                      ),
+                      
+                      if (selectedPlace!.tags.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: SizedBox(
+                            height: 40,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: selectedPlace!.tags.length,
+                              separatorBuilder: (context, index) => const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                return TagChip(
+                                  label: selectedPlace!.tags[index]
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      
+                      if (isLoadingPlaceDetails)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Loading hours...',
+                                style: AppTextStyles.detail,
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (selectedPlace!.openingHours != null && selectedPlace!.openingHours!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Builder(
+                            builder: (context) {
+                              try {
+                                final now = DateTime.now();
+                                final dayIndex = now.weekday % 7;
+                                final weekdayTexts = selectedPlace!.openingHours!;
+                                
+                                if (weekdayTexts.isEmpty || weekdayTexts.length <= dayIndex) {
+                                  return Text('Hours not available', style: AppTextStyles.detail);
+                                }
+                                
+                                final fullHours = weekdayTexts[dayIndex];
+                                final parts = fullHours.split(': ');
+                                
+                                if (parts.length > 1) {
+                                  final hoursText = parts[1].trim();
+                                  
+                                  if (hoursText.toLowerCase() == 'closed') {
+                                    return Text('Today: Closed', style: AppTextStyles.detail);
+                                  }
+                                  
+                                  return Text(
+                                    '$hoursText',
+                                    style: AppTextStyles.detail,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                }
+                                return Text('Hours not available', style: AppTextStyles.detail);
+                              } catch (e) {
+                                print('Error formatting opening hours: $e');
+                                return Text('Hours not available', style: AppTextStyles.detail);
+                              }
+                            },
+                          ),
+                        ),
+                      
+                      if (crowdednessStatus != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _getCrowdednessColor(crowdednessStatus),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                _getCrowdednessText(crowdednessStatus),
+                                style: AppTextStyles.detail,
+                              ),
+                            ],
+                          ),
+                        ),
+                      
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          selectedPlace!.walkingDistance >= 1.0
+                              ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
+                              : '${(selectedPlace!.walkingDistance * 1000).round()}m',
+                          style: AppTextStyles.detail,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildNavigationButton(
+                      icon: Icons.arrow_back_ios_rounded,
+                      onTap: navigateToPreviousPlace,
+                      size: 28,
                     ),
                     
-                    SizedBox(height: 8),
+                    SizedBox(width: 4),
                     
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.info_outline),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RestaurantDetailScreen(place: selectedPlace!),
-                              ),
-                            );
-                          },
-                        ),
-                        
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildNavigationButton(
-                              icon: Icons.arrow_back_ios_rounded,
-                              onTap: navigateToPreviousPlace,
-                              size: 28,
-                            ),
-                            
-                            SizedBox(width: 4),
-                            
-                            _buildNavigationButton(
-                              icon: Icons.arrow_forward_ios_rounded,
-                              onTap: navigateToNextPlace,
-                              size: 28,
-                            ),
-                          ],
-                        ),
-                      ],
+                    _buildNavigationButton(
+                      icon: Icons.arrow_forward_ios_rounded,
+                      onTap: navigateToNextPlace,
+                      size: 28,
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Color _getCrowdednessColor(String status) {
+    switch (status) {
+      case "empty":
+        return Colors.green;
+      case "normal":
+        return Colors.orange;
+      case "crowded":
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getCrowdednessText(String status) {
+    switch (status) {
+      case "empty":
+        return "Not busy";
+      case "normal":
+        return "Moderately busy";
+      case "crowded":
+        return "Very busy now";
+      default:
+        return "nope";
+    }
   }
 
   // SECTION 9: MAIN BUILD METHOD
