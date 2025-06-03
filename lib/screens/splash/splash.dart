@@ -67,18 +67,32 @@ class _SplashScreenState extends State<SplashScreen>
             Provider.of<RestaurantProvider>(context, listen: false);
         final locationService = Provider.of<LocationService>(context, listen: false);
 
-        try {
-            print('[SPLASH] Waiting for GPS position...');
-
+    try {
+        print('[SPLASH] Waiting for GPS position...');
+        
+        Position? position;
+        bool locationAvailable = false;
+        
+        for (int attempt = 1; attempt <= 5; attempt++) {
             await locationService.getCurrentLocation();
-            final position = locationService.currentPosition;
-
-            if (position == null) {
-            _showRetryDialog("Failed to get GPS location.");
-            return;
+            position = locationService.currentPosition;
+            
+            if (position != null) {
+                locationAvailable = true;
+                print('[SPLASH] GPS available at ${position.latitude}, ${position.longitude} (attempt $attempt)');
+                break;
             }
-
-            print('[SPLASH] GPS available at ${position.latitude}, ${position.longitude}');
+            
+            if (attempt < 5) {
+                print('[SPLASH] GPS not available yet, waiting before attempt ${attempt + 1}...');
+                await Future.delayed(Duration(milliseconds: 500 * attempt));
+            }
+        }
+        
+        if (!locationAvailable) {
+            _showRetryDialog("Unable to access your location. Please make sure GPS is enabled and try again.");
+            return;
+        }
 
             final success = await preload.PreloadService.preloadData(context, restaurantProvider);
             if (!mounted) return;

@@ -30,8 +30,8 @@ class LikeButton extends StatelessWidget {
             SnackBar(
               content: Text(
                 provider.isFavorite(place!.id) 
-                    ? 'Added to favorites' 
-                    : 'Removed from favorites'
+                    ? 'Removed from favorites' 
+                    : 'Added to favorites'
               ),
               duration: Duration(seconds: 1),
             ),

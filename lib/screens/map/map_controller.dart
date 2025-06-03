@@ -591,51 +591,55 @@ abstract class MapController extends State<MapScreen> {
     }
   }
 
-void navigateToNextPlace() {
-  final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-  final places = restaurantProvider.places.isNotEmpty 
-      ? restaurantProvider.places 
-      : widget.places;
-      
-  if (places.isEmpty) return;
-  
-  int currentIndex = selectedPlace != null 
-      ? places.indexWhere((place) => place.id == selectedPlace!.id)
-      : -1;
-      
-  int nextIndex = (currentIndex + 1) % places.length;
-  selectPlace(places[nextIndex]);
-}
-
-void navigateToPreviousPlace() {
-  final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-  final places = restaurantProvider.places.isNotEmpty 
-      ? restaurantProvider.places 
-      : widget.places;
-      
-  if (places.isEmpty) return;
-  
-  int currentIndex = selectedPlace != null 
-      ? places.indexWhere((place) => place.id == selectedPlace!.id)
-      : -1;
-  
-  int previousIndex = (currentIndex - 1 + places.length) % places.length;
-  selectPlace(places[previousIndex]);
-}
-
-void selectPlace(Place place) {
-  setState(() {
-    selectedPlace = place;
-    showPlaceCard = true;
-    createMarkersWithDestination();
-  });
-  
-  if (mapController != null) {
-    mapController!.animateCamera(
-      CameraUpdate.newLatLng(LatLng(place.lat, place.lng))
-    );
+  List<Place> getSortedPlacesByDistance() {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final places = restaurantProvider.places.isNotEmpty 
+        ? restaurantProvider.places 
+        : widget.places;
+        
+    if (places.isEmpty) return [];
+    
+    return List<Place>.from(places)
+      ..sort((a, b) => a.walkingDistance.compareTo(b.walkingDistance));
   }
-}
+
+  void navigateToNextPlace() {
+    final sortedPlaces = getSortedPlacesByDistance();
+    if (sortedPlaces.isEmpty) return;
+    
+    int currentIndex = selectedPlace != null 
+        ? sortedPlaces.indexWhere((place) => place.id == selectedPlace!.id)
+        : -1;
+        
+    int nextIndex = (currentIndex + 1) % sortedPlaces.length;
+    selectPlace(sortedPlaces[nextIndex]);
+  }
+
+  void navigateToPreviousPlace() {
+    final sortedPlaces = getSortedPlacesByDistance();
+    if (sortedPlaces.isEmpty) return;
+    
+    int currentIndex = selectedPlace != null 
+        ? sortedPlaces.indexWhere((place) => place.id == selectedPlace!.id)
+        : -1;
+    
+    int previousIndex = (currentIndex - 1 + sortedPlaces.length) % sortedPlaces.length;
+    selectPlace(sortedPlaces[previousIndex]);
+  }
+
+  void selectPlace(Place place) {
+    setState(() {
+      selectedPlace = place;
+      showPlaceCard = true;
+      createMarkersWithDestination();
+    });
+    
+    if (mapController != null) {
+      mapController!.animateCamera(
+        CameraUpdate.newLatLng(LatLng(place.lat, place.lng))
+      );
+    }
+  }
 }
 
 // Helper class for map bounds calculation
