@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/services/popular_times.dart';
@@ -24,63 +25,6 @@ class PlaceService {
   Map<String, List<Place>> get cachedPlaces => _cachedPlaces;
 
   PlaceService({required this.client});
-
-  Future<double> getDistance({
-    required double originLat,
-    required double originLng,
-    required double destLat,
-    required double destLng,
-    required String apiKey,
-  }) async {
-    final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/distancematrix/json'
-      '?origins=$originLat,$originLng'
-      '&destinations=$destLat,$destLng'
-      '&key=$apiKey',
-    );
-
-    final response = await client.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['status'] == 'OK') {
-        final distanceInMeters = jsonData['rows'][0]['elements'][0]['distance']['value'];
-        return distanceInMeters / 1000.0;
-      } else {
-        throw Exception('Failed to calculate distance');
-      }
-    } else {
-      throw Exception('Failed to load distance data');
-    }
-  }
-
-  Future<double> getWalkingDistance({
-    required double originLat,
-    required double originLng,
-    required double destLat,
-    required double destLng,
-    required String apiKey,
-  }) async {
-    final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/distancematrix/json'
-      '?origins=$originLat,$originLng'
-      '&destinations=$destLat,$destLng'
-      '&mode=walking' 
-      '&key=$apiKey'
-    );
-
-    final response = await client.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['status'] == 'OK' && 
-          jsonData['rows'][0]['elements'][0]['status'] == 'OK') {
-        final distanceInMeters = jsonData['rows'][0]['elements'][0]['distance']['value'];
-        return distanceInMeters / 1000.0; 
-      }
-    }
-    throw Exception('Failed to calculate walking distance');
-  }
 
   Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
     final url = Uri.parse(
@@ -255,11 +199,10 @@ class PlaceService {
               print('[MAPS] Testing if place is food related.');
               try {
                 final walkingDistance = await getWalkingDistance(
-                  originLat: lat,
-                  originLng: lng,
-                  destLat: place['geometry']['location']['lat'],
-                  destLng: place['geometry']['location']['lng'],
-                  apiKey: apiKey,
+                  lat,
+                  lng,
+                  place['geometry']['location']['lat'],
+                  place['geometry']['location']['lng']
                 );
 
                 if (walkingDistance <= 1.0) {
@@ -625,4 +568,62 @@ class PlaceService {
     return placesJson;
   }
 
+  Future<double> getWalkingDistance(
+    double startLat, 
+    double startLng, 
+    double endLat, 
+    double endLng
+  ) async {
+    try {
+      // First check if we have cached this distance
+      final cacheKey = '${startLat.toStringAsFixed(6)},${startLng.toStringAsFixed(6)}-${endLat.toStringAsFixed(6)},${endLng.toStringAsFixed(6)}';
+      
+      // Try to get from API first
+      final apiKey = MapsConstants.mapsKey;
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json'
+        '?origin=$startLat,$startLng'
+        '&destination=$endLat,$endLng'
+        '&mode=walking'
+        '&key=$apiKey'
+      );
+
+      final response = await client.get(url);
+      if (response.statusCode != 200) {
+        throw Exception('Directions API error: ${response.statusCode}');
+      }
+
+      final data = json.decode(response.body);
+      
+      if (data['status'] != 'OK' || data['routes'].isEmpty) {
+        throw Exception('No routes found');
+      }
+
+      final route = data['routes'][0];
+      final leg = route['legs'][0];
+      return leg['distance']['value'] / 1000.0; // Convert to kilometers
+    } catch (e) {
+      print('Error getting walking distance from API: $e');
+      print('Falling back to approximation calculation');
+      return _approximateDistance(startLat, startLng, endLat, endLng) / 1000.0;
+    }
+  }
+
+  double _approximateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371000;
+    final double dLat = _toRadians(lat2 - lat1);
+    final double dLon = _toRadians(lon2 - lon1);
+    
+    final double a = 
+        math.sin(dLat/2) * math.sin(dLat/2) +
+        math.cos(_toRadians(lat1)) * math.cos(_toRadians(lat2)) * 
+        math.sin(dLon/2) * math.sin(dLon/2);
+    
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a));
+    return earthRadius * c;
+  }
+
+  double _toRadians(double degree) {
+    return degree * (math.pi / 180);
+  }
 }

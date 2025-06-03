@@ -86,7 +86,6 @@ class _SplashScreenState extends State<SplashScreen>
     //           recommended: result['recommended'] ?? [],
     //           enriched: result['enriched'] ?? [],
     //         );
-
     //         _goToMainScreen();
     //     } catch (e) {
     //         print("[SplashScreen] Error during preload: $e");
