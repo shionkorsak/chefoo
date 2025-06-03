@@ -171,6 +171,7 @@ class RecommendationService  {
     };
 
     provider.addListener(listener);
+    print('[AI] Completing the wait...');
     return completer.future;
   }
 }

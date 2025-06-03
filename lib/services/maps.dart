@@ -252,6 +252,7 @@ class PlaceService {
             print('Restaurant "${place['name']}" has these types: $types');
             
             if (_isFoodRelatedPlace(types)) {
+              print('[MAPS] Testing if place is food related.');
               try {
                 final walkingDistance = await getWalkingDistance(
                   originLat: lat,
@@ -277,6 +278,8 @@ class PlaceService {
                   placeWithDetails.walkingDistance = walkingDistance;
                   places.add(placeWithDetails);
                   print('Added food place: ${placeWithDetails.name} (${walkingDistance}km walking)');
+                } else {
+                  print('[MAPS] Walking distance more than 1.');
                 }
               } catch (e) {
                 print('Error processing place: $e');
