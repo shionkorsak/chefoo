@@ -69,13 +69,29 @@ abstract class MapController extends State<MapScreen> {
         locationService.currentPosition?.latitude ?? 0.0,
         locationService.currentPosition?.longitude ?? 0.0,
       ),
-      zoom: 15.0,
+      zoom: 17.0, 
     );
   }
 
   void onMapCreated(GoogleMapController controller) {
     print("Map controller created");
     mapController = controller;
+    
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    
+    if (!hasActiveRoute && locationService.currentPosition != null) {
+      Future.delayed(Duration(milliseconds: 300), () {
+        controller.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(
+              locationService.currentPosition!.latitude,
+              locationService.currentPosition!.longitude
+            ),
+            17.0
+          )
+        );
+      });
+    }
   }
 
   void centerOnRoute() {
@@ -121,42 +137,6 @@ abstract class MapController extends State<MapScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         centerOnRoute();
       });
-    }
-  }
-
-  // SECTION 4: GEOCODING (simplified)
-  Future<LatLng?> geocodeAddress(String address) async {
-    try {
-      final apiKey = MapsConstants.mapsKey;
-      if (apiKey.isEmpty) {
-        throw Exception('Google Maps API Key not found');
-      }
-
-      final encodedAddress = Uri.encodeComponent(address);
-      final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json'
-        '?address=$encodedAddress'
-        '&key=$apiKey'
-      );
-
-      final client = http.Client();
-      final response = await client.get(url);
-
-      if (response.statusCode != 200) {
-        throw Exception('Geocoding API error: ${response.statusCode}');
-      }
-
-      final data = json.decode(response.body);
-
-      if (data['status'] != 'OK' || data['results'].isEmpty) {
-        throw Exception('No results found for this address');
-      }
-
-      final location = data['results'][0]['geometry']['location'];
-      return LatLng(location['lat'], location['lng']);
-    } catch (e) {
-      print('Error geocoding address: $e');
-      return null;
     }
   }
 
@@ -512,52 +492,6 @@ abstract class MapController extends State<MapScreen> {
     centerOnLocation(place.lat, place.lng);
   }
 
-  void updateSelectedPlace(int index) {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-    final places = restaurantProvider.places.isNotEmpty 
-        ? restaurantProvider.places 
-        : widget.places;
-        
-    if (index < 0 || index >= places.length) return;
-    
-    setState(() {
-      selectedIndex = index;
-      selectedPlace = places[index];
-      createMarkersWithDestination();
-    });
-    
-    centerOnLocation(selectedPlace!.lat, selectedPlace!.lng);
-  }
-
-  void fitBounds() {
-    if (mapController == null || markers.isEmpty) return;
-
-    final bounds = MapBounds();
-    
-    for (final marker in markers) {
-      bounds.extend(marker.position);
-    }
-
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    final position = locationService.currentPosition;
-    if (position != null) {
-      bounds.extend(LatLng(position.latitude, position.longitude));
-    }
-
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds.toBounds(), mapPadding),
-    );
-  }
-
-  void centerOnLocation(double lat, double lng) {
-    if (mapController == null) return;
-    
-    final latLng = LatLng(lat, lng);
-    mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(latLng, initialZoom),
-    );
-  }
-
   void forceDrawRoute() {
     print("Attempting to force draw route...");
     final locationService = Provider.of<LocationService>(context, listen: false);
@@ -661,6 +595,17 @@ abstract class MapController extends State<MapScreen> {
     if (mapController != null) {
       mapController!.animateCamera(
         CameraUpdate.newLatLng(LatLng(place.lat, place.lng))
+      );
+    }
+  }
+  
+  void centerOnLocation(double lat, double lng) {
+    if (mapController != null) {
+      mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(lat, lng),
+          18.0
+        )
       );
     }
   }
