@@ -73,7 +73,7 @@ class _MainNavigationState extends State<MainNavigation> {
     final places = Provider.of<RestaurantProvider>(context).places;
 
     final List<Widget> screens = [
-      MainScreen(),
+      MainScreen(showWelcomeDialog: false),
       MapScreen(places: places),
       ProfileScreen()
     ];

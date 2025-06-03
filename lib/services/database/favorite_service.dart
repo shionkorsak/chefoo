@@ -37,7 +37,6 @@ class FavoritesService {
           throw Exception('Error fetching details for $placeId: $e');
         }
     }
-
     return places;
   }
 

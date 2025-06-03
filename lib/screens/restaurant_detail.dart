@@ -1,4 +1,7 @@
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/app_state.dart';
+import 'package:chefoo/providers/rating_session.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/widgets/cards/auth_card.dart';
 import 'package:chefoo/widgets/tags/unclickable_tag.dart';
 import 'package:chefoo/widgets/buttons/circle_button.dart';
@@ -24,10 +27,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     super.initState();
     _loadDetailedInfo();
     _loadPopularTimes();
-
-    // [DATABASE]: here too. save to history when viewing a place
-    // String placeId = place.id;
-    // saveToDatabase(placeId);
   }
 
   Future<void> _loadDetailedInfo() async {
@@ -88,6 +87,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       }
     }
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -224,15 +225,29 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   ActionCircleButton(
                                     icon: Icons.navigation,
                                     onPressed: () {
+                                      final ratingSession = Provider.of<RatingSessionProvider>(context, listen: false);
+                                      ratingSession.startSession(
+                                        name: widget.place.name,
+                                        photo: widget.place.pictureUrls.isNotEmpty
+                                            ? widget.place.pictureUrls.first
+                                            : '',
+                                        id: widget.place.id,
+                                      );
+
                                       launchUrl(Uri.parse(
                                         'https://www.google.com/maps/dir/?api=1&destination=${widget.place.lat},${widget.place.lng}',
                                       ));
+                                      Future.delayed(Duration(milliseconds: 300), () {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => MainScreen(showWelcomeDialog: true,)),
+                                          (route) => false,
+                                        );
+                                      });
                                     },
                                   ),
                                   const SizedBox(width: 16),
                                   LikeButton(place: widget.place),
-                                  
-                                  
                                 ],
                               ),
                               const SizedBox(height: 16),

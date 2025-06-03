@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/restaurant.dart';
 
 class RestaurantProvider with ChangeNotifier {
-  List<Place> _recommendedPlaces = [];
   List<Place> _places = [];
   List<Place> _routePlaces = [];
   bool _isLoading = false;
@@ -13,17 +12,11 @@ class RestaurantProvider with ChangeNotifier {
   bool _routePlacesLoaded = false;
   Map<String, List<Place>> _routePlacesCache = {};
 
-  List<Place> get recommendedPlaces => _recommendedPlaces;
   List<Place> get places => _places;
   List<Place> get routePlaces => _routePlaces;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get routePlacesLoaded => _routePlacesLoaded;
-
-  void setRecommendedPlaces(List<Place> place) {
-    _recommendedPlaces = place;
-    notifyListeners();
-  }
 
   void setPlaces(List<Place> places) {
     _places = places;

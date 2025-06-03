@@ -1,4 +1,4 @@
-import 'package:chefoo/screens/placeholder/playground.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
@@ -496,13 +496,13 @@ class GetStartedState extends State<GetStarted> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => UserProfileScreen(),
+                              builder: (context) => MainScreen(showWelcomeDialog: false,),
                             ),
                           );
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
+                          children: const [
                             Text(
                               "Are you hungry yet?",
                               style: TextStyle(

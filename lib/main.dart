@@ -1,8 +1,10 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/getstarted.dart';
 import 'package:chefoo/providers/mainscreen.dart';
+import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/user_account.dart';
+import 'package:chefoo/providers/app_state.dart';
 import 'package:chefoo/screens/calendar_screen.dart';
 import 'package:chefoo/services/auth/auth_gate.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
@@ -86,6 +88,8 @@ void main() async {
           create: (_) => MainScreenProvider(),
         ),
         ChangeNotifierProvider(create: (_) => RecommendedProvider()),
+        ChangeNotifierProvider(create: (_) => AppStateProvider()),
+        ChangeNotifierProvider(create: (_) => RatingSessionProvider()),
       ],
       child: const MyApp(),
     ),

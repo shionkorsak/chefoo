@@ -1,3 +1,4 @@
+import 'package:chefoo/providers/rating_session.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
@@ -36,6 +37,9 @@ class _RatingScreenState extends State<RatingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ratingSession = Provider.of<RatingSessionProvider>(context);
+    final restaurantName = ratingSession.restaurantName ?? 'Unknown';
+    final imagePhotoRef = ratingSession.restaurantPhoto ?? '';
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
@@ -56,8 +60,8 @@ class _RatingScreenState extends State<RatingScreen> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/beefnoodle.png'),
+                    image: DecorationImage(
+                      image: AssetImage(imagePhotoRef),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -67,7 +71,7 @@ class _RatingScreenState extends State<RatingScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Text(
-                  '吳哥哥牛肉麵',
+                  restaurantName,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
               ),

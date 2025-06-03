@@ -107,7 +107,6 @@ class ManageAccountScreen extends StatelessWidget {
                                           final navigator = Navigator.of(context); // Save BEFORE pop
                                           navigator.pop(); // Close the dialog
                                           await _auth.deleteAccount();
-
                                           navigator.pushReplacement(
                                             MaterialPageRoute(builder: (_) => SplashScreen(isLoggedIn: false,)),
                                           );

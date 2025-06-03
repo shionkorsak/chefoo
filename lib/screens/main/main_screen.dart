@@ -1,4 +1,6 @@
+import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
+import 'package:chefoo/screens/rating/rating_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chefoo/providers/mainscreen.dart';
@@ -15,13 +17,48 @@ import 'package:chefoo/screens/history/history_screen.dart';
 
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final bool showWelcomeDialog;
+  const MainScreen({super.key, required this.showWelcomeDialog});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends MainController {
+  bool _dialogShown = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final ratingSession = Provider.of<RatingSessionProvider>(context);
+
+    if (widget.showWelcomeDialog && !_dialogShown && ratingSession.restaurantId != null) {
+      _dialogShown = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("Welcome Back"),
+            content: Text("You've returned from Google Maps for ${ratingSession.restaurantName ?? 'a place'}"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RatingScreen()),
+                  );
+                },
+                child: const Text("Rate"),
+              ),
+            ],
+          ),
+        );
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();

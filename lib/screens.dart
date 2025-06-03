@@ -2,7 +2,6 @@
 ///Firebase Analytics screen statistics or push notification. This example
 ///doesn't use Navigator 2.0 or go_router.
 
-export 'package:chefoo/screens/placeholder/placeholder_screen.dart';
 
 class Screens {
   static const tutorial = '/tutorial';
