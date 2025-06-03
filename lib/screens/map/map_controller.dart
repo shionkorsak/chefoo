@@ -27,6 +27,7 @@ abstract class MapController extends State<MapScreen> {
   bool showPlaceCard = false;
   bool isNavigatingToEvent = false;
   final Map<String, BitmapDescriptor> _markerIconCache = {};
+  bool isLoadingPlaceDetails = false;
 
   @override
   void initState() {
@@ -629,10 +630,33 @@ abstract class MapController extends State<MapScreen> {
 
   void selectPlace(Place place) {
     setState(() {
-      selectedPlace = place;
       showPlaceCard = true;
-      createMarkersWithDestination();
+      selectedPlace = place;
     });
+    
+    if (!place.detailsLoaded) {
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      
+      setState(() {
+        isLoadingPlaceDetails = true;
+      });
+      
+      placeService.loadPlaceDetails(place).then((_) {
+        if (mounted) {
+          setState(() {
+            isLoadingPlaceDetails = false;
+            createMarkersWithDestination();
+          });
+        }
+      }).catchError((error) {
+        print('Error loading place details: $error');
+        if (mounted) {
+          setState(() {
+            isLoadingPlaceDetails = false;
+          });
+        }
+      });
+    }
     
     if (mapController != null) {
       mapController!.animateCamera(
