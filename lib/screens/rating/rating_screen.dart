@@ -39,13 +39,17 @@ class _RatingScreenState extends State<RatingScreen> {
   @override
   Widget build(BuildContext context) {
     final ratingSession = Provider.of<RatingSessionProvider>(context);
-    final restaurantName = ratingSession.restaurantName ?? 'Unknown';
-    final imagePhotoRef = ratingSession.restaurantPhoto ?? '';
+    final banner = PictureCategoryAssets();
+    final restaurantName = ratingSession.restaurantId ?? 'Unknown';
+    final restaurantPhoto = ratingSession.restaurantPhoto ?? '';
+    final String? categoryImageUrl = banner.pictureCategoryAssets[restaurantPhoto];
+    final String headerImageUrl = categoryImageUrl  ?? 'assets/images/beefnoodle.png';
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) {
-          final uid = FirebaseAuth.instance.currentUser?.uid;
+          // final uid = FirebaseAuth.instance.currentUser?.uid;
+          final uid = AuthService().getCurrentUserUID();
           if (uid != null) {
             await Provider.of<RatingSessionProvider>(context, listen: false).clearSession(uid: uid);
           }
@@ -72,7 +76,7 @@ class _RatingScreenState extends State<RatingScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
                       image: DecorationImage(
-                        image: AssetImage(imagePhotoRef),
+                        image: NetworkImage(headerImageUrl),
                         fit: BoxFit.cover,
                       ),
                     ),

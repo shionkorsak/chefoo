@@ -1,5 +1,4 @@
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/providers/app_state.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/widgets/cards/auth_card.dart';
@@ -93,12 +92,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final banner = PictureCategoryAssets();
+    final String? categoryImageUrl = banner.pictureCategoryAssets[widget.place.pictureCategory];
+    final String headerImageUrl = categoryImageUrl ??
+      'https://maps.googleapis.com/maps/api/place/photo'
+          '?maxwidth=800'
+          '&photo_reference=${widget.place.pictureUrls.first}'
+          '&key=${MapsConstants.mapsKey}';
     return Scaffold(
       appBar: AppBar(
         //title: Text(widget.place.name),
-        actions: [
+        actions: const [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: EdgeInsets.only(right: 16.0),
             //child: LikeButton(place: widget.place),
           ),
         ],
@@ -113,7 +119,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 //mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (widget.place.pictureUrls.isNotEmpty)
+                  if (headerImageUrl.isNotEmpty)
                     Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -124,12 +130,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                               height: 320,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: NetworkImage(
-                                    'https://maps.googleapis.com/maps/api/place/photo'
-                                    '?maxwidth=800'
-                                    '&photo_reference=${widget.place.pictureUrls.first}'
-                                    '&key=${MapsConstants.mapsKey}',
-                                  ),
+                                  image: NetworkImage(headerImageUrl),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -226,8 +227,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   ActionCircleButton(
                                     icon: Icons.navigation,
                                     onPressed: () {
-                                      final user = FirebaseAuth.instance.currentUser;
-                                      final uid = user?.uid;
+                                      // final user = FirebaseAuth.instance.currentUser;
+                                      // final uid = user?.uid;
+                                      final uid = AuthService().getCurrentUserUID();
 
                                       if (uid == null) {
                                         print("User not logged in. Skipping session start.");
@@ -236,11 +238,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
 
                                       final ratingSession = Provider.of<RatingSessionProvider>(context, listen: false);
                                       ratingSession.startSession(
-                                        name: widget.place.name,
-                                        photo: widget.place.pictureUrls.isNotEmpty
-                                            ? widget.place.pictureUrls.first
-                                            : '',
                                         id: widget.place.id,
+                                        name: widget.place.name,
+                                        photo: widget.place.pictureCategory,
+                                        tags: widget.place.tags,
                                         uid: uid,
                                       );
 

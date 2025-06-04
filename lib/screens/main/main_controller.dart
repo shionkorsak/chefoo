@@ -96,7 +96,8 @@ abstract class MainController extends State<MainScreen> {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
     final placeService = Provider.of<PlaceService>(context, listen: false);
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    // final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    final uid = AuthService().getCurrentUserUID() ?? 'guest';
     final position = locationService.currentPosition;
 
     print('[MAIN-CTRL] Loading everything');

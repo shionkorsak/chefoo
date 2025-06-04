@@ -16,7 +16,7 @@ export const restaurantTagsFlow = ai.defineFlow(
 
             Restaurant Name: ${input}
 
-            ONLY return the tags as a comma-separated list.`;
+            ONLY return the tags as a comma-separated list. Have the most defining tag as the first one.`;
 
     const result = await ai.generate({
         prompt,
@@ -42,19 +42,26 @@ export const restaurantBannerFlow = ai.defineFlow(
     },
     async ({ name, tags }) => {
         const bannerOptions = {
-            'american_food': ['Fast Food', 'Diner', 'BBQ Joint', 'Steakhouse', 'Fast Casual Burger Spot'],
-            'beefnoodle_food': ['Taiwanese Beef Noodle'],
-            'dimsum_food': ['Dim Sum', 'Hong Kong', 'Tea House'],
-            'hotpot_food': ['Hot Pot'],
-            'indian_food': ['Indian'],
-            'italian_food': ['Pasta', 'Pizza', 'Italian'],
-            'korean_food': ['Korean', 'Bibimbap', 'Kimchi', 'Korean Fried Chicken'],
-            'mexican_food': ['Mexican', 'Taco', 'Taqueria'],
-            'thai_food': ['Thai', 'Tomyum', 'Mango'],
-            'vietnamese_food': ['Vietnamese', 'Pho', 'Banh Mi'],
-            'xiaolongbao_food': ['Chinese', 'Xiaolongbao', 'Shanghai', 'Steamed Bun'],
-            'vegetarian_food': ['Vegan', 'Vegetarian']
-        }
+          'american_food': ['Fast Food', 'Diner', 'BBQ Joint', 'Steakhouse', 'Fast Casual Burger Spot'],
+          'beefnoodle_food': ['Taiwanese Beef Noodle'],
+          'bento_food': ['Bento Box', 'Japanese Lunch Set', 'Teishoku', 'Donburi'],
+          'chicken_rice': ['Chicken Rice', 'Hainanese Chicken', 'Singaporean', 'Poached Chicken'],
+          'curry': ['Curry', 'Japanese Curry', 'Indian Curry', 'Rice Plate'],
+          'dimsum_food': ['Dim Sum', 'Hong Kong', 'Tea House'],
+          'duck_rice': ['Roast Duck Rice', 'Cantonese Roast', 'BBQ Duck'],
+          'hotpot_food': ['Hot Pot', 'Sichuan Hotpot', 'Shabu-Shabu', 'Mala'],
+          'indian_food': ['Indian', 'Tandoori', 'Biryani', 'Naan'],
+          'italian_food': ['Pasta', 'Pizza', 'Italian'],
+          'korean_food': ['Korean', 'Bibimbap', 'Kimchi', 'Korean Fried Chicken'],
+          'mexican_food': ['Mexican', 'Taco', 'Taqueria', 'Burrito'],
+          'ramen_food': ['Ramen', 'Tonkotsu', 'Shoyu Ramen', 'Japanese Noodles'],
+          'sushi': ['Sushi', 'Sashimi', 'Nigiri', 'Japanese'],
+          'thai_food': ['Thai', 'Tomyum', 'Mango', 'Pad Thai'],
+          'vietnamese_food': ['Vietnamese', 'Pho', 'Banh Mi', 'Spring Rolls'],
+          'vegetarian_food': ['Vegan', 'Vegetarian', 'Plant-Based'],
+          'xiaolongbao_food': ['Chinese', 'Xiaolongbao', 'Shanghai', 'Steamed Bun'],
+          'yansuji_food': ['Salt & Pepper Chicken', 'Taiwanese Popcorn Chicken', 'Street Food', 'Fried Snacks']
+        };
 
         const categories = Object.keys(bannerOptions);
 

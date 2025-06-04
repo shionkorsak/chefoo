@@ -4,7 +4,7 @@ import 'package:chefoo/screens/rating/rating_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:chefoo/providers/mainscreen.dart';
+import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/commons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'main_controller.dart';
@@ -257,7 +257,8 @@ class ClearPreferencesButton extends StatelessWidget {
   const ClearPreferencesButton({super.key});
 
   Future<void> clearRecommendationPrefs(BuildContext context) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    // final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    final uid = AuthService().getCurrentUserUID() ?? 'guest';
     final prefs = await SharedPreferences.getInstance();
     final keys = [
       '${uid}_recommended',

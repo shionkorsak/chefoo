@@ -94,7 +94,7 @@ import 'package:chefoo/widgets/cards/auth_card.dart';
 import 'package:chefoo/widgets/tags/tag_map.dart';
 import 'package:chefoo/commons.dart';
 import 'package:provider/provider.dart';
-import 'package:chefoo/providers/getstarted.dart';
+import 'package:chefoo/providers/get_started.dart';
 
 part 'get_started_controller.dart';
 

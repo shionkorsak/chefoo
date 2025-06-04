@@ -1,42 +1,17 @@
 import 'dart:async';
 
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/providers/getstarted.dart';
-import 'package:chefoo/providers/mainscreen.dart';
+import 'package:chefoo/providers/get_started.dart';
+import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/user_account.dart';
-import 'package:chefoo/providers/app_state.dart';
-import 'package:chefoo/screens/calendar_screen.dart';
-import 'package:chefoo/services/auth/auth_gate.dart';
-import 'package:chefoo/services/calendar_service.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'package:chefoo/screens/login/login_screen.dart';
-import 'package:chefoo/screens/testScreen.dart';
-import 'package:chefoo/screens/tests/widget_test_screen.dart';
-import 'package:chefoo/screens/tests/widget_test_screen2.dart';
-import 'package:chefoo/screens/welcome/get_started.dart';
-import 'package:chefoo/screens/welcome/get_started_screen.dart';
-import 'package:chefoo/screens/welcome_screen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-
-import 'package:chefoo/screens/settings/account_settings.dart';
-import 'package:chefoo/services/database/location_handler.dart';
-import 'package:chefoo/providers/calendar_state.dart';
-import 'package:chefoo/services/preload_service.dart';
-
 import 'package:chefoo/screens/splash/splash.dart';
-import 'commons.dart';
+import 'package:chefoo/services/database/location_handler.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
+import 'package:firebase_core/firebase_core.dart';
 
-import 'package:chefoo/screens/rating/rating_screen.dart';
-import 'package:chefoo/screens/map_view.dart';
-
-import 'package:chefoo/screens/profile/profile.dart';
-import 'package:chefoo/screens/main/main_screen.dart';
-import 'package:chefoo/screens/map/map_screen.dart';
+import 'firebase_options.dart';
 
 Future<void> initializeApp() async {
   try {
@@ -89,7 +64,6 @@ void main() async {
           create: (_) => MainScreenProvider(),
         ),
         ChangeNotifierProvider(create: (_) => RecommendedProvider()),
-        ChangeNotifierProvider(create: (_) => AppStateProvider()),
         ChangeNotifierProvider(create: (_) => RatingSessionProvider()),
       ],
       child: const MyApp(),

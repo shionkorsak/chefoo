@@ -8,7 +8,8 @@
 - Python
 - Google Maps API key (find it in our notion)
 - Google AI API key (find it in our notion)
-- google-services.json
+- google-services.json (find it in our notion)
+- Make sure to set the location in your emulator before running the app
 - Better Comments VSCode extension
 - Markdown Preview Enchanced VSCode extension (to view the README.md, after installation, open a readme file, type `cmd+k v` or `ctrl+k v` to open preview)
 - Make sure you give your Play Services SHA fingerprints to gladys, how to get:
