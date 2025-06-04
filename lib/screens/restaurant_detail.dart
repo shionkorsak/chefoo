@@ -6,6 +6,7 @@ import 'package:chefoo/widgets/tags/unclickable_tag.dart';
 import 'package:chefoo/widgets/buttons/circle_button.dart';
 import 'package:chefoo/widgets/star_ratings/star_rating.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:chefoo/constants.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
   final Place place;
@@ -21,6 +22,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   bool _isLoading = false;
   bool _isLoadingPopularTimes = false;
   bool _detailsLoaded = false;
+  final _banner = PictureCategoryAssets();
 
   @override
   void initState() {
@@ -262,7 +264,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                 ],
                               ),
                               const SizedBox(height: 16),
-                              
+
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -322,7 +324,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                                   'Opening Hours',
                                                   style: TextStyle(
                                                       fontSize: 20,
-                                                      
                                                       fontWeight:
                                                           FontWeight.bold),
                                                 ),
@@ -531,70 +532,77 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                           ...widget.place.reviews.map((review) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: kRadius30,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 20,
-                                    backgroundColor: Colors.grey.shade300,
-                                    child: Text(
-                                      review.authorName.isNotEmpty ? review.authorName[0].toUpperCase() : '?',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: kRadius30,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: List.generate(5, (index) {
-                                            return Icon(
-                                              index < review.rating.round()
-                                                  ? Icons.star
-                                                  : Icons.star_border,
-                                              size: 16,
-                                              color: AppColors.primary,
-                                            );
-                                          }),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          review.text,
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          review.formattedTime,
-                                          style: TextStyle(
-                                            color: Colors.grey.shade500,
-                                            fontSize: 11,
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 20,
+                                        backgroundColor: Colors.grey.shade300,
+                                        child: Text(
+                                          review.authorName.isNotEmpty
+                                              ? review.authorName[0]
+                                                  .toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children:
+                                                  List.generate(5, (index) {
+                                                return Icon(
+                                                  index < review.rating.round()
+                                                      ? Icons.star
+                                                      : Icons.star_border,
+                                                  size: 16,
+                                                  color: AppColors.primary,
+                                                );
+                                              }),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              review.text,
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              review.formattedTime,
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          )),
+                                ),
+                              )),
                           const SizedBox(height: 16),
                           const Divider(),
                         ],
@@ -629,17 +637,21 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               crossAxisSpacing: 8,
                               mainAxisSpacing: 8,
                               childAspectRatio: 1,
                             ),
-                            itemCount: widget.place.pictureUrls.length > 4 ? 4 : widget.place.pictureUrls.length,
+                            itemCount: widget.place.pictureUrls.length > 4
+                                ? 4
+                                : widget.place.pictureUrls.length,
                             itemBuilder: (context, index) {
                               final imageUrl =
                                   'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${widget.place.pictureUrls[index]}&key=${MapsConstants.mapsKey}';
-                              final isLast = index == 3 || index == widget.place.pictureUrls.length - 1;
+                              final isLast = index == 3 ||
+                                  index == widget.place.pictureUrls.length - 1;
 
                               return GestureDetector(
                                 onTap: () {
@@ -662,12 +674,18 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                       Image.network(
                                         imageUrl,
                                         fit: BoxFit.cover,
-                                        loadingBuilder: (context, child, progress) {
+                                        loadingBuilder:
+                                            (context, child, progress) {
                                           if (progress == null) return child;
-                                          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                                          return const Center(
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2));
                                         },
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            const Center(child: Icon(Icons.broken_image)),
+                                        errorBuilder: (context, error,
+                                                stackTrace) =>
+                                            const Center(
+                                                child:
+                                                    Icon(Icons.broken_image)),
                                       ),
                                       if (isLast)
                                         Container(
