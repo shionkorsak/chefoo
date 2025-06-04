@@ -68,6 +68,7 @@ class _PostAuthLoaderState extends State<PostAuthLoader> {
         print('[POST-AUTH] Cannot load without position');
         return;
       }
+      
 
       await recommendedProvider.cleanupOldEntries(uid);
       print('[POST-AUTH] Loading from SharedPreference.');

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
 import 'package:chefoo/widgets/tags/tag_map.dart';
+import 'package:chefoo/widgets/tags/tag.dart';
 
 class PreferenceScreen extends StatefulWidget {
   const PreferenceScreen({super.key});
@@ -13,9 +14,44 @@ class PreferenceScreen extends StatefulWidget {
 class _PreferenceScreenState extends State<PreferenceScreen> {
   String selectedTab = 'Dietary Preference';
 
-  final List<String> dietaryTags = ['Vegetarian', 'Halal', 'Vegan', 'Low Sugar'];
-  final List<String> dislikeTags = ['No Pork', 'No Beef', 'No Seafood', 'Spicy', 'Coriander-Free'];
-  final List<String> allergyTags = ['Lactose Intolerant', 'Nut Allergy', 'Gluten-Free'];
+  List<String> dietaryTags = ['Vegetarian', 'Halal', 'Vegan', 'Low Sugar'];
+  List<String> dislikeTags = [
+    'No Pork',
+    'No Beef',
+    'No Seafood',
+    'Spicy',
+    'Coriander-Free'
+  ];
+  List<String> allergyTags = [
+    'Lactose Intolerant',
+    'Nut Allergy',
+    'Gluten-Free'
+  ];
+
+  List<String> dietarySelectedTags = [];
+  List<String> dislikeSelectedTags = [];
+  List<String> allergySelectedTags = [];
+
+  bool isShaking = false;
+
+  late final PageController _pageController;
+  final List<String> tabLabels = [
+    'Dietary Preference',
+    'Dislike',
+    'Allergy',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: tabLabels.indexOf(selectedTab));
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,21 +81,21 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildTab('Dietary Preference', isSelected: selectedTab == 'Dietary Preference', onTap: () {
-                      setState(() {
-                        selectedTab = 'Dietary Preference';
-                      });
-                    }),
-                    _buildTab('Dislike', isSelected: selectedTab == 'Dislike', onTap: () {
-                      setState(() {
-                        selectedTab = 'Dislike';
-                      });
-                    }),
-                    _buildTab('Allergy', isSelected: selectedTab == 'Allergy', onTap: () {
-                      setState(() {
-                        selectedTab = 'Allergy';
-                      });
-                    }),
+                    for (final label in tabLabels)
+                      _buildTab(
+                        label,
+                        isSelected: selectedTab == label,
+                        onTap: () {
+                          final page = tabLabels.indexOf(label);
+                          if (_pageController.page?.round() != page) {
+                            _pageController.animateToPage(
+                              page,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -73,20 +109,61 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: TagMap(
-                      tags: selectedTab == 'Dislike'
-                          ? dislikeTags
-                          : selectedTab == 'Allergy'
-                              ? allergyTags
-                              : dietaryTags,
-                    ),
+                child: GestureDetector(
+                  onTap: () {
+                    if (isShaking) setState(() => isShaking = false);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        selectedTab = tabLabels[index];
+                        isShaking = false;
+                      });
+                    },
+                    itemCount: tabLabels.length,
+                    itemBuilder: (context, index) {
+                      final label = tabLabels[index];
+                      if (label == 'Dislike') {
+                        return _buildTagWrap(dislikeTags, dislikeSelectedTags);
+                      } else if (label == 'Allergy') {
+                        return _buildTagWrap(allergyTags, allergySelectedTags);
+                      } else {
+                        return _buildTagWrap(dietaryTags, dietarySelectedTags);
+                      }
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 12),
+              if (isShaking)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12, bottom: 12),
+                  child: DragTarget<String>(
+                    onWillAccept: (_) => true,
+                    onAccept: (tag) {
+                      setState(() {
+                        if (selectedTab == 'Dislike') {
+                          dislikeTags = List.from(dislikeTags)..remove(tag);
+                          dislikeSelectedTags.remove(tag);
+                        } else if (selectedTab == 'Allergy') {
+                          allergyTags.remove(tag);
+                          allergySelectedTags.remove(tag);
+                        } else {
+                          dietaryTags.remove(tag);
+                          dietarySelectedTags.remove(tag);
+                        }
+                      });
+                    },
+                    builder: (context, candidateData, rejectedData) =>
+                        Container(
+                      height: 80,
+                      alignment: Alignment.center,
+                      child: Icon(Icons.delete, size: 48, color: Colors.red),
+                    ),
+                  ),
+                ),
               Center(
                 child: GlowingButton(
                   text: selectedTab == 'Dislike'
@@ -95,15 +172,26 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                           ? 'Add Allergy'
                           : 'Add Preference',
                   onPressed: () {
+                    if (isShaking) return;
+
                     setState(() {
-                      final newTag = 'New ${selectedTab.split(' ').first}';
-                      if (selectedTab == 'Dislike') {
-                        dislikeTags.add(newTag);
-                      } else if (selectedTab == 'Allergy') {
-                        allergyTags.add(newTag);
-                      } else {
-                        dietaryTags.add(newTag);
+                      final baseName = 'New ${selectedTab.split(' ').first}';
+                      int counter = 1;
+                      String newTag = baseName;
+
+                      List<String> targetList = selectedTab == 'Dislike'
+                          ? dislikeTags
+                          : selectedTab == 'Allergy'
+                              ? allergyTags
+                              : dietaryTags;
+
+                      // Ensure the newTag is unique by incrementing until no conflict
+                      while (targetList.contains(newTag)) {
+                        newTag = '$baseName $counter';
+                        counter++;
                       }
+
+                      targetList.add(newTag);
                     });
                   },
                 ),
@@ -116,7 +204,8 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     );
   }
 
-  Widget _buildTab(String label, {bool isSelected = false, VoidCallback? onTap}) {
+  Widget _buildTab(String label,
+      {bool isSelected = false, VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -153,5 +242,158 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
         style: AppTextStyles.detail.copyWith(color: AppColors.textPrimary),
       ),
     );
+  }
+
+  Widget _buildTagWrap(List<String> tags, List<String> selectedTags) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final tag in tags)
+            KeyedSubtree(
+              key: ValueKey(tag),
+              child: Draggable<String>(
+                data: tag,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: GestureDetector(
+                    onDoubleTap: () {
+                      if (!isShaking) _editTag(tag);
+                    },
+                    child: Tag(
+                      label: tag,
+                      selected: selectedTags.contains(tag),
+                      isShaking: isShaking,
+                      isTappable: false,
+                      isLongPressable: false,
+                      onSelected: (_) {},
+                    ),
+                  ),
+                ),
+                childWhenDragging: Opacity(
+                  opacity: 0.5,
+                  child: GestureDetector(
+                    onDoubleTap: () {
+                      if (!isShaking) _editTag(tag);
+                    },
+                    child: Tag(
+                      label: tag,
+                      selected: selectedTags.contains(tag),
+                      isShaking: isShaking,
+                      isTappable: !isShaking,
+                      isLongPressable: true,
+                      onSelected: (val) {
+                        setState(() {
+                          if (val) {
+                            selectedTags.add(tag);
+                          } else {
+                            selectedTags.remove(tag);
+                          }
+                        });
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          isShaking = true;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                child: GestureDetector(
+                  onDoubleTap: () {
+                    if (!isShaking) _editTag(tag);
+                  },
+                  child: Tag(
+                    label: tag,
+                    selected: selectedTags.contains(tag),
+                    isShaking: isShaking,
+                    isTappable: !isShaking,
+                    isLongPressable: true,
+                    onSelected: (val) {
+                      setState(() {
+                        if (val) {
+                          selectedTags.add(tag);
+                        } else {
+                          selectedTags.remove(tag);
+                        }
+                      });
+                    },
+                    onLongPress: () {
+                      setState(() {
+                        isShaking = true;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _editTag(String oldValue) async {
+    final controller = TextEditingController(text: oldValue);
+    final newTag = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Edit Tag"),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text("Save"),
+          ),
+        ],
+      ),
+    );
+
+    if (newTag == null || newTag.isEmpty || newTag == oldValue) return;
+
+    setState(() {
+      final sanitizedTab = selectedTab.trim();
+      final tagListMap = {
+        'Dietary Preference': dietaryTags,
+        'Dislike': dislikeTags,
+        'Allergy': allergyTags,
+      };
+
+      final tagsList = tagListMap[sanitizedTab];
+      if (tagsList == null) return;
+
+      final index = tagsList.indexOf(oldValue);
+      if (index != -1) {
+        tagsList[index] = newTag;
+
+        if (sanitizedTab == 'Dislike') {
+          if (dislikeSelectedTags.contains(oldValue)) {
+            dislikeSelectedTags = dislikeSelectedTags
+                .map((tag) => tag == oldValue ? newTag : tag)
+                .toList();
+          }
+        } else if (sanitizedTab == 'Allergy') {
+          if (allergySelectedTags.contains(oldValue)) {
+            allergySelectedTags = allergySelectedTags
+                .map((tag) => tag == oldValue ? newTag : tag)
+                .toList();
+          }
+        } else {
+          if (dietarySelectedTags.contains(oldValue)) {
+            dietarySelectedTags = dietarySelectedTags
+                .map((tag) => tag == oldValue ? newTag : tag)
+                .toList();
+          }
+        }
+      }
+    });
   }
 }

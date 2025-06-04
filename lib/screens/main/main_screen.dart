@@ -222,7 +222,8 @@ class _MainScreenState extends MainController {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => HistoryScreen(places: mainProvider.recentMeals),
+                                // builder: (context) => HistoryScreen(places: mainProvider.recentMeals),
+                                builder:(context) => HistoryScreen(),
                               ),
                             );
                           },

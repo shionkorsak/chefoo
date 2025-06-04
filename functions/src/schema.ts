@@ -23,15 +23,22 @@ export const userPreferenceSchema = z.object({
     dietaryPreferences: z.array(z.string()).default([]),
     allergies: z.array(z.string()).default([]),
     lastAnalyzedfromHistory: z.string(),
+  })
+  
+export const restaurantSchema = z.object({
+    id: z.string(),
+    tags: z.array(z.string()),
+    pictureCategory: z.string(),
 })
 
 export const mealProfile = z.object({
     time: z.string(),
-    restaurantId: z.string(),
+    restaurant: restaurantSchema,
     mealId: z.string().regex(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z?)_.+$/, {
         message: "mealId must be formatted as ISO timestamp + underscore + meal name",
     }),
     name: z.string(),
+    
 })
 
 export const mealAnalysis = z.object({
@@ -50,11 +57,6 @@ export const mealInputSchema = z.object({
     }).optional()
 })
 
-export const restaurantSchema = z.object({
-    id: z.string(),
-    tags: z.array(z.string()),
-    pictureCategory: z.string(),
-})
 
 export const healthInsightSchema = z.object({
     healthScore: z.number().min(0).max(100).optional(),

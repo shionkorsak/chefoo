@@ -3,6 +3,7 @@ import 'package:chefoo/commons.dart';
 
 class BorderTextField extends StatelessWidget {
   final String label;
+  final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final Color? borderColor;
   final Color? focusedBorderColor;
@@ -12,6 +13,7 @@ class BorderTextField extends StatelessWidget {
   const BorderTextField({
     Key? key,
     required this.label,
+    this.controller,
     this.onChanged,
     this.borderColor,
     this.focusedBorderColor,
@@ -22,6 +24,7 @@ class BorderTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       cursorColor: cursorColor ?? AppColors.textPrimary,
       decoration: InputDecoration(
         border: OutlineInputBorder(

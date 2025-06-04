@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clientUpdatePreferenceSchema = exports.userAccountSchema = exports.healthInsightSchema = exports.restaurantSchema = exports.mealInputSchema = exports.mealAnalysis = exports.mealProfile = exports.userPreferenceSchema = exports.userProfileSchema = void 0;
+exports.clientUpdatePreferenceSchema = exports.userAccountSchema = exports.healthInsightSchema = exports.mealInputSchema = exports.mealAnalysis = exports.mealProfile = exports.restaurantSchema = exports.userPreferenceSchema = exports.userProfileSchema = void 0;
 const zod_1 = require("zod");
 // TODO: user's route
 exports.userProfileSchema = zod_1.z.object({
@@ -24,9 +24,14 @@ exports.userPreferenceSchema = zod_1.z.object({
     allergies: zod_1.z.array(zod_1.z.string()).default([]),
     lastAnalyzedfromHistory: zod_1.z.string(),
 });
+exports.restaurantSchema = zod_1.z.object({
+    id: zod_1.z.string(),
+    tags: zod_1.z.array(zod_1.z.string()),
+    pictureCategory: zod_1.z.string(),
+});
 exports.mealProfile = zod_1.z.object({
     time: zod_1.z.string(),
-    restaurantId: zod_1.z.string(),
+    restaurant: exports.restaurantSchema,
     mealId: zod_1.z.string().regex(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z?)_.+$/, {
         message: "mealId must be formatted as ISO timestamp + underscore + meal name",
     }),
@@ -45,11 +50,6 @@ exports.mealInputSchema = zod_1.z.object({
         rating: zod_1.z.number(),
         notes: zod_1.z.string().optional(),
     }).optional()
-});
-exports.restaurantSchema = zod_1.z.object({
-    id: zod_1.z.string(),
-    tags: zod_1.z.array(zod_1.z.string()),
-    pictureCategory: zod_1.z.string(),
 });
 exports.healthInsightSchema = zod_1.z.object({
     healthScore: zod_1.z.number().min(0).max(100).optional(),

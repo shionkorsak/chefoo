@@ -1,4 +1,5 @@
 import 'package:chefoo/providers/rating_session.dart';
+import 'package:chefoo/services/database/history_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
@@ -40,7 +41,7 @@ class _RatingScreenState extends State<RatingScreen> {
   Widget build(BuildContext context) {
     final ratingSession = Provider.of<RatingSessionProvider>(context);
     final banner = PictureCategoryAssets();
-    final restaurantName = ratingSession.restaurantId ?? 'Unknown';
+    final restaurantName = ratingSession.restaurantName ?? 'Unknown';
     final restaurantPhoto = ratingSession.restaurantPhoto ?? '';
     final String? categoryImageUrl = banner.pictureCategoryAssets[restaurantPhoto];
     final String headerImageUrl = categoryImageUrl  ?? 'assets/images/beefnoodle.png';
@@ -134,7 +135,8 @@ class _RatingScreenState extends State<RatingScreen> {
                             const SizedBox(height: 8),
                             BorderTextField(
                               label: '',
-                              key: ValueKey(entry['meal']),
+                              controller: entry['meal']!,
+                              // key: ValueKey(entry['meal']),
                               onChanged: (value) {
                                 entry['meal']?.text = value;
                               },
@@ -160,7 +162,8 @@ class _RatingScreenState extends State<RatingScreen> {
                             const SizedBox(height: 8),
                             BorderTextField(
                               label: '',
-                              key: ValueKey(entry['comment']),
+                              controller: entry['comment']!,
+                              // key: ValueKey(entry['comment']),
                               onChanged: (value) {
                                 entry['comment']?.text = value;
                               },
@@ -182,9 +185,35 @@ class _RatingScreenState extends State<RatingScreen> {
                 Center(
                   child: GlowingButton(
                     text: 'Done',
-                    onPressed: () {
-                      
-                    },
+                    onPressed: () async {
+                      final uid = AuthService().getCurrentUserUID();
+                      final ratingSession = Provider.of<RatingSessionProvider>(context, listen: false);
+
+                      final restaurant = {
+                        'id': ratingSession.restaurantId,
+                        'tags': ratingSession.restaurantTags,
+                        'pictureCategory': ratingSession.restaurantPhoto
+                      };
+
+                      if (uid != null) {
+                        final meals = _controller.entries.map((entry) {
+                          return {
+                            'meal': entry['meal']!.text.trim(),
+                            'comment': entry['comment']!.text.trim(),
+                          };
+                        }).toList();
+
+                        await HistoryService().addMealInputs(
+                          restaurant: restaurant,
+                          meals: meals,
+                          rating: 5.0, // You can allow user to pick this if needed
+                        );
+
+                        await ratingSession.clearSession(uid: uid);
+                      }
+
+                      Navigator.of(context).pop();
+                    }
                   ),
                 ),
               ],

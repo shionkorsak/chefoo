@@ -3,10 +3,12 @@ import { processMealBatchFlow } from "./database/ai/personality";
 import { processMealAnalysisFlow } from "./database/ai/processMeal";
 import { mainPickFlow, restaurantTagsFlow, restaurantBannerFlow } from "./recommendation/mainPick"
 import { analyzeHealthInsightsFlow, analyzeHealthInsightsDailyFlow } from "./database/user/healthInsights";
+
 export { createUserAccount } from "./auth/userAuth";
 export { deleteUserAccount } from "./auth/userAuth";
 export { updateClientPreferences } from "./database/user/userPreference";
 export { mainPick, msgAI, generateTagsAndBanner } from "./recommendation/mainPick"
+export { processMealAnalysis } from "./database/ai/processMeal";
 
 export const updatePreferenceAI = onCallGenkit(processMealBatchFlow);
 export const processMealAnalysisAI = onCallGenkit(processMealAnalysisFlow);

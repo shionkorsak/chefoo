@@ -15,6 +15,7 @@ class RatingSessionProvider extends ChangeNotifier {
     required String uid,
   }) async {
     restaurantId = id;
+    restaurantName = name;
     restaurantPhoto = photo;
     restaurantTags = tags;
     notifyListeners();
@@ -24,6 +25,7 @@ class RatingSessionProvider extends ChangeNotifier {
     await prefs.setString('rating_name_$uid', name);
     await prefs.setString('rating_photo_$uid', photo);
     await prefs.setStringList('rating_tags_$uid', tags);
+    print('[RATE] Name: $name, ID: $id, Tags: $tags, Picture: $photo');
   }
 
   Future<void> clearSession({required String uid}) async {
@@ -38,6 +40,7 @@ class RatingSessionProvider extends ChangeNotifier {
     await prefs.remove('rating_name_$uid');
     await prefs.remove('rating_photo_$uid');
     await prefs.remove('rating_tags_$uid');
+    print('[RATE] Rating session cleared.');
   }
 
   Future<void> loadSession({required String uid}) async {
@@ -47,5 +50,6 @@ class RatingSessionProvider extends ChangeNotifier {
     restaurantPhoto = prefs.getString('rating_photo_$uid');
     restaurantTags = prefs.getStringList('rating_tags_$uid') ?? [];
     notifyListeners();
+    print('[RATE] Loaded session.');
   }
 }

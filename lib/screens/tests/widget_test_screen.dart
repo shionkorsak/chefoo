@@ -39,7 +39,7 @@ class _WidgetTestScreenState extends State<WidgetTestScreen> {
                 children: [
                   AuthCard(
                     children: [
-                      BorderTextField(label: 'Enter your text here'),
+                      // BorderTextField(label: 'Enter your text here'), // sorry ryosei u didn't put texteditingcontroller i need it
                       SizedBox(
                         height: 32,
                       ),

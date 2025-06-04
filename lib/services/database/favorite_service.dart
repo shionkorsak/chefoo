@@ -22,7 +22,6 @@ class FavoritesService {
     final List<Place> places = [];
 
     for(final doc in snapshot.docs) {
-      
         final placeId = doc.id;
         final data = doc.data();
         final List<String> tags = List<String>.from(data['tags'] ?? []);
