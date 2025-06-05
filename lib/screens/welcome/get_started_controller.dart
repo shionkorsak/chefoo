@@ -174,24 +174,28 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                   ),
                 );
               },
-              child: AuthCard(
-                key: ValueKey(provider.state),
-                margin: const EdgeInsets.symmetric(horizontal: 18),
-                padding: EdgeInsets.zero,
-                children: [
-                  if (provider.state < 7)
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width - 18,
-                      child: AnimatedPadding(
-                        duration: const Duration(milliseconds: 300),
-                        padding: EdgeInsets.symmetric(
-                          vertical: provider.state >= 2 ? 24 : 40,
-                          horizontal: 18,
+              child: AnimatedSize(
+                duration: Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                child: AuthCard(
+                  key: ValueKey(provider.state),
+                  margin: const EdgeInsets.symmetric(horizontal: 18),
+                  padding: EdgeInsets.zero,
+                  children: [
+                    if (provider.state < 7)
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width - 18,
+                        child: AnimatedPadding(
+                          duration: const Duration(milliseconds: 300),
+                          padding: EdgeInsets.symmetric(
+                            vertical: provider.state >= 2 ? 24 : 40,
+                            horizontal: 18,
+                          ),
+                          child: buildCardContent(),
                         ),
-                        child: buildCardContent(),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -280,80 +284,10 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     await Future.delayed(Duration(milliseconds: 700));
                     provider.setShowFinalScreenContent(true);
                   } else {
-                    provider.setState(4);
+                    provider.setState(5);
                   }
                 });
               },
-            ),
-            SizedBox(height: 48),
-          ],
-        );
-      case 4:
-        return Column(
-          key: ValueKey(4),
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "How should we call you?",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-            kGap8,
-            kGap8,
-            TextField(
-              controller: provider.nameController,
-              decoration: InputDecoration(
-                hintText: "Enter your name",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-            ),
-            // Show error message if nameError is true
-            if (provider.nameError)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  "Please enter your name before proceeding.",
-                  style: TextStyle(color: Colors.red, fontSize: 12),
-                ),
-              ),
-            kGap5,
-            Align(
-              alignment: Alignment.center,
-              child: Padding(
-                padding: EdgeInsets.only(left: 4),
-                child: Text(
-                  "Psst....you can always change it later if you want",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ),
-            kGap8,
-            kGap8,
-            ElevatedButton(
-              onPressed: () async {
-                if (provider.nameController.text.trim().isEmpty) {
-                  provider.setNameError(true);
-                  return;
-                }
-
-                provider.setNameError(false);
-
-                await Future.delayed(Duration(milliseconds: 300), () {
-                  provider.setState(5);
-                });
-              },
-              child: Text("Next"),
             ),
             SizedBox(height: 48),
           ],
