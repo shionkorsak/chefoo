@@ -1,44 +1,55 @@
-import { onDocumentCreated } from 'firebase-functions/v2/firestore';
-import { logger } from 'firebase-functions';
+import * as functions from "firebase-functions/v1";
 import { ai } from '../../config';
 import { firestore } from 'firebase-admin';
 import { z } from 'genkit';
 import { mealInputSchema, mealAnalysis } from '../../schema'; // adjust to your schema location
 
-export const processMealAnalysis = onDocumentCreated(
-  {
-    document: 'users/{uid}/mealHistory/{mealId}',
-  },
-  async (event) => {
-    const snap = event.data;
-    const { uid, mealId } = event.params;
+export const processMealAnalysis = functions.https.onCall(
+  async (data, context) => {
+    const { uid, mealId } = data;
 
-    if (!snap) {
-      logger.warn('No document snapshot found.');
-      return;
+    if (!uid || !mealId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Missing uid or mealId in the request.'
+      );
     }
-
-    const rawData = snap.data();
-    const validation = mealInputSchema.safeParse(rawData);
-
-    if (!validation.success) {
-      logger.error(`Invalid meal input for ${uid}/${mealId}:`, validation.error);
-      return;
-    }
-
-    const name = validation.data.profile.name;
-    const notes = validation.data.feedback?.notes ?? 'No notes provided';
 
     try {
+      const docRef = firestore().doc(`users/${uid}/mealHistory/${mealId}`);
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        throw new functions.https.HttpsError(
+          'not-found',
+          `No mealHistory document found for ${uid}/${mealId}.`
+        );
+      }
+
+      const rawData = docSnap.data();
+      const validation = mealInputSchema.safeParse(rawData);
+
+      if (!validation.success) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          `Invalid meal input format: ${validation.error}`
+        );
+      }
+
+      const name = validation.data.profile.name;
+      const notes = validation.data.feedback?.notes ?? 'No notes provided';
+
       const result = await processMealAnalysisFlow({ name, notes });
 
-      await firestore()
-        .doc(`users/${uid}/mealHistory/${mealId}`)
-        .update({ analysis: result.analysis });
+      await docRef.update({ analysis: result.analysis });
 
-      logger.info(`Meal analysis saved for ${uid}/${mealId}`);
-    } catch (error) {
-      logger.error(`Failed to analyze meal for ${uid}/${mealId}:`, error);
+      return { success: true, message: `Analysis completed for ${uid}/${mealId}` };
+    } catch (error: any) {
+      console.error(`Error processing meal analysis:`, error);
+      throw new functions.https.HttpsError(
+        'internal',
+        error.message || 'An unexpected error occurred.'
+      );
     }
   }
 );

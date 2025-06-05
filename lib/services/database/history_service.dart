@@ -4,6 +4,7 @@ import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:chefoo/services/maps.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class HistoryService {
   final _auth = AuthService();
@@ -74,20 +75,17 @@ class HistoryService {
         await docRef.set(data);
         print('[HISTORY] Meal input added: $mealId');
 
-        bool analysisReady = false;
-        int retries = 20;
-
-        while (!analysisReady && retries-- > 0) {
-          print('[HISTORY] Retries: $retries');
-          final snapshot = await docRef.get();
-          if (snapshot.exists && snapshot.data()?['analysis'] != null) {
-            print('[HISTORY] AI Analysis: ${snapshot.data()?['analysis']}');
-            analysisReady = true;
-          } else {
-            await Future.delayed(const Duration(milliseconds: 500));
-          }
+        try {
+          final callable = FirebaseFunctions.instance.httpsCallable('processMealAnalysis');
+          final result = await callable.call({
+            'uid': uid,
+            'mealId': mealId,
+          });
+          print('[HISTORY] Called processMealAnalysis: ${result.data}');
+        } catch (e) {
+          print('[HISTORY] Error calling processMealAnalysis: $e');
         }
-        if(!analysisReady) print('[HISTORY] No analysis provided.');
+
         
       } catch (e) {
         print('[HISTORY] Failed to store meal input.');

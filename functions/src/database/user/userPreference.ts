@@ -97,13 +97,8 @@ export const updateUserPreferenceonMealCreateFlow = ai.defineFlow({
   }
 
   const meal = mealSnap.data();
-  const mealName = meal?.profile?.name ?? 'Unnamed Meal';
-  const notes = meal?.feedback?.notes;
-
-  if (!notes || notes.trim().length < 3) {
-    console.warn(`[Skip] No valid notes found for meal ${mealId}`);
-    return { status: 'skipped (no notes)' };
-  }
+  const mealName = meal?.profile?.name ?? 'Unnamed meal';
+  const notes = meal?.feedback?.notes ?? 'No notes provided.';
 
   const userRef = db.doc(`users/${uid}`);
   const userDoc = await userRef.get();
@@ -159,17 +154,38 @@ Only include fields you’re confident about.
 });
 
 
-export const triggerUpdatePreference = functions.firestore
-  .document('users/{uid}/mealHistory/{mealId}')
-  .onCreate(async (snap, context) => {
-    const { uid, mealId } = context.params;
-    const data = snap.data();
+export const triggerUpdatePreference = functions.https.onCall(
+  async (data, context) => {
+    const uid = context.auth?.uid;
+    if (!uid) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated.'
+      );
+    }
 
-    const notes = data?.feedback?.notes ?? '';
-    if (!notes) return null;
+    const mealId = data.mealId;
+    if (!mealId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Meal ID is required.'
+      );
+    }
 
-    console.log(`[Trigger] Updating preferences for ${uid} from meal ${mealId}`);
-    await updateUserPreferenceonMealCreateFlow({ uid, mealId });
+    const mealRef = db.doc(`users/${uid}/mealHistory/${mealId}`);
+    const mealSnap = await mealRef.get();
 
-    return null;
-  });
+    if (!mealSnap.exists) {
+      throw new functions.https.HttpsError(
+        'not-found',
+        `Meal ${mealId} not found.`
+      );
+    }
+
+    console.log(`[Callable Trigger] Updating preferences for ${uid} from meal ${mealId}`);
+
+    const result = await updateUserPreferenceonMealCreateFlow({ uid, mealId });
+
+    return { status: result.status };
+  }
+);
