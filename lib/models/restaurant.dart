@@ -13,7 +13,7 @@ class Place {
   final List<String> pictureUrls;
   final double lat;
   final double lng;
-  final bool? isOpenNow;
+  bool? isOpenNow;
   List<Map<String, dynamic>>? _popularTimes;
   bool _popularTimesLoaded = false;
   double walkingDistance;

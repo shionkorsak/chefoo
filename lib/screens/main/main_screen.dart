@@ -105,7 +105,7 @@ class _MainScreenState extends MainController {
                           style: AppTextStyles.headline1.copyWith(color: AppColors.primary),
                         ),
                       ),
-                    kGap5,
+                    //kGap5,
                     eventLocation.isNotEmpty
                       ? Text(
                           "You have class at $eventLocation soon, this place is on the way!",
@@ -155,9 +155,9 @@ class _MainScreenState extends MainController {
                         ),
                       ],
                     ),
-                    kGap5,
+                    //kGap5,
                     Text("Here are some options only for you!", style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
-                    kGap8,
+                    //kGap8,
                     GestureDetector(
                       onTap: resetInactivityTimer,
                       onPanDown: (_) => resetInactivityTimer(),
@@ -170,7 +170,7 @@ class _MainScreenState extends MainController {
                         ),
                       ),
                     ),
-                    kGap20,
+                    //kGap20,
           
                     // Your Meals Lately (static list)
                     Row(

@@ -381,6 +381,12 @@ class _MapScreenState extends MapController {
             
               createMarkersWithDestination();
               forceDrawRoute();
+              
+              if (hasActiveRoute) {
+                Future.delayed(Duration(milliseconds: 300), () {
+                  centerOnRoute();
+                });
+              }
             },
             onTap: (LatLng position) {
               final wasShowingCard = showPlaceCard;

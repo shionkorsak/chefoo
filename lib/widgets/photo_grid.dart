@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:chefoo/commons.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class PhotoGrid extends StatelessWidget {
   final List<String> photoRefs;
@@ -18,54 +20,63 @@ class PhotoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
-        children: [
-          AppBar(
-            title: Text('All photos - $placeName'),
-            automaticallyImplyLeading: false,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-              ),
-              itemCount: photoRefs.length,
-              itemBuilder: (context, index) => Image.network(
-                'https://maps.googleapis.com/maps/api/place/photo'
-                '?maxwidth=800'
-                '&photo_reference=${photoRefs[index]}'
-                '&key=$apiKey',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  print('Error loading image: $error');
-                  return Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.image_not_supported),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                },
+      appBar: AppBar(
+        leading: const BackButton(),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Pictures",
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.builder(
+                  itemCount: photoRefs.length > 0 ? photoRefs.length - 1 : 0,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.0,
+                  ),
+                  itemBuilder: (context, index) {
+                    final actualIndex = index + 1;
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        '$baseUrl?maxwidth=800&photo_reference=${photoRefs[actualIndex]}&key=$apiKey',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.image_not_supported),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(child: CircularProgressIndicator()),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
