@@ -1,0 +1,134 @@
+{
+  "bindings": [
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcp-sa-artifactregistry.iam.gserviceaccount.com"
+      ],
+      "role": "roles/artifactregistry.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:176036392836@cloudbuild.gserviceaccount.com"
+      ],
+      "role": "roles/cloudbuild.builds.builder"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+      ],
+      "role": "roles/cloudbuild.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcf-admin-robot.iam.gserviceaccount.com"
+      ],
+      "role": "roles/cloudfunctions.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:176036392836-compute@developer.gserviceaccount.com",
+        "serviceAccount:chefoo-1@appspot.gserviceaccount.com",
+        "serviceAccount:firebase-adminsdk-fbsvc@chefoo-1.iam.gserviceaccount.com",
+        "serviceAccount:service-176036392836@gcf-admin-robot.iam.gserviceaccount.com"
+      ],
+      "role": "roles/cloudtrace.agent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@containerregistry.iam.gserviceaccount.com"
+      ],
+      "role": "roles/containerregistry.ServiceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:176036392836-compute@developer.gserviceaccount.com",
+        "serviceAccount:176036392836@cloudservices.gserviceaccount.com",
+        "serviceAccount:chefoo-1@appspot.gserviceaccount.com",
+        "user:softwarestudio25@gmail.com"
+      ],
+      "role": "roles/editor"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcp-sa-firebase.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebase.managementServiceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@chefoo-1.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebase.sdkAdminServiceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@chefoo-1.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaseauth.admin"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcp-sa-firebasevertexai.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaseml.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcp-sa-firebasemods.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebasemods.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@firebase-rules.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firebaserules.system"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@gcp-sa-firestore.iam.gserviceaccount.com"
+      ],
+      "role": "roles/firestore.serviceAgent"
+    },
+    {
+      "members": [
+        "serviceAccount:firebase-adminsdk-fbsvc@chefoo-1.iam.gserviceaccount.com"
+      ],
+      "role": "roles/iam.serviceAccountTokenCreator"
+    },
+    {
+      "members": [
+        "serviceAccount:176036392836-compute@developer.gserviceaccount.com",
+        "serviceAccount:chefoo-1@appspot.gserviceaccount.com",
+        "serviceAccount:firebase-adminsdk-fbsvc@chefoo-1.iam.gserviceaccount.com",
+        "serviceAccount:service-176036392836@gcf-admin-robot.iam.gserviceaccount.com"
+      ],
+      "role": "roles/logging.logWriter"
+    },
+    {
+      "members": [
+        "serviceAccount:176036392836-compute@developer.gserviceaccount.com",
+        "serviceAccount:chefoo-1@appspot.gserviceaccount.com",
+        "serviceAccount:firebase-adminsdk-fbsvc@chefoo-1.iam.gserviceaccount.com",
+        "serviceAccount:service-176036392836@gcf-admin-robot.iam.gserviceaccount.com"
+      ],
+      "role": "roles/monitoring.metricWriter"
+    },
+    {
+      "members": [
+        "serviceAccount:176036392836-compute@developer.gserviceaccount.com",
+        "serviceAccount:chefoo-1@appspot.gserviceaccount.com",
+        "user:softwarestudio25@gmail.com"
+      ],
+      "role": "roles/owner"
+    },
+    {
+      "members": [
+        "serviceAccount:service-176036392836@serverless-robot-prod.iam.gserviceaccount.com"
+      ],
+      "role": "roles/run.serviceAgent"
+    }
+  ],
+  "etag": "BwY2zUMhzPc=",
+  "version": 1
+}

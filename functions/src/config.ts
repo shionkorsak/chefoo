@@ -12,5 +12,5 @@ export const ai = genkit({
     ],
     model: gemini20FlashExp.withConfig({
         version: 'gemini-2.0-flash-001'
-    })
+    }),
 })

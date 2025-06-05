@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
-import 'package:chefoo/widgets/tags/tag_map.dart';
 import 'package:chefoo/widgets/tags/tag.dart';
+import 'package:flutter/cupertino.dart';
 
 class PreferenceScreen extends StatefulWidget {
   const PreferenceScreen({super.key});
@@ -187,7 +185,6 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                               ? allergyTags
                               : dietaryTags;
 
-                      // Ensure the newTag is unique by incrementing until no conflict
                       while (targetList.contains(newTag)) {
                         newTag = '$baseName $counter';
                         counter++;
