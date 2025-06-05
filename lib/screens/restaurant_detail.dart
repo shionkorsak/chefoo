@@ -628,8 +628,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     ),
                                   );
                                 },
-                                child: Text(
-                                    'View All (${widget.place.pictureUrls.length})'),
+                                child: Text('View All (${widget.place.pictureUrls.length - 1})'),
                               ),
                             ],
                           ),
@@ -644,14 +643,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                               mainAxisSpacing: 8,
                               childAspectRatio: 1,
                             ),
-                            itemCount: widget.place.pictureUrls.length > 4
-                                ? 4
-                                : widget.place.pictureUrls.length,
+                            itemCount: widget.place.pictureUrls.length > 1 
+                                ? (widget.place.pictureUrls.length > 5 ? 4 : widget.place.pictureUrls.length - 1)
+                                : 0,
                             itemBuilder: (context, index) {
+                              final actualIndex = index + 1;
                               final imageUrl =
-                                  'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${widget.place.pictureUrls[index]}&key=${MapsConstants.mapsKey}';
+                                  'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${widget.place.pictureUrls[actualIndex]}&key=${MapsConstants.mapsKey}';
                               final isLast = index == 3 ||
-                                  index == widget.place.pictureUrls.length - 1;
+                                  index == widget.place.pictureUrls.length - 2; // Adjusted for the offset
 
                               return GestureDetector(
                                 onTap: () {
@@ -660,7 +660,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     MaterialPageRoute(
                                       builder: (context) => PhotoGrid(
                                         photoRefs: widget.place.pictureUrls,
-                                        initialIndex: index,
+                                        initialIndex: actualIndex, // Use the actual index here
                                         placeName: widget.place.name,
                                       ),
                                     ),
