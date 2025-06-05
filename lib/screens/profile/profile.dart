@@ -2,7 +2,6 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
 import 'package:chefoo/widgets/cards/favorite_list.dart';
-import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:chefoo/widgets/healthy_score.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -18,7 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,146 +26,150 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           SafeArea(
             child: Consumer<UserAccountProvider>(
-                builder: (context, provider, child) {
-              if (provider.isLoading) {
-                return Center(child: CircularProgressIndicator());
-              }
-              if (provider.errorMessage != null) {
-                return Center(
-                    child: Text(provider.errorMessage!,
-                        style: TextStyle(color: Colors.red)));
-              }
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              final account = provider.userAccount;
-              if (account == null) {
-                return Center(child: Text("No user data available."));
-              }
-              
-              return Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(
-                        20,
-                        20,
-                        20,
-                        MediaQuery.of(context).padding.bottom + 100,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header background
-                          Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.asset(
-                                  'assets/images/chefoo_banner.png',
-                                  width: double.infinity,
-                                  height: 160,
-                                  fit: BoxFit.cover,
+                if (provider.errorMessage != null) {
+                  return Center(
+                    child: Text(
+                      provider.errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
+
+                final account = provider.userAccount;
+                if (account == null) {
+                  return const Center(child: Text("No user data available."));
+                }
+
+                final score = account.healthInsight?.healthScore.toInt() ?? 0;
+
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          MediaQuery.of(context).padding.bottom + 100,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.asset(
+                                    'assets/images/chefoo_banner.png',
+                                    width: double.infinity,
+                                    height: 160,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                top: 16,
-                                right: 16,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => const SettingsScreen()),
-                                    );
-                                  },
-                                  child: const Icon(
-                                    Icons.settings,
-                                    color: Colors.white,
-                                    size: 28,
+                                Positioned(
+                                  top: 16,
+                                  right: 16,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const SettingsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      Icons.settings,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 16,
+                                  bottom: 16,
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 40,
+                                        backgroundImage: account.profile
+                                                        ?.photoURL !=
+                                                    null &&
+                                                account.profile!.photoURL!
+                                                    .isNotEmpty
+                                            ? NetworkImage(
+                                                account.profile!.photoURL!)
+                                            : const AssetImage(
+                                                    'assets/images/profile_picture.png')
+                                                as ImageProvider,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        account.profile!.displayName,
+                                        style:
+                                            AppTextStyles.headline2.copyWith(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              child: HealthyScore(score: score),
+                            ),
+                            const SizedBox(height: 24),
+                            Text('Favorites', style: AppTextStyles.headline2),
+                            const SizedBox(height: 8),
+                            const FavoriteList(),
+                            const SizedBox(height: 24),
+                            Text('History', style: AppTextStyles.headline2),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 240,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: 5,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 12),
+                                itemBuilder: (context, index) => Container(
+                                  width: 160,
+                                  height: 220,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(15),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text('TO DO',
+                                        style: AppTextStyles.detail),
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                left: 16,
-                                bottom: 16,
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 40,
-                                      backgroundImage: account
-                                                      .profile.photoURL !=
-                                                  null &&
-                                              account
-                                                  .profile.photoURL!.isNotEmpty
-                                          ? NetworkImage(
-                                              account.profile.photoURL!)
-                                          : AssetImage(
-                                                  'assets/images/profile_picture.png')
-                                              as ImageProvider,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          account.profile.displayName,
-                                          style:
-                                              AppTextStyles.headline2.copyWith(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: HealthyScore(score: 50),
-                          ),
-                          const SizedBox(height: 24),
-                          Text('Favorites', style: AppTextStyles.headline2),
-                          const SizedBox(height: 8),
-                          FavoriteList(),
-                          const SizedBox(height: 24),
-                          Text('History', style: AppTextStyles.headline2),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 240,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 5,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) => Container(
-                                width: 160,
-                                height: 220,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text('TO DO',
-                                      style: AppTextStyles.detail),
-                                ),
-                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            }),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),

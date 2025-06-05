@@ -1,6 +1,9 @@
+
+import 'package:chefoo/models/user/meal.dart';
+
 class HealthInsight {
   final double healthScore;
-  final List<WeeklyData> weeklyData;
+  final List<DailyHealthData> weeklyData;
 
   HealthInsight({required this.healthScore, required this.weeklyData});
 
@@ -8,7 +11,7 @@ class HealthInsight {
     return HealthInsight(
       healthScore: (map['healthScore'] ?? 0).toDouble(),
       weeklyData: (map['weeklyData'] as List<dynamic>? ?? [])
-          .map((e) => WeeklyData.fromMap(Map<String, dynamic>.from(e ?? {})))
+          .map((e) => DailyHealthData.fromMap(Map<String, dynamic>.from(e)))
           .toList(),
     );
   }
@@ -19,23 +22,33 @@ class HealthInsight {
       };
 }
 
-class WeeklyData {
-  final int week;
-  final double ratio;
+class DailyHealthData {
+  final String date;
+  final List<Map<String, dynamic>> mealInput; // raw meal maps
+  final int ratio;
   final String comment;
 
-  WeeklyData({required this.week, required this.ratio, required this.comment});
+  DailyHealthData({
+    required this.date,
+    required this.mealInput,
+    required this.ratio,
+    required this.comment,
+  });
 
-  factory WeeklyData.fromMap(Map<String, dynamic> map) {
-    return WeeklyData(
-      week: map['week'] is int ? map['week'] as int : 0,
-      ratio: (map['ratio'] is num) ? (map['ratio'] as num).toDouble() : 0.0,
-      comment: map['comment'] as String? ?? '',
+  factory DailyHealthData.fromMap(Map<String, dynamic> map) {
+    return DailyHealthData(
+      date: map['date'] as String,
+      mealInput: (map['mealInput'] as List<dynamic>? ?? [])
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList(),
+      ratio: (map['ratio'] as num).toInt(),
+      comment: map['comment'] ?? '',
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'week': week,
+        'date': date,
+        'mealInput': mealInput,
         'ratio': ratio,
         'comment': comment,
       };
