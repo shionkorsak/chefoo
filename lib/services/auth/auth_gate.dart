@@ -29,7 +29,7 @@ class AuthGate extends StatelessWidget {
             return PostAuthLoader(user: snapshot.data!);
           } else {
             print("[AUTH] User has not signed in.");
-            return GetStartedScreen(); 
+            return const SplashScreen(isLoggedIn: false); 
           }
         }
       )

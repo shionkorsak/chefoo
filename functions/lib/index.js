@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updatePreferenceAI = exports.processMealAnalysis = exports.generateTagsAndBanner = exports.msgAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
+exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.processMealBatch = exports.processMealAnalysis = exports.generateTagsAndBanner = exports.msgAI = exports.mainPick = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
 const https_1 = require("firebase-functions/https");
-const personality_1 = require("./database/ai/personality");
 const processMeal_1 = require("./database/ai/processMeal");
 const mainPick_1 = require("./recommendation/mainPick");
 const healthInsights_1 = require("./database/user/healthInsights");
+// import { updateUserPreferenceonMealCreateFlow } from "./database/user/userPreference";
 var userAuth_1 = require("./auth/userAuth");
 Object.defineProperty(exports, "createUserAccount", { enumerable: true, get: function () { return userAuth_1.createUserAccount; } });
 var userAuth_2 = require("./auth/userAuth");
@@ -18,11 +18,13 @@ Object.defineProperty(exports, "msgAI", { enumerable: true, get: function () { r
 Object.defineProperty(exports, "generateTagsAndBanner", { enumerable: true, get: function () { return mainPick_2.generateTagsAndBanner; } });
 var processMeal_2 = require("./database/ai/processMeal");
 Object.defineProperty(exports, "processMealAnalysis", { enumerable: true, get: function () { return processMeal_2.processMealAnalysis; } });
-exports.updatePreferenceAI = (0, https_1.onCallGenkit)(personality_1.processMealBatchFlow);
+var personality_1 = require("./database/ai/personality");
+Object.defineProperty(exports, "processMealBatch", { enumerable: true, get: function () { return personality_1.processMealBatch; } });
 exports.processMealAnalysisAI = (0, https_1.onCallGenkit)(processMeal_1.processMealAnalysisFlow);
 exports.mainPickAI = (0, https_1.onCallGenkit)(mainPick_1.mainPickFlow);
 exports.restaurantTagsAI = (0, https_1.onCallGenkit)(mainPick_1.restaurantTagsFlow);
 exports.analyzeHealthInsightsAI = (0, https_1.onCallGenkit)(healthInsights_1.analyzeHealthInsightsFlow);
 exports.analyzeHealthInsightsDailyAI = (0, https_1.onCallGenkit)(healthInsights_1.analyzeHealthInsightsDailyFlow);
 exports.restaurantBannerAI = (0, https_1.onCallGenkit)(mainPick_1.restaurantBannerFlow);
+// export const updateUserPreferenceonMealCreateAI = onCallGenkit(updateUserPreferenceonMealCreateFlow);
 //# sourceMappingURL=index.js.map

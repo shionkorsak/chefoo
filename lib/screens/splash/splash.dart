@@ -51,8 +51,20 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.6, 1.0, curve: Curves.easeIn),
     ));
 
-    // Future.delayed(const Duration(milliseconds: 300), handleSplashFlow);
+    Future.delayed(const Duration(milliseconds: 300), handleSplashFlow);
     _controller.forward();
+  }
+  
+  Future<void> handleSplashFlow() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    if (!widget.isLoggedIn) {
+      print('[SPLASH] Go to get started.');
+      _goToGetStarted();
+      return;
+    }
   }
 
     // Future<void> handleSplashFlow() async {

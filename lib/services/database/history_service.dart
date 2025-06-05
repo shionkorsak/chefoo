@@ -78,6 +78,7 @@ class HistoryService {
         int retries = 20;
 
         while (!analysisReady && retries-- > 0) {
+          print('[HISTORY] Retries: $retries');
           final snapshot = await docRef.get();
           if (snapshot.exists && snapshot.data()?['analysis'] != null) {
             print('[HISTORY] AI Analysis: ${snapshot.data()?['analysis']}');
@@ -86,6 +87,8 @@ class HistoryService {
             await Future.delayed(const Duration(milliseconds: 500));
           }
         }
+        if(!analysisReady) print('[HISTORY] No analysis provided.');
+        
       } catch (e) {
         print('[HISTORY] Failed to store meal input.');
       }
