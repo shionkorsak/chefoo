@@ -74,37 +74,23 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     final places = Provider.of<RestaurantProvider>(context).places;
 
-    final List<Widget> screens = [
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
-      SafeArea(bottom: false, child: MainScreen(showWelcomeDialog: false)),
-      SafeArea(bottom: false, child: MapScreen(places: places)),
-      SafeArea(bottom: false, child: ProfileScreen()),
-    ];
-
-    return SafeArea(
-      bottom: false,
-      child: Stack(
+    return Scaffold(
+      extendBody: true,
+      body: IndexedStack(
+        index: _currentIndex,
         children: [
-          Positioned.fill(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: screens,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: CustomBottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-            ),
-          ),
+          MainScreen(showWelcomeDialog: false),
+          MapScreen(places: places),
+          ProfileScreen(),
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
     );
   }
