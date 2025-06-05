@@ -77,7 +77,7 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> screens = [
       Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
-        child: MainScreen(),
+        child: MainScreen(showWelcomeDialog: false,),
       ),
       Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
