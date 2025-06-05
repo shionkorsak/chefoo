@@ -102,7 +102,6 @@ export const processMealBatch = functions.https.onCall(async (data, context) => 
     };
 })
 
-// genkit testing
 export const processMealBatchFlow = ai.defineFlow(
   {
     name: 'processMealBatchFlow',

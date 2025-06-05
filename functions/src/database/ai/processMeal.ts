@@ -1,36 +1,47 @@
-import * as functions from "firebase-functions/v1";
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { logger } from 'firebase-functions';
 import { ai } from '../../config';
 import { firestore } from 'firebase-admin';
-import { mealAnalysis, mealInputSchema } from '../../schema';
 import { z } from 'genkit';
+import { mealInputSchema, mealAnalysis } from '../../schema'; // adjust to your schema location
 
-export const processMealAnalysis = functions.firestore
-    .document('users/{uid}/mealHistory/{mealId}')
-    .onCreate(async (snap, context) => {
-        const { uid, mealId } = context.params;
-        const rawData = snap.data();
+export const processMealAnalysis = onDocumentCreated(
+  {
+    document: 'users/{uid}/mealHistory/{mealId}',
+  },
+  async (event) => {
+    const snap = event.data;
+    const { uid, mealId } = event.params;
 
-        const validation = mealInputSchema.safeParse(rawData);
-        if(!validation.success) {
-            console.error("Invalid mealInput format:", validation.error);
-            return;
-        }
+    if (!snap) {
+      logger.warn('No document snapshot found.');
+      return;
+    }
 
-        const name = validation.data.profile.name;
-        const notes = validation.data.feedback?.notes ?? 'No notes provided';
+    const rawData = snap.data();
+    const validation = mealInputSchema.safeParse(rawData);
 
-        try {
-            const result = await processMealAnalysisFlow({ name, notes });
+    if (!validation.success) {
+      logger.error(`Invalid meal input for ${uid}/${mealId}:`, validation.error);
+      return;
+    }
 
-            await firestore()
-                .doc(`users/${uid}/mealHistory/${mealId}`)
-                .update({ analysis: result.analysis });
+    const name = validation.data.profile.name;
+    const notes = validation.data.feedback?.notes ?? 'No notes provided';
 
-            console.log(`Meal analysis saved for ${mealId}`);
-        } catch (error) {
-            console.error('Failed to analyze meal:', error);
-        }
-    });
+    try {
+      const result = await processMealAnalysisFlow({ name, notes });
+
+      await firestore()
+        .doc(`users/${uid}/mealHistory/${mealId}`)
+        .update({ analysis: result.analysis });
+
+      logger.info(`Meal analysis saved for ${uid}/${mealId}`);
+    } catch (error) {
+      logger.error(`Failed to analyze meal for ${uid}/${mealId}:`, error);
+    }
+  }
+);
 
 export const processMealAnalysisFlow = ai.defineFlow(
     {

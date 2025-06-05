@@ -1,5 +1,6 @@
-// ignore_for_file: lines_longer_than_80_chars
+// // ignore_for_file: lines_longer_than_80_chars
 
+import 'dart:async';
 import 'dart:developer';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/rating_session.dart';
@@ -10,32 +11,34 @@ import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:chefoo/services/database/location_handler.dart';
+import 'package:chefoo/services/preload_service.dart' as preload;
 
-//? To make sure that when user is 
-//? authenticated the page should be the home page
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+// //? To make sure that when user is 
+// //? authenticated the page should be the home page
+// class AuthGate extends StatelessWidget {
+//   const AuthGate({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(), 
-        builder: (context, snapshot) {
-          // print('[AUTH] snapshot: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
-          // print('[AUTH] snapshot.data: ${snapshot.data}');
-          if(snapshot.hasData) {
-            print("[AUTH] User has signed in: ${snapshot.data!.uid}");
-            return PostAuthLoader(user: snapshot.data!);
-          } else {
-            print("[AUTH] User has not signed in.");
-            return GetStartedScreen(); 
-          }
-        }
-      )
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: StreamBuilder(
+//         stream: FirebaseAuth.instance.authStateChanges(), 
+//         builder: (context, snapshot) {
+//           // print('[AUTH] snapshot: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
+//           // print('[AUTH] snapshot.data: ${snapshot.data}');
+//           if(snapshot.hasData) {
+//             print("[AUTH] User has signed in: ${snapshot.data!.uid}");
+//             return PostAuthLoader(user: snapshot.data!);
+//           } else {
+//             print("[AUTH] User has not signed in.");
+//             return const SplashScreen(isLoggedIn: false); 
+//           }
+//         }
+//       )
+//     );
+//   }
+// }
 
 class PostAuthLoader extends StatefulWidget {
   final User user;
@@ -105,6 +108,67 @@ class _PostAuthLoaderState extends State<PostAuthLoader> {
 
   @override
   Widget build(BuildContext context) {
-    return const SplashScreen(isLoggedIn: true); 
+    return const SplashScreen(); 
+  }
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _runPreload();
+  }
+
+  Future<void> _runPreload() async {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+
+    locationService.startLocationUpdates(context);
+    LocationHandler.startLocationUpdates(context);
+
+    if (locationService.currentPosition == null) {
+      final completer = Completer<void>();
+      late VoidCallback listener;
+      listener = () {
+        if (locationService.currentPosition != null) {
+          locationService.removeListener(listener);
+          completer.complete();
+        }
+      };
+      locationService.addListener(listener);
+      await completer.future;
+    }
+
+    await preload.PreloadService.preloadData(context, restaurantProvider);
+    await Future.delayed(const Duration(milliseconds: 1500)); 
+
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    final route = PageRouteBuilder(
+      pageBuilder: (_, animation, __) =>
+          user == null ? const GetStartedScreen() : PostAuthLoader(user: user),
+      transitionsBuilder: (_, animation, __, child) {
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+        return FadeTransition(opacity: curved, child: child);
+      },
+      transitionDuration: const Duration(milliseconds: 500),
+    );
+
+    Navigator.of(context).pushReplacement(route);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SplashScreen(); 
   }
 }

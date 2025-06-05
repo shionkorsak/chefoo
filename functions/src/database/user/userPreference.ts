@@ -2,6 +2,7 @@ import * as functions from "firebase-functions/v1";
 import { clientUpdatePreferenceSchema } from "../../schema";
 import { db } from "../../admin";
 import { ai } from "../../config";
+import { z } from 'genkit';
 
 export const updateClientPreferences = functions.https.onCall(async (data, context) => {
     const uid = context.auth?.uid;
@@ -78,3 +79,97 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         throw new functions.https.HttpsError("internal", "Failed to update preferences.");
     }
 });
+
+export const updateUserPreferenceonMealCreateFlow = ai.defineFlow({
+  name: 'updateUserPreferenceonMealCreateFlow',
+  inputSchema: z.object({
+    uid: z.string(),
+    mealId: z.string(),
+  }),
+  outputSchema: z.object({ status: z.string() }),
+}, async ({ uid, mealId }) => {
+  const mealRef = db.doc(`users/${uid}/mealHistory/${mealId}`);
+  const mealSnap = await mealRef.get();
+
+  if (!mealSnap.exists) {
+    console.warn(`[Skip] Meal ${mealId} not found for user ${uid}`);
+    return { status: 'skipped (meal not found)' };
+  }
+
+  const meal = mealSnap.data();
+  const mealName = meal?.profile?.name ?? 'Unnamed Meal';
+  const notes = meal?.feedback?.notes;
+
+  if (!notes || notes.trim().length < 3) {
+    console.warn(`[Skip] No valid notes found for meal ${mealId}`);
+    return { status: 'skipped (no notes)' };
+  }
+
+  const userRef = db.doc(`users/${uid}`);
+  const userDoc = await userRef.get();
+  const prefs = userDoc.data()?.preferences ?? {
+    likedFood: [],
+    dislikedFood: [],
+    cuisine: [],
+  };
+
+  const prompt = `
+The user ate: "${mealName}"
+Their comment was: "${notes}"
+
+Here are their current preferences:
+Liked Food: ${prefs.likedFood.join(', ') || 'None'}
+Disliked Food: ${prefs.dislikedFood.join(', ') || 'None'}
+Cuisines: ${prefs.cuisine.join(', ') || 'None'}
+
+Based on the comment, decide:
+1. What should be added to liked/disliked food or cuisine.
+2. What should be removed because it now seems to contradict the new preference.
+
+Return only this JSON format:
+{
+  "description": ["..."],
+  "likedFood": ["..."],        // final list after additions/removals
+  "dislikedFood": ["..."],     // final list after additions/removals
+  "cuisine": ["..."]           // final list after additions/removals
+}
+Only include fields you’re confident about.
+`;
+
+  const { text } = await ai.generate({ prompt });
+
+  let updates = {};
+  try {
+    updates = JSON.parse(text);
+  } catch (e) {
+    console.warn(`[Parse Fail] Raw AI output:`, text);
+    return { status: 'skipped (parse error)' };
+  }
+
+  await userRef.set(
+    {
+      preferences: {
+        updates,
+      },
+    },
+    { merge: true }
+  );
+
+  return { status: 'success' };
+});
+
+
+export const triggerUpdatePreference = functions.firestore
+  .document('users/{uid}/mealHistory/{mealId}')
+  .onCreate(async (snap, context) => {
+    const { uid, mealId } = context.params;
+    const data = snap.data();
+
+    const notes = data?.feedback?.notes ?? '';
+    if (!notes) return null;
+
+    console.log(`[Trigger] Updating preferences for ${uid} from meal ${mealId}`);
+    await updateUserPreferenceonMealCreateFlow({ uid, mealId });
+
+    return null;
+  });

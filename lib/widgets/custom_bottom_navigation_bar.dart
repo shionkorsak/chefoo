@@ -1,9 +1,7 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
-import 'package:chefoo/screens/map_view.dart';
-import 'package:chefoo/screens/profile/profile.dart';
 import 'package:chefoo/screens/map/map_screen.dart';
-import 'package:chefoo/screens/main/main_screen.dart';
+import 'package:chefoo/screens/profile/profile.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -75,7 +73,6 @@ class _MainNavigationState extends State<MainNavigation> {
     final places = Provider.of<RestaurantProvider>(context).places;
 
     final List<Widget> screens = [
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
       SafeArea(bottom: false, child: MainScreen(showWelcomeDialog: false)),
       SafeArea(bottom: false, child: MapScreen(places: places)),
       SafeArea(bottom: false, child: ProfileScreen()),
