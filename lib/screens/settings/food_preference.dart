@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
 import 'package:chefoo/widgets/tags/tag_map.dart';
@@ -139,28 +140,29 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
               const SizedBox(height: 12),
               if (isShaking)
                 Padding(
-                  padding: const EdgeInsets.only(top: 12, bottom: 12),
-                  child: DragTarget<String>(
-                    onWillAccept: (_) => true,
-                    onAccept: (tag) {
-                      setState(() {
-                        if (selectedTab == 'Dislike') {
-                          dislikeTags = List.from(dislikeTags)..remove(tag);
-                          dislikeSelectedTags.remove(tag);
-                        } else if (selectedTab == 'Allergy') {
-                          allergyTags.remove(tag);
-                          allergySelectedTags.remove(tag);
-                        } else {
-                          dietaryTags.remove(tag);
-                          dietarySelectedTags.remove(tag);
-                        }
-                      });
-                    },
-                    builder: (context, candidateData, rejectedData) =>
-                        Container(
-                      height: 80,
-                      alignment: Alignment.center,
-                      child: Icon(Icons.delete, size: 48, color: Colors.red),
+                  padding: const EdgeInsets.only(bottom: 32.0),
+                  child: Center(
+                    child: DragTarget<String>(
+                      onWillAccept: (_) => true,
+                      onAccept: (tag) {
+                        setState(() {
+                          if (selectedTab == 'Dislike') {
+                            dislikeTags = List.from(dislikeTags)..remove(tag);
+                            dislikeSelectedTags.remove(tag);
+                          } else if (selectedTab == 'Allergy') {
+                            allergyTags.remove(tag);
+                            allergySelectedTags.remove(tag);
+                          } else {
+                            dietaryTags.remove(tag);
+                            dietarySelectedTags.remove(tag);
+                          }
+                        });
+                      },
+                      builder: (context, candidateData, rejectedData) => const Icon(
+                        Icons.delete,
+                        size: 32,
+                        color: Colors.red,
+                      ),
                     ),
                   ),
                 ),
@@ -247,89 +249,74 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
   Widget _buildTagWrap(List<String> tags, List<String> selectedTags) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final tag in tags)
-            KeyedSubtree(
-              key: ValueKey(tag),
-              child: Draggable<String>(
-                data: tag,
-                feedback: Material(
-                  color: Colors.transparent,
-                  child: GestureDetector(
-                    onDoubleTap: () {
-                      if (!isShaking) _editTag(tag);
-                    },
-                    child: Tag(
-                      label: tag,
-                      selected: selectedTags.contains(tag),
-                      isShaking: isShaking,
-                      isTappable: false,
-                      isLongPressable: false,
-                      onSelected: (_) {},
-                    ),
-                  ),
-                ),
-                childWhenDragging: Opacity(
-                  opacity: 0.5,
-                  child: GestureDetector(
-                    onDoubleTap: () {
-                      if (!isShaking) _editTag(tag);
-                    },
-                    child: Tag(
-                      label: tag,
-                      selected: selectedTags.contains(tag),
-                      isShaking: isShaking,
-                      isTappable: !isShaking,
-                      isLongPressable: true,
-                      onSelected: (val) {
-                        setState(() {
-                          if (val) {
-                            selectedTags.add(tag);
-                          } else {
-                            selectedTags.remove(tag);
-                          }
-                        });
-                      },
-                      onLongPress: () {
-                        setState(() {
-                          isShaking = true;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                child: GestureDetector(
-                  onDoubleTap: () {
-                    if (!isShaking) _editTag(tag);
-                  },
-                  child: Tag(
-                    label: tag,
-                    selected: selectedTags.contains(tag),
-                    isShaking: isShaking,
-                    isTappable: !isShaking,
-                    isLongPressable: true,
-                    onSelected: (val) {
-                      setState(() {
-                        if (val) {
-                          selectedTags.add(tag);
-                        } else {
-                          selectedTags.remove(tag);
-                        }
-                      });
-                    },
-                    onLongPress: () {
-                      setState(() {
-                        isShaking = true;
-                      });
-                    },
-                  ),
-                ),
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final tag in tags)
+              KeyedSubtree(
+                key: ValueKey(tag),
+                child: isShaking
+                    ? Draggable<String>(
+                        data: tag,
+                        feedback: Material(
+                          color: Colors.transparent,
+                          child: Tag(
+                            label: tag,
+                            selected: false,
+                            isShaking: true,
+                            isTappable: false,
+                            isLongPressable: false,
+                            onSelected: (_) {},
+                          ),
+                        ),
+                        childWhenDragging: Opacity(
+                          opacity: 0.5,
+                          child: Tag(
+                            label: tag,
+                            selected: false,
+                            isShaking: true,
+                            isTappable: false,
+                            isLongPressable: true,
+                            onSelected: (_) {},
+                            onLongPress: () {
+                              setState(() {
+                                isShaking = true;
+                              });
+                            },
+                          ),
+                        ),
+                        child: Tag(
+                          label: tag,
+                          selected: false,
+                          isShaking: true,
+                          isTappable: false,
+                          isLongPressable: true,
+                          onSelected: (_) {},
+                          onLongPress: () {
+                            setState(() {
+                              isShaking = true;
+                            });
+                          },
+                        ),
+                      )
+                    : Tag(
+                        label: tag,
+                        selected: false,
+                        isShaking: false,
+                        isTappable: false,
+                        isLongPressable: true,
+                        onSelected: (_) {},
+                        onLongPress: () {
+                          setState(() {
+                            isShaking = true;
+                          });
+                        },
+                      ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -338,20 +325,23 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     final controller = TextEditingController(text: oldValue);
     final newTag = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CupertinoAlertDialog(
         title: Text("Edit Tag"),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: CupertinoTextField(
+            controller: controller,
+            autofocus: true,
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
+          CupertinoDialogAction(
             child: Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
+          CupertinoDialogAction(
             child: Text("Save"),
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/services/popular_times.dart';
@@ -24,63 +25,6 @@ class PlaceService {
   Map<String, List<Place>> get cachedPlaces => _cachedPlaces;
 
   PlaceService({required this.client});
-
-  Future<double> getDistance({
-    required double originLat,
-    required double originLng,
-    required double destLat,
-    required double destLng,
-    required String apiKey,
-  }) async {
-    final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/distancematrix/json'
-      '?origins=$originLat,$originLng'
-      '&destinations=$destLat,$destLng'
-      '&key=$apiKey',
-    );
-
-    final response = await client.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['status'] == 'OK') {
-        final distanceInMeters = jsonData['rows'][0]['elements'][0]['distance']['value'];
-        return distanceInMeters / 1000.0;
-      } else {
-        throw Exception('Failed to calculate distance');
-      }
-    } else {
-      throw Exception('Failed to load distance data');
-    }
-  }
-
-  Future<double> getWalkingDistance({
-    required double originLat,
-    required double originLng,
-    required double destLat,
-    required double destLng,
-    required String apiKey,
-  }) async {
-    final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/distancematrix/json'
-      '?origins=$originLat,$originLng'
-      '&destinations=$destLat,$destLng'
-      '&mode=walking' 
-      '&key=$apiKey'
-    );
-
-    final response = await client.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['status'] == 'OK' && 
-          jsonData['rows'][0]['elements'][0]['status'] == 'OK') {
-        final distanceInMeters = jsonData['rows'][0]['elements'][0]['distance']['value'];
-        return distanceInMeters / 1000.0; 
-      }
-    }
-    throw Exception('Failed to calculate walking distance');
-  }
 
   Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
     final url = Uri.parse(
@@ -156,9 +100,22 @@ class PlaceService {
         place.phone = details['formatted_phone_number'];
       }
       
-      if (details['opening_hours'] != null && 
-          details['opening_hours']['weekday_text'] != null) {
-        place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
+      if (details['opening_hours'] != null) {
+        if (details['opening_hours']['weekday_text'] != null) {
+          place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
+        }
+        
+        if (details['opening_hours']['open_now'] != null) {
+          place.isOpenNow = details['opening_hours']['open_now'];
+        }
+        
+        if (place.openingHours != null && place.openingHours!.isNotEmpty) {
+          try {
+            place.isOpenNow = _calculateIsOpenFromHours(place.openingHours!);
+          } catch (e) {
+            print('Error calculating open status from hours: $e');
+          }
+        }
       }
       
       if (details['reviews'] != null) {
@@ -255,11 +212,10 @@ class PlaceService {
               print('[MAPS] Testing if place is food related.');
               try {
                 final walkingDistance = await getWalkingDistance(
-                  originLat: lat,
-                  originLng: lng,
-                  destLat: place['geometry']['location']['lat'],
-                  destLng: place['geometry']['location']['lng'],
-                  apiKey: apiKey,
+                  lat,
+                  lng,
+                  place['geometry']['location']['lat'],
+                  place['geometry']['location']['lng']
                 );
 
                 if (walkingDistance <= 1.0) {
@@ -625,4 +581,140 @@ class PlaceService {
     return placesJson;
   }
 
+  Future<double> getWalkingDistance(
+    double startLat, 
+    double startLng, 
+    double endLat, 
+    double endLng
+  ) async {
+    try {
+      final cacheKey = '${startLat.toStringAsFixed(6)},${startLng.toStringAsFixed(6)}-${endLat.toStringAsFixed(6)},${endLng.toStringAsFixed(6)}';
+      
+      final apiKey = MapsConstants.mapsKey;
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json'
+        '?origin=$startLat,$startLng'
+        '&destination=$endLat,$endLng'
+        '&mode=walking'
+        '&key=$apiKey'
+      );
+
+      final response = await client.get(url);
+      if (response.statusCode != 200) {
+        throw Exception('Directions API error: ${response.statusCode}');
+      }
+
+      final data = json.decode(response.body);
+      
+      if (data['status'] != 'OK' || data['routes'].isEmpty) {
+        throw Exception('No routes found');
+      }
+
+      final route = data['routes'][0];
+      final leg = route['legs'][0];
+      return leg['distance']['value'] / 1000.0; // Convert to kilometers
+    } catch (e) {
+      print('Error getting walking distance from API: $e');
+      print('Falling back to approximation calculation');
+      return _approximateDistance(startLat, startLng, endLat, endLng) / 1000.0;
+    }
+  }
+
+  double _approximateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371000;
+    final double dLat = _toRadians(lat2 - lat1);
+    final double dLon = _toRadians(lon2 - lon1);
+    
+    final double a = 
+        math.sin(dLat/2) * math.sin(dLat/2) +
+        math.cos(_toRadians(lat1)) * math.cos(_toRadians(lat2)) * 
+        math.sin(dLon/2) * math.sin(dLon/2);
+    
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a));
+    return earthRadius * c;
+  }
+
+  double _toRadians(double degree) {
+    return degree * (math.pi / 180);
+  }
+
+  bool _calculateIsOpenFromHours(List<String> openingHours) {
+    try {
+      final now = DateTime.now();
+      final currentDay = now.weekday % 7;
+      final dayIndex = (currentDay + 6) % 7;
+      
+      if (dayIndex >= openingHours.length) {
+        return false;
+      }
+      
+      final todayHours = openingHours[dayIndex];
+      
+      if (todayHours.toLowerCase().contains('closed')) {
+        return false;
+      }
+      
+      final parts = todayHours.split(': ');
+      if (parts.length < 2) {
+        return false;
+      }
+      
+      final timeRanges = parts[1].split(',');
+      
+      for (var timeRange in timeRanges) {
+        final times = timeRange.split('–');
+        if (times.length != 2) {
+          continue;
+        }
+        
+        final openTime = _parseTimeString(times[0].trim());
+        final closeTime = _parseTimeString(times[1].trim());
+        
+        if (openTime == null || closeTime == null) {
+          continue;
+        }
+        
+        final currentTime = DateTime(
+          now.year, now.month, now.day, 
+          now.hour, now.minute
+        );
+        
+        if (closeTime.isBefore(openTime)) {
+          if (currentTime.isAfter(openTime) || currentTime.isBefore(closeTime)) {
+            return true;
+          }
+        } else if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      print('Error determining open status from hours: $e');
+      return false;
+    }
+  }
+
+  DateTime? _parseTimeString(String timeStr) {
+    try {
+      final now = DateTime.now();
+      final isPM = timeStr.toUpperCase().contains('PM');
+      final is12AM = timeStr.toUpperCase().contains('12 AM');
+      
+      final timeParts = timeStr.replaceAll(RegExp(r'[APM]'), '').trim().split(':');
+      int hours = int.parse(timeParts[0]);
+      int minutes = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
+      
+      if (isPM && hours < 12) {
+        hours += 12;
+      } else if (is12AM && hours == 12) {
+        hours = 0;
+      }
+      
+      return DateTime(now.year, now.month, now.day, hours, minutes);
+    } catch (e) {
+      print('Error parsing time string "$timeStr": $e');
+      return null;
+    }
+  }
 }
