@@ -18,7 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +46,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(20, 20, 20, 140),
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        20,
+                        20,
+                        MediaQuery.of(context).padding.bottom + 100,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -70,8 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) =>
-                                              const SettingsScreen()),
+                                          builder: (context) => const SettingsScreen()),
                                     );
                                   },
                                   child: const Icon(

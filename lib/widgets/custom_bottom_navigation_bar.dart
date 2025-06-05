@@ -75,33 +75,36 @@ class _MainNavigationState extends State<MainNavigation> {
     final places = Provider.of<RestaurantProvider>(context).places;
 
     final List<Widget> screens = [
-      Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
-        child: MainScreen(),
-      ),
-      Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
-        child: MapScreen(places: places),
-      ),
-      Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
-        child: ProfileScreen(),
-      ),
+      SafeArea(bottom: false, child: MainScreen(showWelcomeDialog: false)),
+      SafeArea(bottom: false, child: MapScreen(places: places)),
+      SafeArea(bottom: false, child: ProfileScreen()),
     ];
 
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+    return SafeArea(
+      bottom: false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: screens,
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomBottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
