@@ -1,7 +1,9 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
-import 'package:chefoo/screens/map/map_screen.dart';
+import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/screens/profile/profile.dart';
+import 'package:chefoo/screens/map/map_screen.dart';
+import 'package:chefoo/screens/main/main_screen.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -72,23 +74,36 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     final places = Provider.of<RestaurantProvider>(context).places;
 
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
+    final List<Widget> screens = [
+      SafeArea(bottom: false, child: MainScreen(showWelcomeDialog: false)),
+      SafeArea(bottom: false, child: MapScreen(places: places)),
+      SafeArea(bottom: false, child: ProfileScreen()),
+    ];
+
+    return SafeArea(
+      bottom: false,
+      child: Stack(
         children: [
-          MainScreen(showWelcomeDialog: false),
-          MapScreen(places: places),
-          ProfileScreen(),
+          Positioned.fill(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: screens,
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomBottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+            ),
+          ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
       ),
     );
   }
