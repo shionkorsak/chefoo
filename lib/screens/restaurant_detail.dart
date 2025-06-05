@@ -267,7 +267,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  const Divider(),
+                                  //const Divider(),
                                 ],
                               ),
                               if (widget.place.openingHours != null &&
@@ -434,7 +434,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                               ),
                                             ),
                                             const SizedBox(height: 16),
-                                            const Divider(),
+                                            //const Divider(),
                                           ],
                                         );
                                       },
@@ -483,7 +483,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                               ],
                             ),
                           const SizedBox(height: 16),
-                          const Divider(),
+                          //const Divider(),
                         ],
                       ],
                     ),
@@ -580,7 +580,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                 ),
                               )),
                           const SizedBox(height: 16),
-                          const Divider(),
+                          //const Divider(),
                         ],
                         if (_detailsLoaded &&
                             widget.place.pictureUrls.length > 1) ...[
