@@ -58,6 +58,13 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
       parent: _shakeController,
       curve: Curves.easeInOutSine,
     ));
+
+    // Start shaking immediately if isShaking is true from the beginning
+    if (widget.isShaking) {
+      final randomStart = (widget.shakePhase ?? 0.0) / (2 * pi);
+      _shakeController.value = randomStart;
+      _shakeController.repeat(reverse: true);
+    }
   }
 
   @override

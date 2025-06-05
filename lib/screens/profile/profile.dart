@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
 import 'package:chefoo/widgets/cards/favorite_list.dart';
+import 'package:chefoo/widgets/healthy_score.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -115,27 +116,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 24),
-                          Container(
+                          SizedBox(
                             width: double.infinity,
-                            height: 250,
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                'TO DO: HEALTH INSIGHTS',
-                                style: AppTextStyles.detail
-                                    .copyWith(color: AppColors.textSecondary),
-                              ),
-                            ),
+                            child: HealthyScore(score: 50),
                           ),
                           const SizedBox(height: 24),
                           Text('Favorites', style: AppTextStyles.headline2),
