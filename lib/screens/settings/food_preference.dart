@@ -267,39 +267,17 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                         data: tag,
                         feedback: Material(
                           color: Colors.transparent,
-                          child: GestureDetector(
-                            onDoubleTap: () => _editTag(tag),
-                            child: Tag(
-                              label: tag,
-                              selected: false,
-                              isShaking: true,
-                              isTappable: false,
-                              isLongPressable: false,
-                              onSelected: (_) {},
-                            ),
+                          child: Tag(
+                            label: tag,
+                            selected: false,
+                            isShaking: true,
+                            isTappable: false,
+                            isLongPressable: false,
+                            onSelected: (_) {},
                           ),
                         ),
                         childWhenDragging: Opacity(
                           opacity: 0.5,
-                          child: GestureDetector(
-                            onDoubleTap: () => _editTag(tag),
-                            child: Tag(
-                              label: tag,
-                              selected: false,
-                              isShaking: true,
-                              isTappable: false,
-                              isLongPressable: true,
-                              onSelected: (_) {},
-                              onLongPress: () {
-                                setState(() {
-                                  isShaking = true;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        child: GestureDetector(
-                          onDoubleTap: () => _editTag(tag),
                           child: Tag(
                             label: tag,
                             selected: false,
@@ -314,13 +292,10 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                             },
                           ),
                         ),
-                      )
-                    : GestureDetector(
-                        onDoubleTap: () => _editTag(tag),
                         child: Tag(
                           label: tag,
                           selected: false,
-                          isShaking: false,
+                          isShaking: true,
                           isTappable: false,
                           isLongPressable: true,
                           onSelected: (_) {},
@@ -330,6 +305,19 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                             });
                           },
                         ),
+                      )
+                    : Tag(
+                        label: tag,
+                        selected: false,
+                        isShaking: false,
+                        isTappable: false,
+                        isLongPressable: true,
+                        onSelected: (_) {},
+                        onLongPress: () {
+                          setState(() {
+                            isShaking = true;
+                          });
+                        },
                       ),
               ),
           ],
