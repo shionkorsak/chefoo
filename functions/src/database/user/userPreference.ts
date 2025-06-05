@@ -4,6 +4,10 @@ import { db } from "../../admin";
 import { ai } from "../../config";
 import { z } from 'genkit';
 
+function mergeUniqueArrays<T = string>(...arrays: T[][]): T[] {
+  return [...new Set(arrays.flat())];
+}
+
 export const updateClientPreferences = functions.https.onCall(async (data, context) => {
     const uid = context.auth?.uid;
     if(!uid) {
@@ -106,49 +110,54 @@ export const updateUserPreferenceonMealCreateFlow = ai.defineFlow({
     likedFood: [],
     dislikedFood: [],
     cuisine: [],
+    description: [],
   };
 
   const prompt = `
+You are a helpful assistant.
+
 The user ate: "${mealName}"
 Their comment was: "${notes}"
 
-Here are their current preferences:
+Current preferences:
 Liked Food: ${prefs.likedFood.join(', ') || 'None'}
 Disliked Food: ${prefs.dislikedFood.join(', ') || 'None'}
 Cuisines: ${prefs.cuisine.join(', ') || 'None'}
 
-Based on the comment, decide:
-1. What should be added to liked/disliked food or cuisine.
-2. What should be removed because it now seems to contradict the new preference.
+Update their preferences based on this meal.
 
-Return only this JSON format:
+Strictly return only this JSON format with no explanation, no markdown, no code block:
+
 {
   "description": ["..."],
-  "likedFood": ["..."],        // final list after additions/removals
-  "dislikedFood": ["..."],     // final list after additions/removals
-  "cuisine": ["..."]           // final list after additions/removals
+  "likedFood": ["..."],
+  "dislikedFood": ["..."],
+  "cuisine": ["..."]
 }
-Only include fields you’re confident about.
+
+Only include fields you are confident about.
+Respond with valid JSON only. Do not wrap in \`\`\` or add any commentary.
 `;
 
   const { text } = await ai.generate({ prompt });
 
-  let updates = {};
+  let updates: Record<string, any> = {};
   try {
-    updates = JSON.parse(text);
+    const cleanText = text.trim().replace(/^```json|```$/g, '').trim();
+    updates = JSON.parse(cleanText);
   } catch (e) {
     console.warn(`[Parse Fail] Raw AI output:`, text);
     return { status: 'skipped (parse error)' };
   }
 
-  await userRef.set(
-    {
-      preferences: {
-        updates,
-      },
-    },
-    { merge: true }
-  );
+  const mergedPrefs: any = { ...prefs };
+  for (const key of Object.keys(updates)) {
+    if (Array.isArray(updates[key])) {
+      mergedPrefs[key] = mergeUniqueArrays(prefs[key] ?? [], updates[key]);
+    }
+  }
+
+  await userRef.set({ preferences: mergedPrefs }, { merge: true });
 
   return { status: 'success' };
 });

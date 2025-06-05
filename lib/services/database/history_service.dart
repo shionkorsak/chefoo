@@ -76,17 +76,22 @@ class HistoryService {
         print('[HISTORY] Meal input added: $mealId');
 
         try {
-          final callable = FirebaseFunctions.instance.httpsCallable('processMealAnalysis');
-          final result = await callable.call({
+          final callableAnalysis = FirebaseFunctions.instance.httpsCallable('processMealAnalysis');
+          final analysisResult = await callableAnalysis.call({
             'uid': uid,
             'mealId': mealId,
           });
-          print('[HISTORY] Called processMealAnalysis: ${result.data}');
-        } catch (e) {
-          print('[HISTORY] Error calling processMealAnalysis: $e');
-        }
+          print('[HISTORY] Called processMealAnalysis: ${analysisResult.data}');
 
-        
+          final callableUpdatePref = FirebaseFunctions.instance.httpsCallable('triggerUpdatePreference');
+          final updatePrefResult = await callableUpdatePref.call({
+            'mealId': mealId,
+          });
+          print('[HISTORY] Called triggerUpdatePreference: ${updatePrefResult.data}');
+
+        } catch (e) {
+          print('[HISTORY] Error calling analysis or update preference: $e');
+        }
       } catch (e) {
         print('[HISTORY] Failed to store meal input.');
       }
