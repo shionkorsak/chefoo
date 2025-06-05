@@ -100,9 +100,22 @@ class PlaceService {
         place.phone = details['formatted_phone_number'];
       }
       
-      if (details['opening_hours'] != null && 
-          details['opening_hours']['weekday_text'] != null) {
-        place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
+      if (details['opening_hours'] != null) {
+        if (details['opening_hours']['weekday_text'] != null) {
+          place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
+        }
+        
+        if (details['opening_hours']['open_now'] != null) {
+          place.isOpenNow = details['opening_hours']['open_now'];
+        }
+        
+        if (place.openingHours != null && place.openingHours!.isNotEmpty) {
+          try {
+            place.isOpenNow = _calculateIsOpenFromHours(place.openingHours!);
+          } catch (e) {
+            print('Error calculating open status from hours: $e');
+          }
+        }
       }
       
       if (details['reviews'] != null) {
@@ -620,5 +633,85 @@ class PlaceService {
 
   double _toRadians(double degree) {
     return degree * (math.pi / 180);
+  }
+
+  bool _calculateIsOpenFromHours(List<String> openingHours) {
+    try {
+      final now = DateTime.now();
+      final currentDay = now.weekday % 7;
+      final dayIndex = (currentDay + 6) % 7;
+      
+      if (dayIndex >= openingHours.length) {
+        return false;
+      }
+      
+      final todayHours = openingHours[dayIndex];
+      
+      if (todayHours.toLowerCase().contains('closed')) {
+        return false;
+      }
+      
+      final parts = todayHours.split(': ');
+      if (parts.length < 2) {
+        return false;
+      }
+      
+      final timeRanges = parts[1].split(',');
+      
+      for (var timeRange in timeRanges) {
+        final times = timeRange.split('–');
+        if (times.length != 2) {
+          continue;
+        }
+        
+        final openTime = _parseTimeString(times[0].trim());
+        final closeTime = _parseTimeString(times[1].trim());
+        
+        if (openTime == null || closeTime == null) {
+          continue;
+        }
+        
+        final currentTime = DateTime(
+          now.year, now.month, now.day, 
+          now.hour, now.minute
+        );
+        
+        if (closeTime.isBefore(openTime)) {
+          if (currentTime.isAfter(openTime) || currentTime.isBefore(closeTime)) {
+            return true;
+          }
+        } else if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      print('Error determining open status from hours: $e');
+      return false;
+    }
+  }
+
+  DateTime? _parseTimeString(String timeStr) {
+    try {
+      final now = DateTime.now();
+      final isPM = timeStr.toUpperCase().contains('PM');
+      final is12AM = timeStr.toUpperCase().contains('12 AM');
+      
+      final timeParts = timeStr.replaceAll(RegExp(r'[APM]'), '').trim().split(':');
+      int hours = int.parse(timeParts[0]);
+      int minutes = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
+      
+      if (isPM && hours < 12) {
+        hours += 12;
+      } else if (is12AM && hours == 12) {
+        hours = 0;
+      }
+      
+      return DateTime(now.year, now.month, now.day, hours, minutes);
+    } catch (e) {
+      print('Error parsing time string "$timeStr": $e');
+      return null;
+    }
   }
 }
