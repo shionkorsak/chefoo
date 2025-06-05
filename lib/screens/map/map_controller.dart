@@ -117,7 +117,7 @@ abstract class MapController extends State<MapScreen> {
       );
 
       Future.delayed(Duration(milliseconds: 500), () {
-        mapController!.animateCamera(CameraUpdate.zoomBy(-0.8));
+        mapController!.animateCamera(CameraUpdate.zoomBy(0.8));
       });
     }
   }

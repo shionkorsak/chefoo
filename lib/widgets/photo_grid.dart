@@ -42,7 +42,7 @@ class PhotoGrid extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GridView.builder(
-                  itemCount: photoRefs.length,
+                  itemCount: photoRefs.length > 0 ? photoRefs.length - 1 : 0,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
@@ -50,10 +50,11 @@ class PhotoGrid extends StatelessWidget {
                     childAspectRatio: 1.0,
                   ),
                   itemBuilder: (context, index) {
+                    final actualIndex = index + 1;
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        '$baseUrl?maxwidth=800&photo_reference=${photoRefs[index]}&key=$apiKey',
+                        '$baseUrl?maxwidth=800&photo_reference=${photoRefs[actualIndex]}&key=$apiKey',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
