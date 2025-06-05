@@ -159,7 +159,7 @@ Respond with valid JSON only. Do not wrap in \`\`\` or add any commentary.
 
   await userRef.set({ preferences: mergedPrefs }, { merge: true });
 
-  return { status: 'success' };
+  return { status: 'success:', updates };
 });
 
 

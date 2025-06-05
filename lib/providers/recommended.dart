@@ -8,7 +8,7 @@ class RecommendedProvider with ChangeNotifier {
   List<Place> get recommended => _recommended;
   List<Place> get enriched => _enriched;
 
-  void setRecommendations({
+  Future<void> setRecommendations({
     required List<Place> recommended,
     required List<Place> enriched,
     required String uid,

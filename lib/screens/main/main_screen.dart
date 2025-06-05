@@ -155,7 +155,6 @@ class _MainScreenState extends MainController {
                           style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                         ),
                     kGap8,
-                    //[UNCOMMENT LATER]
                     _buildChefoosPick(recommendedProvider),
                     kGap20,
           
@@ -187,7 +186,7 @@ class _MainScreenState extends MainController {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OtherRecomScreen(places: combinedPlaces),
+                                builder: (context) => OtherRecomScreen(places: recommendedProvider.enriched),
                               ),
                             );
                           },

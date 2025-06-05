@@ -47,7 +47,6 @@ class HistoryService {
       final mealId = '${isoTimestamp}_$formattedName';
       final comment = meal['comment'] ?? '';
 
-
       final data = {
         'profile': {
           'time': isoTimestamp,
@@ -89,6 +88,12 @@ class HistoryService {
           });
           print('[HISTORY] Called triggerUpdatePreference: ${updatePrefResult.data}');
 
+          final callableUpdateInsight = FirebaseFunctions.instance.httpsCallable('updateInsight');
+          final updateInsightResult = await callableUpdateInsight.call({
+            'uid': uid,
+            'mealId': mealId,
+          });
+          print('[HISTORY] Called updateInsight: ${updateInsightResult.data}');
         } catch (e) {
           print('[HISTORY] Error calling analysis or update preference: $e');
         }
