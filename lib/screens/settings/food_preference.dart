@@ -1,7 +1,10 @@
+import 'package:chefoo/providers/user_account.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
+import 'package:chefoo/widgets/tags/tag_map.dart';
 import 'package:chefoo/widgets/tags/tag.dart';
-import 'package:flutter/cupertino.dart';
 
 class PreferenceScreen extends StatefulWidget {
   const PreferenceScreen({super.key});
@@ -39,11 +42,29 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     'Dislike',
     'Allergy',
   ];
+  
+  List<String> _dietaryPreferences = [];
+  List<String> _dislikedFood = [];
+  List<String> _allergies = [];
+
+  List<String> get dietaryPreferences => _dietaryPreferences;
+  List<String> get dislikedFood => _dislikedFood;
+  List<String> get allergies => _allergies;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: tabLabels.indexOf(selectedTab));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
+    });
+  }
+
+  void _loadPreferences() {
+    final provider = Provider.of<UserAccountProvider>(context, listen: false);
+    _dietaryPreferences = provider.userAccount?.preferences.dietaryPreferences ?? [];
+    _dislikedFood = provider.userAccount?.preferences.dislikedFood ?? [];
+    _allergies = provider.userAccount?.preferences.allergies ?? [];
   }
 
   @override
@@ -54,6 +75,7 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
@@ -185,6 +207,7 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                               ? allergyTags
                               : dietaryTags;
 
+                      // Ensure the newTag is unique by incrementing until no conflict
                       while (targetList.contains(newTag)) {
                         newTag = '$baseName $counter';
                         counter++;
@@ -224,21 +247,6 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
               color: AppColors.primary,
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.detail.copyWith(color: AppColors.textPrimary),
       ),
     );
   }
@@ -384,3 +392,19 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     });
   }
 }
+
+
+  // Widget _buildTag(String label) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: AppColors.surface,
+  //       borderRadius: BorderRadius.circular(20),
+  //       border: Border.all(color: AppColors.primary),
+  //     ),
+  //     child: Text(
+  //       label,
+  //       style: AppTextStyles.detail.copyWith(color: AppColors.textPrimary),
+  //     ),
+  //   );
+  // }
