@@ -39,6 +39,7 @@
 
 import 'package:chefoo/models/user/meal.dart';
 import 'package:chefoo/services/database/history_service.dart';
+import 'package:chefoo/widgets/cards/meal_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_meal.dart';
 import 'package:flutter/material.dart';
 
@@ -90,15 +91,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
             groupedMeals.putIfAbsent(id, () => []).add(meal);
           }
 
-          return ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            children: groupedMeals.entries.map((entry) {
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(
+                vertical: 16, horizontal: 16), 
+            itemCount: groupedMeals.entries.length,
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: 16), 
+            itemBuilder: (context, index) {
+              final entry = groupedMeals.entries.elementAt(index);
               final place = entry.value.first.restaurant;
-              return RestaurantMealCard(
+              return MealCardHorizontal(
                 place: place,
                 meals: entry.value,
               );
-            }).toList(),
+            },
           );
         },
       ),
