@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'dart:math' as math;
+import 'package:chefoo/services/maps.dart';
 import 'package:chefoo/commons.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -164,14 +164,6 @@ class PreloadService {
     }
   }
 
-  static double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const p = 0.017453292519943295;
-    final a = 0.5 -
-        math.cos((lat2 - lat1) * p) / 2 +
-        math.cos(lat1 * p) * math.cos(lat2 * p) * (1 - math.cos((lon2 - lon1) * p)) / 2;
-    return 12742 * math.asin(math.sqrt(a));
-  }
-
   static Future<void> _preloadPlacesAlongRoute(
     PlaceService placeService,
     LocationService locationService,
@@ -220,7 +212,7 @@ class PreloadService {
         print('Loaded ${midpointResponse.data!.length} places near route midpoint');
       }
       
-      final distance = _calculateDistance(
+      final distance = calculateGeoDistance(
         position.latitude, position.longitude,
         destination.latitude, destination.longitude
       );

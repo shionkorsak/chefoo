@@ -5,6 +5,7 @@ import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:http/http.dart' as http;
 import 'package:chefoo/screens/map/map_screen.dart';
+import 'package:chefoo/services/maps.dart'; // Make sure this import exists
 
 abstract class MapController extends State<MapScreen> {
   // SECTION 1: CONSTANTS (converted to instance variables)
@@ -328,18 +329,7 @@ abstract class MapController extends State<MapScreen> {
 
   // SECTION 6: UTILITY METHODS
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371000;
-    final phi1 = lat1 * (math.pi / 180);
-    final phi2 = lat2 * (math.pi / 180);
-    final deltaPhi = (lat2 - lat1) * (math.pi / 180);
-    final deltaLambda = (lon2 - lon1) * (math.pi / 180);
-
-    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
-              math.cos(phi1) * math.cos(phi2) *
-              math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-
-    return r * c;
+    return calculateGeoDistance(lat1, lon1, lat2, lon2);
   }
 
   void addDestinationMarker(LatLng destination, String name) {
@@ -366,14 +356,7 @@ abstract class MapController extends State<MapScreen> {
   }
 
   void fitRouteAndDestination(Position position, LatLng destination) {
-    if (mapController == null) {
-      print("Cannot fit bounds: Map controller is null");
-      return;
-    }
-    
-    print("Fitting bounds for route");
-    
-    final double distanceKm = calculateDistance(
+    final double distanceKm = calculateGeoDistance(
       position.latitude, position.longitude,
       destination.latitude, destination.longitude
     ) / 1000;
@@ -428,12 +411,26 @@ abstract class MapController extends State<MapScreen> {
   }
 
   // SECTION 7: MARKER & UI STATE MANAGEMENT
-  void createMarkersWithDestination() {
+  Future<void> createMarkersWithDestination() async {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final locationService = Provider.of<LocationService>(context, listen: false);
     final places = restaurantProvider.places.isNotEmpty 
         ? restaurantProvider.places 
         : widget.places;
         
+    final currentPosition = locationService.currentPosition;
+    
+    if (currentPosition != null) {
+      for (var place in places) {
+        final distance = calculateGeoDistance(
+          currentPosition.latitude, currentPosition.longitude,
+          place.lat, place.lng
+        );
+        
+        place.walkingDistance = distance / 1000;
+      }
+    }
+    
     final placesToShow = places.length > 50 ? places.sublist(0, 50) : places;
         
     final Set<Marker> newMarkers = {};

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:chefoo/commons.dart';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/providers/favorites.dart';
 import 'package:chefoo/services/popular_times.dart';
@@ -15,6 +16,21 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 //const String proxyBaseUrl = 'http://localhost:3000';
+
+double calculateGeoDistance(double lat1, double lon1, double lat2, double lon2) {
+  const r = 6371000;
+  final phi1 = lat1 * (math.pi / 180);
+  final phi2 = lat2 * (math.pi / 180);
+  final deltaPhi = (lat2 - lat1) * (math.pi / 180);
+  final deltaLambda = (lon2 - lon1) * (math.pi / 180);
+
+  final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+          math.cos(phi1) * math.cos(phi2) *
+          math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
+  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a));
+
+  return r * c;
+}
 
 class PlaceService {
   static const String baseUrl = 'https://maps.googleapis.com/maps/api/place';
@@ -612,30 +628,23 @@ class PlaceService {
 
       final route = data['routes'][0];
       final leg = route['legs'][0];
-      return leg['distance']['value'] / 1000.0; // Convert to kilometers
+      return leg['distance']['value'] / 1000.0;
     } catch (e) {
       print('Error getting walking distance from API: $e');
       print('Falling back to approximation calculation');
-      return _approximateDistance(startLat, startLng, endLat, endLng) / 1000.0;
+      return calculateGeoDistance(startLat, startLng, endLat, endLng) / 1000.0;
     }
   }
 
-  double _approximateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double earthRadius = 6371000;
-    final double dLat = _toRadians(lat2 - lat1);
-    final double dLon = _toRadians(lon2 - lon1);
+  Future<void> updateWalkingDistance(Place place, Position position) async {
+    if (position == null) return;
     
-    final double a = 
-        math.sin(dLat/2) * math.sin(dLat/2) +
-        math.cos(_toRadians(lat1)) * math.cos(_toRadians(lat2)) * 
-        math.sin(dLon/2) * math.sin(dLon/2);
+    final distance = calculateGeoDistance(
+      position.latitude, position.longitude,
+      place.lat, place.lng
+    );
     
-    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a));
-    return earthRadius * c;
-  }
-
-  double _toRadians(double degree) {
-    return degree * (math.pi / 180);
+    place.walkingDistance = distance / 1000;
   }
 
   bool _calculateIsOpenFromHours(List<String> openingHours) {
