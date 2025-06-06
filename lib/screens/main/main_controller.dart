@@ -16,6 +16,9 @@ abstract class MainController extends State<MainScreen> {
   List<Place> _recommendedPlaces = [];
   List<Place> get recommendedPlaces => _recommendedPlaces;
 
+  bool _showRatePopup = true;
+  bool get showRatePopup => _showRatePopup;
+
   late PageController carouselController;
   Timer? _inactivityTimer;
   int _carouselPage = 2;
@@ -265,5 +268,11 @@ abstract class MainController extends State<MainScreen> {
     _inactivityTimer?.cancel();
     carouselController.dispose();
     super.dispose();
+  }
+  
+  void dismissRatePopup() {
+    setState(() {
+      _showRatePopup = false;
+    });
   }
 }
