@@ -66,7 +66,19 @@ class PreloadService {
       
       if (response.success && response.data != null) {
         print('[PRELOAD] Successfully loaded ${response.data!.length} places');
+        
+        print('[PRELOAD] Calculating walking distances...');
+        for (var place in response.data!) {
+          final distance = calculateGeoDistance(
+            position.latitude, position.longitude,
+            place.lat, place.lng
+          );
+          place.walkingDistance = distance / 1000;
+        }
+        
         restaurantProvider.setPlaces(response.data!);
+        
+        await _preloadDetailsForTopPlaces(placeService, response.data!, 8);
       } else {
         print('[PRELOAD] Failed to load places: ${response.message}');
       }
@@ -254,8 +266,20 @@ class PreloadService {
       }
       
       final places = allPlaces.values.toList();
+      
+      print('[PRELOAD] Calculating walking distances for route places...');
+      for (var place in places) {
+        final distance = calculateGeoDistance(
+          position!.latitude, position.longitude,
+          place.lat, place.lng
+        );
+        place.walkingDistance = distance / 1000;
+      }
+      
       restaurantProvider.addPlaces(places);
       restaurantProvider.setRoutePlacesLoaded(true);
+      
+      await _preloadDetailsForTopPlaces(placeService, places, 12);
       
       final nearbyKey = '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}_2000';
       placeService.updateCacheWithRoutePlaces(nearbyKey, places);
@@ -263,6 +287,78 @@ class PreloadService {
       print('Total preloaded places along route: ${places.length}');
     } catch (e) {
       print('Error preloading places along route: $e');
+    }
+  }
+
+  static Future<void> _preloadDetailsForTopPlaces(
+    PlaceService placeService,
+    List<Place> places,
+    int limit
+  ) async {
+    try {
+      places.sort((a, b) => 
+        (a.walkingDistance ?? double.infinity)
+          .compareTo(b.walkingDistance ?? double.infinity)
+      );
+      
+      final placesToLoad = places.take(limit).toList();
+      
+      print('[PRELOAD] Loading details for ${placesToLoad.length} closest places...');
+      
+      for (int i = 0; i < placesToLoad.length; i++) {
+        final place = placesToLoad[i];
+        
+        try {
+          await placeService.loadPlaceDetails(place);
+          print('[PRELOAD] Loaded details for ${i+1}/${placesToLoad.length}: ${place.name}');
+          
+          if (i < placesToLoad.length - 1) {
+            await Future.delayed(Duration(milliseconds: 100));
+          }
+        } catch (e) {
+          print('[PRELOAD] Error loading details for ${place.name}: $e');
+          continue;
+        }
+      }
+      
+      print('[PRELOAD] Finished loading place details');
+    } catch (e) {
+      print('[PRELOAD] Error preloading details: $e');
+    }
+  }
+
+  static Future<void> preloadRecommendedPlaces(
+    BuildContext context,
+    List<Place> recommendedPlaces
+  ) async {
+    try {
+      if (recommendedPlaces.isEmpty) {
+        print('[PRELOAD] No recommended places to preload');
+        return;
+      }
+      
+      print('[PRELOAD] Preloading details for ${recommendedPlaces.length} recommended places');
+      
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final position = locationService.currentPosition;
+      
+      if (position != null) {
+        for (var place in recommendedPlaces) {
+          final distance = calculateGeoDistance(
+            position.latitude, position.longitude,
+            place.lat, place.lng
+          );
+          place.walkingDistance = distance / 1000;
+        }
+      }
+      
+      final limit = recommendedPlaces.length > 5 ? 5 : recommendedPlaces.length;
+      await _preloadDetailsForTopPlaces(placeService, recommendedPlaces, limit);
+      
+      print('[PRELOAD] Successfully preloaded recommended places data');
+    } catch (e) {
+      print('[PRELOAD] Error preloading recommended places: $e');
     }
   }
 }
