@@ -1,8 +1,10 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
+import 'package:chefoo/screens/history/history_screen.dart';
+import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/widgets/cards/favorite_list.dart';
-import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
+import 'package:chefoo/widgets/cards/history_list.dart';
 import 'package:chefoo/widgets/healthy_score.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -18,42 +20,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          SafeArea(
-            child: Consumer<UserAccountProvider>(
-                builder: (context, provider, child) {
-              if (provider.isLoading) {
-                return Center(child: CircularProgressIndicator());
-              }
-              if (provider.errorMessage != null) {
-                return Center(
-                    child: Text(provider.errorMessage!,
-                        style: TextStyle(color: Colors.red)));
-              }
+          Consumer<UserAccountProvider>(
+              builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (provider.errorMessage != null) {
+              return Center(
+                  child: Text(provider.errorMessage!,
+                      style: TextStyle(color: Colors.red)));
+            }
 
-              final account = provider.userAccount;
-              if (account == null) {
-                return Center(child: Text("No user data available."));
-              }
-              
-              return Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(
-                        20,
-                        20,
-                        20,
-                        MediaQuery.of(context).padding.bottom + 100,
-                      ),
+            final account = provider.userAccount;
+            if (account == null) {
+              return Center(child: Text("No user data available."));
+            }
+            
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(bottom: kSizeH60.height + 32),
+                child: Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                    // 1. Header section (with horizontal padding)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Header background
                           Stack(
@@ -121,53 +122,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: HealthyScore(score: 50),
-                          ),
-                          const SizedBox(height: 24),
-                          Text('Favorites', style: AppTextStyles.headline2),
-                          const SizedBox(height: 8),
-                          FavoriteList(),
-                          const SizedBox(height: 24),
-                          Text('History', style: AppTextStyles.headline2),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 240,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 5,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) => Container(
-                                width: 160,
-                                height: 220,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text('TO DO',
-                                      style: AppTextStyles.detail),
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
+                    // 2. HealthyScore section (with horizontal padding)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: HealthyScore(score: 30),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // 3. Favorites section (NO horizontal padding)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Favorites', style: AppTextStyles.headline2.copyWith(color: AppColors.textPrimary)),
+                              IconButton(
+                                icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.textPrimary),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => FavoritesScreen()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FavoriteList(),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                    // 4. History section (NO horizontal padding)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('History', style: AppTextStyles.headline2.copyWith(color: AppColors.textPrimary)),
+                              IconButton(
+                                icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.textPrimary),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => HistoryScreen()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        HistoryList(),
+                      ],
+                    ),
+                    ],
                   ),
-                ],
-              );
-            }),
-          ),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
