@@ -93,71 +93,64 @@ abstract class MainController extends State<MainScreen> {
   Future<void> _refreshRecommendedPlaces() async {
     final locationService = Provider.of<LocationService>(context, listen: false);
     final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-    final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false); // still needed for injection
     final placeService = Provider.of<PlaceService>(context, listen: false);
-    // final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    final recommendationService = RecommendationService(
+      restaurantProvider: restaurantProvider,
+      placeService: placeService,
+    );
     final uid = AuthService().getCurrentUserUID() ?? 'guest';
     final position = locationService.currentPosition;
 
     print('[MAIN-CTRL] Loading everything');
-      if (position == null) {
-        print('[MAIN-CTRL] Cannot load without position');
-        return;
-      }
+    if (position == null) {
+      print('[MAIN-CTRL] Cannot load without position');
+      return;
+    }
 
-      final hasCache = await recommendedProvider.hasValidCacheNearby(uid, position);
+    final hasCache = await recommendedProvider.hasValidCacheNearby(uid, position);
 
-      if (!hasCache) {
-        print('[MAIN-CTRL] Fetching new recommendations.');
-        // TODO: [Laura] Please implement the refresh logic, just change the places in the restaurant provider with new ones
-        final response = await placeService.getNearbyPlaces(
+    if (!hasCache) {
+      print('[MAIN-CTRL] No valid nearby cache — fetching nearby places.');
+      
+      final response = await placeService.getNearbyPlaces(
+        lat: position.latitude,
+        lng: position.longitude,
+        radius: 1000,
+        apiKey: MapsConstants.mapsKey,
+        addToCache: true, // make sure this gets stored!
+      );
+
+      if (response.success && response.data != null) {
+        print('[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API and cached.');
+
+        final result = await recommendationService.fetchRecommendedPlacesFromCache(
+          context: context,
           lat: position.latitude,
           lng: position.longitude,
-          radius: 1000,
-          apiKey: MapsConstants.mapsKey
         );
 
-        if(response.success && response.data != null) {
-          print('[MAIN-CTRL] Successfully loaded ${response.data!.length} places');
-          restaurantProvider.places.clear();
-          restaurantProvider.setPlaces(response.data!);
-
-          print('[MAIN-CTRL] Waiting for restaurant provider.');
-          await recommendationService.waitForPlacesReady(restaurantProvider);
-          print('[MAIN-CTRL] Fetching recommendations.');
-          final Map<String, Place> uniquePlaces = {};
-                            
-          for (var place in restaurantProvider.routePlaces) {
-            uniquePlaces[place.id] = place;
-          }
-          
-          for (var place in restaurantProvider.places) {
-            uniquePlaces[place.id] = place;
-          }
-          
-          final List<Place> combinedPlaces = uniquePlaces.values.toList();
-          final result = await recommendationService.fetchRecommendedPlaces(combinedPlaces, context);
-
-          recommendedProvider.setRecommendations(
-            recommended: result['recommended'] ?? [],
-            enriched: result['enriched'] ?? [],
-            uid: uid,
-            position: position,
-          );
-        }
+        await recommendedProvider.setRecommendations(
+          recommended: result['recommended'] ?? [],
+          enriched: result['enriched'] ?? [],
+          uid: uid,
+          position: position,
+          radius: 1000.0,
+        );
       } else {
-        print('[MAIN-CTRL] Using cached recommendations');
-        await recommendedProvider.loadFromPrefs(uid, position);
+        print('[MAIN-CTRL] Failed to fetch nearby places.');
       }
+    } else {
+      print('[MAIN-CTRL] Using cached recommendations');
+      await recommendedProvider.loadFromPrefs(uid, position);
+    }
 
-      if (mounted) {
-        setState(() {
-          _recommendedPlaces = recommendedProvider.recommended;
-        });
-      }
+    if (mounted) {
+      setState(() {
+        _recommendedPlaces = recommendedProvider.recommended;
+      });
+    }
   }
-  
 
   Future<void> checkGpsStatus() async {
     final location = Location();

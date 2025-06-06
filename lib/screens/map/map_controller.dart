@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:convert';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:http/http.dart' as http;
@@ -28,6 +29,22 @@ abstract class MapController extends State<MapScreen> {
   bool isNavigatingToEvent = false;
   final Map<String, BitmapDescriptor> _markerIconCache = {};
   bool isLoadingPlaceDetails = false;
+
+  Place? get selectedEnrichedPlace {
+    if (selectedPlace == null) return null;
+
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final res = recommendedProvider.recommended.firstWhere(
+      (p) => p.id == selectedPlace!.id,
+      orElse: () => recommendedProvider.enriched.firstWhere(
+        (p) => p.id == selectedPlace!.id,
+        orElse: () => selectedPlace!,
+      ),
+    );
+
+    print('${selectedPlace!.id} ${res.id}');
+    return res;
+  }
 
   @override
   void initState() {

@@ -12,7 +12,8 @@ class RecommendedProvider with ChangeNotifier {
     required List<Place> recommended,
     required List<Place> enriched,
     required String uid,
-    required Position position
+    required Position position,
+    required double radius,
   }) async {
     _recommended = recommended;
     _enriched = enriched;
@@ -25,6 +26,7 @@ class RecommendedProvider with ChangeNotifier {
     final newEntry = {
       'lat': position.latitude,
       'lng': position.longitude,
+      'radius': radius,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
       'recommended': recommended.map((e) => e.toJson()).toList(),
       'enriched': enriched.map((e) => e.toJson()).toList()
@@ -53,12 +55,12 @@ class RecommendedProvider with ChangeNotifier {
     }
   }
   
-  Future<void> loadFromPrefs(String uid, Position currentPosition) async {
+  Future<void> loadFromPrefs(String uid, Position currentPosition, {double targetRadius = 1000.0}) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '${uid}_recommended_entries';
     final entriesJson = prefs.getString(key);
 
-    if(entriesJson == null) {
+    if (entriesJson == null) {
       print('[REC] No cached entries found key=$key');
       return;
     }
@@ -67,39 +69,37 @@ class RecommendedProvider with ChangeNotifier {
     Map<String, dynamic>? nearest;
     double? minDistance;
 
-    for(final entry in entries) {
+    for (final entry in entries) {
       final double lat = entry['lat'];
       final double lng = entry['lng'];
       final int timestamp = entry['timestamp'];
+      final double entryRadius = entry['radius'] ?? 1000.0;
 
       final isTooOld = DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(timestamp)) > Duration(hours: 6);
-      if(isTooOld) continue;
+      if (isTooOld) continue;
 
       final dist = Geolocator.distanceBetween(
-        currentPosition.latitude, 
-        currentPosition.longitude, 
-        lat, 
-        lng
+        currentPosition.latitude,
+        currentPosition.longitude,
+        lat,
+        lng,
       );
 
-      if(dist <= 1000.0 && (minDistance == null || dist < minDistance)) {
-        minDistance = dist;
-        nearest = entry;
+      if (dist <= targetRadius && entryRadius == targetRadius) {  // <== radius filter
+        if (minDistance == null || dist < minDistance) {
+          minDistance = dist;
+          nearest = entry;
+        }
       }
     }
 
-    if(nearest == null) {
+    if (nearest == null) {
       print('[REC] No nearby valid cache found.');
       return;
     }
 
-    _recommended = (nearest['recommended'] as List)
-      .map((e) => Place.fromJson(e))
-      .toList();
-
-    _enriched = (nearest['enriched'] as List)
-      .map((e) => Place.fromJson(e))
-      .toList();
+    _recommended = (nearest['recommended'] as List).map((e) => Place.fromJson(e)).toList();
+    _enriched = (nearest['enriched'] as List).map((e) => Place.fromJson(e)).toList();
 
     print('[REC] Loaded ${_recommended.length} recommended from closest cache.');
     notifyListeners();
@@ -120,7 +120,7 @@ class RecommendedProvider with ChangeNotifier {
     await prefs.setString(key, jsonEncode(recent));
   }
 
-  Future<bool> hasValidCacheNearby(String uid, Position currentPosition) async {
+  Future<bool> hasValidCacheNearby(String uid, Position currentPosition, {double targetRadius = 1000.0}) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '${uid}_recommended_entries';
     final entriesJson = prefs.getString(key);
@@ -132,6 +132,7 @@ class RecommendedProvider with ChangeNotifier {
       final double lat = entry['lat'];
       final double lng = entry['lng'];
       final int timestamp = entry['timestamp'];
+      final double entryRadius = entry['radius'] ?? 1000.0;
 
       final isTooOld = DateTime.now()
           .difference(DateTime.fromMillisecondsSinceEpoch(timestamp)) >
@@ -143,17 +144,15 @@ class RecommendedProvider with ChangeNotifier {
         lng,
       );
 
-      print('[REC] Cache entry — Dist: $dist, Old: $isTooOld');
+      print('[REC] Cache entry — Dist: $dist, Old: $isTooOld, Radius: $entryRadius');
 
-      if (!isTooOld && dist <= 1000.0) {
-        print('[REC] Valid cache found nearby (distance $dist m)');
+      if (!isTooOld && dist <= targetRadius && entryRadius == targetRadius) {
+        print('[REC] Valid cache found nearby with matching radius');
         return true;
       }
     }
 
-    print('[REC] No valid cache nearby');
+    print('[REC] No valid cache nearby with matching radius');
     return false;
   }
-
-
 }

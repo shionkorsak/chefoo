@@ -60,9 +60,12 @@ class _MapScreenState extends MapController {
       return const SizedBox.shrink();
     }
     
-    final pictureUrl = selectedPlace!.pictureUrls.isNotEmpty 
+    final pictureUrl = selectedEnrichedPlace!.pictureUrls.isNotEmpty 
       ? selectedPlace!.pictureUrls.first 
       : null;
+    
+    final _banner = PictureCategoryAssets();
+    final headerImageUrl = _banner.pictureCategoryAssets[selectedEnrichedPlace!.pictureCategory] ?? pictureUrl;
       
     final crowdednessStatus = PlaceUtils.getCrowdednessStatus(selectedPlace!);
     
@@ -111,16 +114,15 @@ class _MapScreenState extends MapController {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (pictureUrl != null)
                   Container(
                     height: 120,
                     width: 120,
                     child: ClipRRect(
                       borderRadius: kRadius10,
                       child: Image.network(
-                        'https://maps.googleapis.com/maps/api/place/photo'
+                        headerImageUrl ?? 'https://maps.googleapis.com/maps/api/place/photo'
                         '?maxwidth=400'
-                        '&photo_reference=${pictureUrl}'
+                        '&photo_reference=${selectedEnrichedPlace!.pictureUrls.first}'
                         '&key=${MapsConstants.mapsKey}',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
@@ -143,7 +145,7 @@ class _MapScreenState extends MapController {
                         height: 28,
                         width: double.infinity,
                         child: Marquee(
-                          text: selectedPlace!.name,
+                          text: selectedEnrichedPlace!.name,
                           style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
                           scrollAxis: Axis.horizontal,
                           blankSpace: 20.0,
@@ -161,7 +163,7 @@ class _MapScreenState extends MapController {
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
                           children: List.generate(5, (index) {
-                            final difference = selectedPlace!.rating - index;
+                            final difference = selectedEnrichedPlace!.rating - index;
                             
                             IconData icon;
                             if (difference >= 1) {
@@ -181,18 +183,18 @@ class _MapScreenState extends MapController {
                         ),
                       ),
                       
-                      if (selectedPlace!.tags.isNotEmpty)
+                      if (selectedEnrichedPlace!.tags.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: SizedBox(
                             height: 40,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
-                              itemCount: selectedPlace!.tags.length,
+                              itemCount: selectedEnrichedPlace!.tags.length,
                               separatorBuilder: (context, index) => const SizedBox(width: 8),
                               itemBuilder: (context, index) {
                                 return TagChip(
-                                  label: selectedPlace!.tags[index]
+                                  label: selectedEnrichedPlace!.tags[index]
                                 );
                               },
                             ),
@@ -203,7 +205,7 @@ class _MapScreenState extends MapController {
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Row(
-                            children: [
+                            children: const [
                               SizedBox(
                                 width: 12,
                                 height: 12,

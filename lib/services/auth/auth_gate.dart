@@ -1,174 +1,174 @@
-// // ignore_for_file: lines_longer_than_80_chars
+// // // ignore_for_file: lines_longer_than_80_chars
 
-import 'dart:async';
-import 'dart:developer';
-import 'package:chefoo/commons.dart';
-import 'package:chefoo/providers/rating_session.dart';
-import 'package:chefoo/providers/recommended.dart';
-import 'package:chefoo/screens/splash/splash.dart';
-import 'package:chefoo/screens/welcome/get_started_screen.dart';
-import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
-import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:chefoo/services/database/location_handler.dart';
-import 'package:chefoo/services/preload_service.dart' as preload;
+// import 'dart:async';
+// import 'dart:developer';
+// import 'package:chefoo/commons.dart';
+// import 'package:chefoo/providers/rating_session.dart';
+// import 'package:chefoo/providers/recommended.dart';
+// import 'package:chefoo/screens/splash/splash.dart';
+// import 'package:chefoo/screens/welcome/get_started_screen.dart';
+// import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
+// import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:chefoo/services/database/location_handler.dart';
+// import 'package:chefoo/services/preload_service.dart' as preload;
 
-// //? To make sure that when user is 
-// //? authenticated the page should be the home page
-// class AuthGate extends StatelessWidget {
-//   const AuthGate({super.key});
+// // //? To make sure that when user is 
+// // //? authenticated the page should be the home page
+// // class AuthGate extends StatelessWidget {
+// //   const AuthGate({super.key});
+
+// //   @override
+// //   Widget build(BuildContext context) {
+// //     return Scaffold(
+// //       body: StreamBuilder(
+// //         stream: FirebaseAuth.instance.authStateChanges(), 
+// //         builder: (context, snapshot) {
+// //           // print('[AUTH] snapshot: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
+// //           // print('[AUTH] snapshot.data: ${snapshot.data}');
+// //           if(snapshot.hasData) {
+// //             print("[AUTH] User has signed in: ${snapshot.data!.uid}");
+// //             return PostAuthLoader(user: snapshot.data!);
+// //           } else {
+// //             print("[AUTH] User has not signed in.");
+// //             return const SplashScreen(isLoggedIn: false); 
+// //           }
+// //         }
+// //       )
+// //     );
+// //   }
+// // }
+
+// class PostAuthLoader extends StatefulWidget {
+//   final User user;
+//   PostAuthLoader({super.key, required this.user}) {
+//     print('[POST-AUTH] Constructor called');
+//   }
+
+//   @override
+//   State<PostAuthLoader> createState() => _PostAuthLoaderState();
+// }
+
+// class _PostAuthLoaderState extends State<PostAuthLoader> {
+//   @override
+//   void initState() {
+//     super.initState();
+//     _loadEverything();
+//   }
+
+//   Future<void> _loadEverything() async {
+//     try {
+//       final locationService = Provider.of<LocationService>(context, listen: false);
+//       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+//       final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+//       final recommendationService = RecommendationService(restaurantProvider: restaurantProvider, placeService: Provider.of<PlaceService>(context, listen: false));
+//       final uid = widget.user.uid;
+
+//       Position? position = locationService.currentPosition;
+//       print('[POST-AUTH] Loading everything');
+//       if (position == null) {
+//         print('[POST-AUTH] Cannot load without position');
+//         return;
+//       }
+      
+
+//       await recommendedProvider.cleanupOldEntries(uid);
+//       print('[POST-AUTH] Loading from SharedPreference.');
+//       await recommendedProvider.loadFromPrefs(uid, position);
+
+//       final hasCache = recommendedProvider.recommended.isNotEmpty;
+
+//       if (!hasCache) {
+//         print('[POST-AUTH] Fetching new recommendations.');
+//         print('[POST-AUTH] Waiting for restaurant provider.');
+//         await recommendationService.waitForPlacesReady(restaurantProvider);
+//         print('[POST-AUTH] Fetching recommendations.');
+//         final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
+
+//         recommendedProvider.setRecommendations(
+//           recommended: result['recommended'] ?? [],
+//           enriched: result['enriched'] ?? [],
+//           uid: uid,
+//           position: position,
+//         );
+//       } else {
+//         print('[POST-AUTH] Using cached recommendations');
+//       }
+      
+
+//       if (!mounted) return;
+//       Navigator.of(context).pushReplacement(
+//         MaterialPageRoute(builder: (_) => MainNavigation(showWelcomeDialog: true,)),
+//       );
+//     } catch (e) {
+//       print('[POST-AUTH] Error: $e');
+//     }
+//   }
 
 //   @override
 //   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: StreamBuilder(
-//         stream: FirebaseAuth.instance.authStateChanges(), 
-//         builder: (context, snapshot) {
-//           // print('[AUTH] snapshot: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
-//           // print('[AUTH] snapshot.data: ${snapshot.data}');
-//           if(snapshot.hasData) {
-//             print("[AUTH] User has signed in: ${snapshot.data!.uid}");
-//             return PostAuthLoader(user: snapshot.data!);
-//           } else {
-//             print("[AUTH] User has not signed in.");
-//             return const SplashScreen(isLoggedIn: false); 
-//           }
-//         }
-//       )
-//     );
+//     return const SplashScreen(); 
 //   }
 // }
 
-class PostAuthLoader extends StatefulWidget {
-  final User user;
-  PostAuthLoader({super.key, required this.user}) {
-    print('[POST-AUTH] Constructor called');
-  }
+// class AuthGate extends StatefulWidget {
+//   const AuthGate({super.key});
 
-  @override
-  State<PostAuthLoader> createState() => _PostAuthLoaderState();
-}
+//   @override
+//   State<AuthGate> createState() => _AuthGateState();
+// }
 
-class _PostAuthLoaderState extends State<PostAuthLoader> {
-  @override
-  void initState() {
-    super.initState();
-    _loadEverything();
-  }
+// class _AuthGateState extends State<AuthGate> {
+//   bool _loading = true;
 
-  Future<void> _loadEverything() async {
-    try {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-      final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-      final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
-      final uid = widget.user.uid;
+//   @override
+//   void initState() {
+//     super.initState();
+//     _runPreload();
+//   }
 
-      Position? position = locationService.currentPosition;
-      print('[POST-AUTH] Loading everything');
-      if (position == null) {
-        print('[POST-AUTH] Cannot load without position');
-        return;
-      }
-      
+//   Future<void> _runPreload() async {
+//     final locationService = Provider.of<LocationService>(context, listen: false);
+//     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
 
-      await recommendedProvider.cleanupOldEntries(uid);
-      print('[POST-AUTH] Loading from SharedPreference.');
-      await recommendedProvider.loadFromPrefs(uid, position);
+//     locationService.startLocationUpdates(context);
+//     LocationHandler.startLocationUpdates(context);
 
-      final hasCache = recommendedProvider.recommended.isNotEmpty;
+//     if (locationService.currentPosition == null) {
+//       final completer = Completer<void>();
+//       late VoidCallback listener;
+//       listener = () {
+//         if (locationService.currentPosition != null) {
+//           locationService.removeListener(listener);
+//           completer.complete();
+//         }
+//       };
+//       locationService.addListener(listener);
+//       await completer.future;
+//     }
 
-      if (!hasCache) {
-        print('[POST-AUTH] Fetching new recommendations.');
-        print('[POST-AUTH] Waiting for restaurant provider.');
-        await recommendationService.waitForPlacesReady(restaurantProvider);
-        print('[POST-AUTH] Fetching recommendations.');
-        final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
+//     await preload.PreloadService.preloadData(context, restaurantProvider);
+//     await Future.delayed(const Duration(milliseconds: 1500)); 
 
-        recommendedProvider.setRecommendations(
-          recommended: result['recommended'] ?? [],
-          enriched: result['enriched'] ?? [],
-          uid: uid,
-          position: position,
-        );
-      } else {
-        print('[POST-AUTH] Using cached recommendations');
-      }
-      
+//     if (!mounted) return;
 
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => MainNavigation(showWelcomeDialog: true,)),
-      );
-    } catch (e) {
-      print('[POST-AUTH] Error: $e');
-    }
-  }
+//     final user = FirebaseAuth.instance.currentUser;
+//     final route = PageRouteBuilder(
+//       pageBuilder: (_, animation, __) =>
+//           user == null ? const GetStartedScreen() : PostAuthLoader(user: user),
+//       transitionsBuilder: (_, animation, __, child) {
+//         final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+//         return FadeTransition(opacity: curved, child: child);
+//       },
+//       transitionDuration: const Duration(milliseconds: 500),
+//     );
 
-  @override
-  Widget build(BuildContext context) {
-    return const SplashScreen(); 
-  }
-}
+//     Navigator.of(context).pushReplacement(route);
+//   }
 
-class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
-
-  @override
-  State<AuthGate> createState() => _AuthGateState();
-}
-
-class _AuthGateState extends State<AuthGate> {
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _runPreload();
-  }
-
-  Future<void> _runPreload() async {
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-
-    locationService.startLocationUpdates(context);
-    LocationHandler.startLocationUpdates(context);
-
-    if (locationService.currentPosition == null) {
-      final completer = Completer<void>();
-      late VoidCallback listener;
-      listener = () {
-        if (locationService.currentPosition != null) {
-          locationService.removeListener(listener);
-          completer.complete();
-        }
-      };
-      locationService.addListener(listener);
-      await completer.future;
-    }
-
-    await preload.PreloadService.preloadData(context, restaurantProvider);
-    await Future.delayed(const Duration(milliseconds: 1500)); 
-
-    if (!mounted) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    final route = PageRouteBuilder(
-      pageBuilder: (_, animation, __) =>
-          user == null ? const GetStartedScreen() : PostAuthLoader(user: user),
-      transitionsBuilder: (_, animation, __, child) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
-        return FadeTransition(opacity: curved, child: child);
-      },
-      transitionDuration: const Duration(milliseconds: 500),
-    );
-
-    Navigator.of(context).pushReplacement(route);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const SplashScreen(); 
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return const SplashScreen(); 
+//   }
+// }

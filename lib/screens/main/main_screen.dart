@@ -260,17 +260,7 @@ class ClearPreferencesButton extends StatelessWidget {
     // final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
     final uid = AuthService().getCurrentUserUID() ?? 'guest';
     final prefs = await SharedPreferences.getInstance();
-    final keys = [
-      '${uid}_recommended',
-      '${uid}_enriched',
-      '${uid}_lat',
-      '${uid}_lng',
-      '${uid}_timestamp',
-    ];
-
-    for (final key in keys) {
-      await prefs.remove(key);
-    }
+    await prefs.remove('${uid}_recommended_entries');
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Recommendation prefs cleared.')),
