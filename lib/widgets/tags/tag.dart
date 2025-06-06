@@ -15,6 +15,8 @@ class Tag extends StatefulWidget {
   final bool isTappable;
   final bool isLongPressable;
   final VoidCallback? onLongPress;
+  final Color? backgroundColor;
+  final Color? selectedBorderColor;
 
   const Tag({
     Key? key,
@@ -30,6 +32,8 @@ class Tag extends StatefulWidget {
     this.isTappable = true,
     this.isLongPressable = true,
     this.onLongPress,
+    this.backgroundColor,
+    this.selectedBorderColor,
   }) : super(key: key);
 
   @override
@@ -119,6 +123,12 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
       vertical: effectiveFontSize * 0.4,
     );
 
+    // Use provided colors or fall back to defaults
+    final Color effectiveBackgroundColor =
+        widget.backgroundColor ?? AppColors.secondary.withOpacity(0.4);
+    final Color effectiveBorderColor =
+        widget.selectedBorderColor ?? AppColors.primary;
+
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -153,7 +163,7 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
                   Container(
                     padding: effectivePadding,
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacity(0.4),
+                      color: effectiveBackgroundColor,
                       borderRadius: kRadius30,
                     ),
                     child: Text(
@@ -170,8 +180,8 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
                         decoration: BoxDecoration(
                           borderRadius: kRadius30,
                           border: Border.all(
-                            color: AppColors.primary,
-                            width: effectiveFontSize * 0.2,
+                            color: effectiveBorderColor,
+                            width: effectiveFontSize * 0.15,
                           ),
                         ),
                       ),
