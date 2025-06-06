@@ -17,6 +17,8 @@ class Tag extends StatefulWidget {
   final VoidCallback? onLongPress;
   final Color? backgroundColor;
   final Color? selectedBorderColor;
+  final int? labelMaxLines;  // Add this parameter
+  final TextOverflow? labelOverflow;  // Add this parameter
 
   const Tag({
     Key? key,
@@ -34,6 +36,8 @@ class Tag extends StatefulWidget {
     this.onLongPress,
     this.backgroundColor,
     this.selectedBorderColor,
+    this.labelMaxLines,  // Add this to constructor
+    this.labelOverflow,  // Add this to constructor
   }) : super(key: key);
 
   @override
@@ -172,6 +176,8 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
                         color: AppColors.textPrimary,
                         fontSize: effectiveFontSize,
                       ),
+                      maxLines: widget.labelMaxLines, // Use the maxLines property
+                      overflow: widget.labelOverflow ?? TextOverflow.clip, // Use the overflow property
                     ),
                   ),
                   if (_selected)
