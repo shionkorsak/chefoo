@@ -99,7 +99,6 @@ class RecommendationService  {
     try {
       final List<Map<String, dynamic>> enrichedListForAI = [];
 
-      // 🧠 Copy enriched fields before sending to AI
       for (final placeJson in placesList) {
         final String id = placeJson['id'];
         final Place? enriched = enrichedPlaceMap[id];
@@ -131,8 +130,8 @@ class RecommendationService  {
       print('[AI] RECOMMENDATION RECEIVED: ${recommendation['id']}');
 
       final String recId = recommendation['id'];
-      // final List<String> recTags = List<String>.from(recommendation['tags'] ?? []);
-      // final String recCat = recommendation['pictureCategory'] ?? 'default';
+      final List<String> recTags = List<String>.from(recommendation['tags'] ?? []);
+      final String recCat = recommendation['pictureCategory'] ?? 'default';
 
       final Place? matched = enrichedPlaceMap[recId];
       if (matched == null) {
@@ -140,12 +139,12 @@ class RecommendationService  {
         return [];
       }
 
-      // final updatedPlace = matched.copyWith(
-      //   tags: recTags,
-      //   pictureCategory: recCat,
-      // );
+      final updatedPlace = matched.copyWith(
+        tags: recTags,
+        pictureCategory: recCat,
+      );
 
-      return [matched];
+      return [updatedPlace];
     } catch (e) {
       print('[ERROR AI] Failed to get AI recommendations: $e');
       return [];
@@ -164,7 +163,7 @@ class RecommendationService  {
     late VoidCallback listener; 
 
     listener = () {
-      if (provider.places.isNotEmpty && !completer.isCompleted) {
+      if ((provider.places.isNotEmpty || provider.routePlaces.isNotEmpty) && !completer.isCompleted) {
         completer.complete();
         provider.removeListener(listener);
       }

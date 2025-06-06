@@ -1,14 +1,12 @@
-import 'package:chefoo/screens/splash/splash.dart';
-import 'package:chefoo/screens/welcome/get_started_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/widgets/cards/auth_card.dart';
+import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
+import 'package:chefoo/widgets/cards/auth_card.dart';
 import 'package:chefoo/widgets/settings/settingstile.dart';
 import 'package:provider/provider.dart';
 import 'package:chefoo/providers/calendar_state.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 
 class ManageAccountScreen extends StatefulWidget {
@@ -234,7 +232,7 @@ class _ManageAccountScreenState extends State<ManageAccountScreen> {
                                           navigator.pop(); // Close the dialog
                                           await _auth.deleteAccount();
                                           navigator.pushReplacement(
-                                            MaterialPageRoute(builder: (_) => GetStartedScreen()),
+                                            MaterialPageRoute(builder: (_) => SplashScreen()),
                                           );
                                         },
                                         child: const Text("Done", style: TextStyle(color: AppColors.primary)),
@@ -285,7 +283,7 @@ class _ManageAccountScreenState extends State<ManageAccountScreen> {
                                           Navigator.pushReplacement(
                                             context, 
                                             MaterialPageRoute(
-                                              builder: (BuildContext context) => GetStartedScreen()
+                                              builder: (BuildContext context) => SplashScreen()
                                             )
                                           );
                                           await _auth.signOut();

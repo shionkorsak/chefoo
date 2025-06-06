@@ -4,6 +4,7 @@ import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:chefoo/services/maps.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class HistoryService {
   final _auth = AuthService();
@@ -46,7 +47,6 @@ class HistoryService {
       final mealId = '${isoTimestamp}_$formattedName';
       final comment = meal['comment'] ?? '';
 
-
       final data = {
         'profile': {
           'time': isoTimestamp,
@@ -74,17 +74,28 @@ class HistoryService {
         await docRef.set(data);
         print('[HISTORY] Meal input added: $mealId');
 
-        bool analysisReady = false;
-        int retries = 20;
+        try {
+          final callableAnalysis = FirebaseFunctions.instance.httpsCallable('processMealAnalysis');
+          final analysisResult = await callableAnalysis.call({
+            'uid': uid,
+            'mealId': mealId,
+          });
+          print('[HISTORY] Called processMealAnalysis: ${analysisResult.data}');
 
-        while (!analysisReady && retries-- > 0) {
-          final snapshot = await docRef.get();
-          if (snapshot.exists && snapshot.data()?['analysis'] != null) {
-            print('[HISTORY] AI Analysis: ${snapshot.data()?['analysis']}');
-            analysisReady = true;
-          } else {
-            await Future.delayed(const Duration(milliseconds: 500));
-          }
+          final callableUpdatePref = FirebaseFunctions.instance.httpsCallable('triggerUpdatePreference');
+          final updatePrefResult = await callableUpdatePref.call({
+            'mealId': mealId,
+          });
+          print('[HISTORY] Called triggerUpdatePreference: ${updatePrefResult.data}');
+
+          final callableUpdateInsight = FirebaseFunctions.instance.httpsCallable('updateInsight');
+          final updateInsightResult = await callableUpdateInsight.call({
+            'uid': uid,
+            'mealId': mealId,
+          });
+          print('[HISTORY] Called updateInsight: ${updateInsightResult.data}');
+        } catch (e) {
+          print('[HISTORY] Error calling analysis or update preference: $e');
         }
       } catch (e) {
         print('[HISTORY] Failed to store meal input.');

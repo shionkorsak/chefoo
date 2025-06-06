@@ -76,4 +76,17 @@ class UserAccountService {
     final snapshot = await docRef.snapshots().firstWhere((snap) => snap.exists && snap.data() != null);
     return UserAccount.fromMap(snapshot.data()!);
   }
+
+  Future<HealthInsight?> fetchHealthInsightOnly() async {
+    if (uid == null) return null;
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      final data = doc.data();
+      if (data == null || data['healthInsight'] == null) return null;
+      return HealthInsight.fromMap(Map<String, dynamic>.from(data['healthInsight']));
+    } catch (e) {
+      print('Error fetching healthInsight: $e');
+      return null;
+    }
+  }
 }

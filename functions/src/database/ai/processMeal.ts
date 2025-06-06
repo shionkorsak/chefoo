@@ -1,36 +1,58 @@
 import * as functions from "firebase-functions/v1";
 import { ai } from '../../config';
 import { firestore } from 'firebase-admin';
-import { mealAnalysis, mealInputSchema } from '../../schema';
 import { z } from 'genkit';
+import { mealInputSchema, mealAnalysis } from '../../schema'; // adjust to your schema location
 
-export const processMealAnalysis = functions.firestore
-    .document('users/{uid}/mealHistory/{mealId}')
-    .onCreate(async (snap, context) => {
-        const { uid, mealId } = context.params;
-        const rawData = snap.data();
+export const processMealAnalysis = functions.https.onCall(
+  async (data, context) => {
+    const { uid, mealId } = data;
 
-        const validation = mealInputSchema.safeParse(rawData);
-        if(!validation.success) {
-            console.error("Invalid mealInput format:", validation.error);
-            return;
-        }
+    if (!uid || !mealId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Missing uid or mealId in the request.'
+      );
+    }
 
-        const name = validation.data.profile.name;
-        const notes = validation.data.feedback?.notes ?? 'No notes provided';
+    try {
+      const docRef = firestore().doc(`users/${uid}/mealHistory/${mealId}`);
+      const docSnap = await docRef.get();
 
-        try {
-            const result = await processMealAnalysisFlow({ name, notes });
+      if (!docSnap.exists) {
+        throw new functions.https.HttpsError(
+          'not-found',
+          `No mealHistory document found for ${uid}/${mealId}.`
+        );
+      }
 
-            await firestore()
-                .doc(`users/${uid}/mealHistory/${mealId}`)
-                .update({ analysis: result.analysis });
+      const rawData = docSnap.data();
+      const validation = mealInputSchema.safeParse(rawData);
 
-            console.log(`Meal analysis saved for ${mealId}`);
-        } catch (error) {
-            console.error('Failed to analyze meal:', error);
-        }
-    });
+      if (!validation.success) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          `Invalid meal input format: ${validation.error}`
+        );
+      }
+
+      const name = validation.data.profile.name;
+      const notes = validation.data.feedback?.notes ?? 'No notes provided';
+
+      const result = await processMealAnalysisFlow({ name, notes });
+
+      await docRef.update({ analysis: result.analysis });
+
+      return { success: true, message: `Analysis completed for ${uid}/${mealId}` };
+    } catch (error: any) {
+      console.error(`Error processing meal analysis:`, error);
+      throw new functions.https.HttpsError(
+        'internal',
+        error.message || 'An unexpected error occurred.'
+      );
+    }
+  }
+);
 
 export const processMealAnalysisFlow = ai.defineFlow(
     {

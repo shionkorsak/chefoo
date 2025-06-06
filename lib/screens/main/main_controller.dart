@@ -126,7 +126,18 @@ abstract class MainController extends State<MainScreen> {
           print('[MAIN-CTRL] Waiting for restaurant provider.');
           await recommendationService.waitForPlacesReady(restaurantProvider);
           print('[MAIN-CTRL] Fetching recommendations.');
-          final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
+          final Map<String, Place> uniquePlaces = {};
+                            
+          for (var place in restaurantProvider.routePlaces) {
+            uniquePlaces[place.id] = place;
+          }
+          
+          for (var place in restaurantProvider.places) {
+            uniquePlaces[place.id] = place;
+          }
+          
+          final List<Place> combinedPlaces = uniquePlaces.values.toList();
+          final result = await recommendationService.fetchRecommendedPlaces(combinedPlaces, context);
 
           recommendedProvider.setRecommendations(
             recommended: result['recommended'] ?? [],

@@ -1,3 +1,4 @@
+import 'package:chefoo/providers/user_account.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:chefoo/commons.dart';
@@ -41,11 +42,29 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     'Dislike',
     'Allergy',
   ];
+  
+  List<String> _dietaryPreferences = [];
+  List<String> _dislikedFood = [];
+  List<String> _allergies = [];
+
+  List<String> get dietaryPreferences => _dietaryPreferences;
+  List<String> get dislikedFood => _dislikedFood;
+  List<String> get allergies => _allergies;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: tabLabels.indexOf(selectedTab));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
+    });
+  }
+
+  void _loadPreferences() {
+    final provider = Provider.of<UserAccountProvider>(context, listen: false);
+    _dietaryPreferences = provider.userAccount?.preferences!.dietaryPreferences ?? [];
+    _dislikedFood = provider.userAccount?.preferences!.dislikedFood ?? [];
+    _allergies = provider.userAccount?.preferences!.allergies ?? [];
   }
 
   @override
@@ -56,6 +75,7 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
@@ -231,21 +251,6 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     );
   }
 
-  Widget _buildTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.detail.copyWith(color: AppColors.textPrimary),
-      ),
-    );
-  }
-
   Widget _buildTagWrap(List<String> tags, List<String> selectedTags) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -262,39 +267,17 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                         data: tag,
                         feedback: Material(
                           color: Colors.transparent,
-                          child: GestureDetector(
-                            onDoubleTap: () => _editTag(tag),
-                            child: Tag(
-                              label: tag,
-                              selected: false,
-                              isShaking: true,
-                              isTappable: false,
-                              isLongPressable: false,
-                              onSelected: (_) {},
-                            ),
+                          child: Tag(
+                            label: tag,
+                            selected: false,
+                            isShaking: true,
+                            isTappable: false,
+                            isLongPressable: false,
+                            onSelected: (_) {},
                           ),
                         ),
                         childWhenDragging: Opacity(
                           opacity: 0.5,
-                          child: GestureDetector(
-                            onDoubleTap: () => _editTag(tag),
-                            child: Tag(
-                              label: tag,
-                              selected: false,
-                              isShaking: true,
-                              isTappable: false,
-                              isLongPressable: true,
-                              onSelected: (_) {},
-                              onLongPress: () {
-                                setState(() {
-                                  isShaking = true;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        child: GestureDetector(
-                          onDoubleTap: () => _editTag(tag),
                           child: Tag(
                             label: tag,
                             selected: false,
@@ -309,13 +292,10 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                             },
                           ),
                         ),
-                      )
-                    : GestureDetector(
-                        onDoubleTap: () => _editTag(tag),
                         child: Tag(
                           label: tag,
                           selected: false,
-                          isShaking: false,
+                          isShaking: true,
                           isTappable: false,
                           isLongPressable: true,
                           onSelected: (_) {},
@@ -325,6 +305,19 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
                             });
                           },
                         ),
+                      )
+                    : Tag(
+                        label: tag,
+                        selected: false,
+                        isShaking: false,
+                        isTappable: false,
+                        isLongPressable: true,
+                        onSelected: (_) {},
+                        onLongPress: () {
+                          setState(() {
+                            isShaking = true;
+                          });
+                        },
                       ),
               ),
           ],
@@ -399,3 +392,19 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     });
   }
 }
+
+
+  // Widget _buildTag(String label) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: AppColors.surface,
+  //       borderRadius: BorderRadius.circular(20),
+  //       border: Border.all(color: AppColors.primary),
+  //     ),
+  //     child: Text(
+  //       label,
+  //       style: AppTextStyles.detail.copyWith(color: AppColors.textPrimary),
+  //     ),
+  //   );
+  // }

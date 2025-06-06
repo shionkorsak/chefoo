@@ -177,26 +177,111 @@ export const analyzeHealthInsightsDailyFlow = ai.defineFlow(
   }
 );
 
-export const updateInsight = functions.firestore
-    .document('users/{uid}/mealHistory/{mealId}')
-    .onWrite(async (change, context) => {
-        const uid = context.params.uid;
-        const meal = change.after.exists ? change.after.data() : null;
+export const updateInsight = functions
+  .runWith({ timeoutSeconds: 90 })
+  .https.onCall(async (data, context) => {
+    const uid = data.uid;
+    const mealId = data.mealId;
 
-        if(!meal || !meal.profile?.time) {
-            console.warn(`[Skipped] No meal or profile.time found for uid: ${uid}`);
-            return null;
-        }
+    if (!uid || !mealId) {
+      throw new functions.https.HttpsError('invalid-argument', 'uid and mealId are required.');
+    }
 
-        try {
-            const time = new Date(meal.profile.time);
-            const date = time.toISOString().split('T')[0];
+    const mealDoc = await db.doc(`users/${uid}/mealHistory/${mealId}`).get();
+    if (!mealDoc.exists) {
+      throw new functions.https.HttpsError('not-found', `Meal ${mealId} not found.`);
+    }
 
-            console.log(`[Trigger] Analyzing health insights for ${uid} on ${date}`);
-            await analyzeHealthInsightsDailyFlow({ uid, date });
-        } catch (error) {
-            console.error(`[Error] Failed to analyze insights:`, error);
-        }
+    const meal = mealDoc.data();
+    const timeStr = meal?.profile?.time;
+    if (!timeStr) {
+      throw new functions.https.HttpsError('invalid-argument', 'profile.time is missing.');
+    }
 
-        return null;
-    })
+    const date = new Date(timeStr).toISOString().split('T')[0];
+
+    const mealSnap = await db.collection(`users/${uid}/mealHistory`)
+      .where('profile.time', '>=', `${date}T00:00:00.000Z`)
+      .where('profile.time', '<', `${date}T23:59:59.999Z`)
+      .get();
+
+    const parsedMeals = mealSnap.docs
+      .map(d => mealInputSchema.safeParse(d.data()))
+      .filter(p => p.success)
+      .map(p => p.data);
+
+    const mealsWithScore = parsedMeals.filter(m => m.analysis?.healthyScore !== undefined);
+    const totalHealthyScore = mealsWithScore.reduce((sum, m) => sum + (m.analysis?.healthyScore ?? 0), 0);
+    const ratio = mealsWithScore.length > 0
+      ? Math.round((totalHealthyScore / mealsWithScore.length))
+      : 0;
+
+    let comment = 'No meals recorded.';
+    if (parsedMeals.length > 0) {
+      const prompt = `Summarize the healthiness of these meals on ${date} in one sentence:\n` +
+        parsedMeals.map(m => `- ${m.profile.name}, tags: ${m.analysis?.tags?.join(', ') ?? 'N/A'}`).join('\n');
+
+      try {
+        const { text } = await ai.generate({ prompt });
+        comment = text.trim();
+      } catch (err) {
+        console.warn(`[AI] Failed to generate daily comment:`, err);
+        comment = 'No summary available.';
+      }
+    }
+
+    const dailyEntry = {
+      date,
+      mealInput: parsedMeals,
+      ratio,       
+      comment,
+    };
+
+    const userRef = db.doc(`users/${uid}`);
+    const userSnap = await userRef.get();
+    const existing = userSnap.data()?.healthInsight;
+
+    const updatedWeekly = [...(existing?.weeklyData ?? [])].filter(d => d.date !== date);
+    updatedWeekly.push(dailyEntry);
+
+    // 1. Sort and take latest entries
+    let weeklyData = updatedWeekly
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-7);
+
+    // 2. Pad to exactly 7 entries if needed
+    while (weeklyData.length < 7) {
+      const lastDate = weeklyData.length > 0
+        ? new Date(weeklyData[0].date)
+        : new Date();
+
+      lastDate.setDate(lastDate.getDate() - 1);  // go backwards
+      const missingDateStr = lastDate.toISOString().split('T')[0];
+
+      weeklyData.unshift({
+        date: missingDateStr,
+        mealInput: [],
+        ratio: 0,
+        comment: 'No meals recorded.',
+      });
+    }
+
+    const healthScore = Math.round(
+      (weeklyData.reduce((sum, d) => sum + d.ratio, 0)) / weeklyData.length
+    );
+
+    const result = {
+      healthScore,
+      weeklyData,
+      lastAnalyzedAt: new Date().toISOString(),
+    };
+
+    const parse = healthInsightSchema.safeParse(result);
+    if (!parse.success) {
+      console.error('[SchemaError] Invalid healthInsight result:', parse.error);
+      throw new functions.https.HttpsError('internal', 'Invalid healthInsight format.');
+    }
+
+    await userRef.set({ healthInsight: result }, { merge: true });
+    return { status: 'success', result };
+  });
