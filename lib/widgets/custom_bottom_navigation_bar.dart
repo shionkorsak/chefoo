@@ -75,7 +75,6 @@ class _MainNavigationState extends State<MainNavigation> {
     final places = Provider.of<RestaurantProvider>(context).places;
 
     final List<Widget> screens = [
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 60),
       SafeArea(bottom: false, child: MainScreen(showWelcomeDialog: false)),
       SafeArea(bottom: false, child: MapScreen(places: places)),
       SafeArea(bottom: false, child: ProfileScreen()),
