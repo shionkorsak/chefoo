@@ -7,11 +7,15 @@ import 'package:chefoo/providers/favorites.dart';
 class LikeButton extends StatelessWidget {
   final Place? place;
   final bool isLiked;
+  final double iconSize;
+  final double padding;
 
   const LikeButton({
     Key? key,
     this.place,
     this.isLiked = false,
+    this.iconSize = 16,
+    this.padding = 6,
   }) : super(key: key);
 
   @override
@@ -51,7 +55,7 @@ class LikeButton extends StatelessWidget {
         */
       },
       child: Container(
-        padding: EdgeInsets.all(6),
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.primary,
@@ -61,7 +65,7 @@ class LikeButton extends StatelessWidget {
           child: Icon(
             actualIsLiked ? Icons.favorite : Icons.favorite_border,
             color: AppColors.surface, 
-            size: 16,
+            size: iconSize,
             key: ValueKey(actualIsLiked),
           ),
         ),
