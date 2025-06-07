@@ -55,23 +55,26 @@ class _HistoryListState extends State<HistoryList> {
         final groupedMeals = grouped.entries.toList().reversed.take(5).toList().reversed.toList();
 
         return SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 13),
-            itemCount: groupedMeals.length,
-            itemBuilder: (context, index) {
-              final entry = groupedMeals[index];
-              final place = entry.value.first.restaurant;
-              final meal = entry.value.first;
-              return Padding(
-                padding: EdgeInsets.only(right: 16),
-                child: MealCardVertical(
-                  place: place,
-                  meal: meal,
-                ),
-              );
-            },
+          height: 290,
+          child: Container(
+            clipBehavior: Clip.none,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              itemCount: groupedMeals.length,
+              itemBuilder: (context, index) {
+                final entry = groupedMeals[index];
+                final place = entry.value.first.restaurant;
+                final meal = entry.value.first;
+                return Padding(
+                  padding: EdgeInsets.only(right: 16, bottom: 6),
+                  child: MealCardVertical(
+                    place: place,
+                    meal: meal,
+                  ),
+                );
+              },
+            ),
           ),
         );
       },

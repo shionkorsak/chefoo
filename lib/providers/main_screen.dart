@@ -4,10 +4,14 @@ import 'package:chefoo/models/restaurant.dart';
 class MainScreenProvider with ChangeNotifier {
   List<Place> _recommendations = [];
   List<Place> _recentMeals = [];
+  List<Place> _aiGeneratedResults = [];
+  String _aiQuery = '';
   bool _isLoading = false;
 
   List<Place> get recommendations => _recommendations;
   List<Place> get recentMeals => _recentMeals;
+  List<Place> get aiGeneratedResults => _aiGeneratedResults;
+  String get aiQuery => _aiQuery;
   bool get isLoading => _isLoading;
 
   void setRecommendations(List<Place> places) {
@@ -17,6 +21,12 @@ class MainScreenProvider with ChangeNotifier {
 
   void setRecentMeals(List<Place> meals) {
     _recentMeals = meals;
+    notifyListeners();
+  }
+
+  void setAIGeneratedResults(String query, List<Place> results) {
+    _aiQuery = query;
+    _aiGeneratedResults = results;
     notifyListeners();
   }
 
