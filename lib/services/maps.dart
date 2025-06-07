@@ -566,6 +566,7 @@ class PlaceService {
     
     return jsonString;
   }
+  
   Future<List<Map<String, dynamic>>> exportCachedPlacesAsList(BuildContext context) async {
     final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
     

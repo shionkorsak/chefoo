@@ -37,26 +37,24 @@ class _MainScreenState extends MainController {
 
     if (widget.showWelcomeDialog && !_dialogShown && ratingSession.restaurantId != null) {
       _dialogShown = true;
-
+      print('[MAIN] Showing rate.');
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text("Welcome Back"),
-            content: Text("You've returned from Google Maps for ${ratingSession.restaurantName ?? 'a place'}"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RatingScreen()),
-                  );
-                },
-                child: const Text("Rate"),
-              ),
-            ],
+        final overlay = Overlay.of(context);
+        late OverlayEntry entry;
+
+        entry = OverlayEntry(
+          builder: (context) => Positioned(
+            left: 20,
+            right: 20,
+            bottom: 90,
+            child: RatePopup(
+              restaurantName: ratingSession.restaurantName ?? 'a place',
+              onDismissed: () => entry.remove(),
+            ),
           ),
         );
+
+        overlay.insert(entry);
       });
     }
   }
@@ -240,16 +238,6 @@ class _MainScreenState extends MainController {
                     ),
                   ),
                 ),
-                if (showRatePopup)
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 90, // just above nav bar
-                    child: RatePopup(
-                      restaurantName: '吳哥哥牛肉麵店',
-                      onDismissed: dismissRatePopup,
-                    ),
-                  ),
               ],
             ),
           );
