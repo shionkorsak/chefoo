@@ -130,6 +130,19 @@ class _MainScreenState extends MainController {
       backgroundColor: AppColors.background,
       body: Consumer2<LocationService, RecommendedProvider>(
         builder: (context, locationService, recommendedProvider, _) { 
+          
+          final position = locationService.currentPosition;
+          if (position != null && recommendedProvider.enriched.isNotEmpty) {
+            for (var place in recommendedProvider.enriched) {
+              final distance = calculateGeoDistance(
+                position.latitude, position.longitude,
+                place.lat, place.lng
+              );
+              
+              place.walkingDistance = distance / 1000;
+            }
+          }
+          
           return SafeArea(
             child: Stack(
               children: [

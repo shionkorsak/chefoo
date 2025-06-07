@@ -54,6 +54,17 @@ abstract class MainController extends State<MainScreen> {
           _carouselPage = current;
         }
       });
+
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      
+      locationService.locationChangedStream.listen((position) {
+        restaurantProvider.updateCurrentPlaces(
+          position.latitude,
+          position.longitude,
+          1000.0
+        );
+      });
     });
 
     _loadCalendarData();
