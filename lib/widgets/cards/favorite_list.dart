@@ -39,7 +39,7 @@ class _FavoriteListState extends State<FavoriteList> {
                     );
                 }
 
-                final favorites = favoritesProvider.favorites;
+                final favorites = favoritesProvider.favorites.reversed.take(5).toList().reversed.toList();
 
                 if (favorites.isEmpty) {
                     return const Padding(

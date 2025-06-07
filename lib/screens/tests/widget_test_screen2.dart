@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:chefoo/screens/favorites.dart';
+import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
 import 'package:flutter/material.dart';

@@ -1,8 +1,14 @@
+import 'package:chefoo/models/user/meal.dart';
+import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
+import 'package:chefoo/screens/history/history_screen.dart';
+import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/widgets/cards/favorite_list.dart';
+import 'package:chefoo/widgets/cards/meal_card_vertical.dart';
 import 'package:chefoo/widgets/healthy_score.dart';
+import 'package:chefoo/widgets/cards/history_list.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -24,41 +30,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          SafeArea(
-            child: Consumer<UserAccountProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          Consumer<UserAccountProvider>(builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (provider.errorMessage != null) {
+              return Center(
+                  child: Text(provider.errorMessage!,
+                      style: TextStyle(color: Colors.red)));
+            }
 
-                if (provider.errorMessage != null) {
-                  return Center(
-                    child: Text(
-                      provider.errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
+            final account = provider.userAccount;
+            if (account == null) {
+              return Center(child: Text("No user data available."));
+            }
 
-                final account = provider.userAccount;
-                if (account == null) {
-                  return const Center(child: Text("No user data available."));
-                }
-
-                final score = account.healthInsight?.healthScore.toInt() ?? 0;
-
-                return Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.fromLTRB(
-                          20,
-                          20,
-                          20,
-                          MediaQuery.of(context).padding.bottom + 100,
-                        ),
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header and HealthyScore with horizontal padding
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Stack(
                               children: [
@@ -98,8 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     children: [
                                       CircleAvatar(
                                         radius: 40,
-                                        backgroundImage: account.profile
-                                                        ?.photoURL !=
+                                        backgroundImage: account
+                                                        .profile?.photoURL !=
                                                     null &&
                                                 account.profile!.photoURL!
                                                     .isNotEmpty
@@ -112,8 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       const SizedBox(width: 8),
                                       Text(
                                         account.profile!.displayName,
-                                        style:
-                                            AppTextStyles.headline2.copyWith(
+                                        style: AppTextStyles.headline2.copyWith(
                                           color: Colors.white,
                                         ),
                                       ),
@@ -125,52 +121,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(height: 24),
                             SizedBox(
                               width: double.infinity,
-                              child: HealthyScore(score: score),
+                              child: HealthyScore(
+                                  score: account.healthInsight?.healthScore
+                                          .toInt() ??
+                                      0),
                             ),
                             const SizedBox(height: 24),
-                            Text('Favorites', style: AppTextStyles.headline2),
-                            const SizedBox(height: 8),
-                            const FavoriteList(),
-                            const SizedBox(height: 24),
-                            Text('History', style: AppTextStyles.headline2),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              height: 240,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: 5,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: 12),
-                                itemBuilder: (context, index) => Container(
-                                  width: 160,
-                                  height: 220,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surface,
-                                    borderRadius: BorderRadius.circular(15),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text('TO DO',
-                                        style: AppTextStyles.detail),
-                                  ),
-                                ),
-                              ),
+                          ],
+                        ),
+                      ),
+                      // Favorites section WITH horizontal padding
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Favorites',
+                                style: AppTextStyles.headline2
+                                    .copyWith(color: AppColors.textPrimary)),
+                            IconButton(
+                              icon: Icon(Icons.arrow_forward_ios_rounded,
+                                  size: 18, color: AppColors.textPrimary),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => FavoritesScreen()),
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
+                      const SizedBox(height: 8),
+                      const FavoriteList(),
+                      const SizedBox(height: 24),
+                      // History section WITH horizontal padding
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('History',
+                                style: AppTextStyles.headline2
+                                    .copyWith(color: AppColors.textPrimary)),
+                            IconButton(
+                              icon: Icon(Icons.arrow_forward_ios_rounded,
+                                  size: 18, color: AppColors.textPrimary),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => HistoryScreen()),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const HistoryList(),
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );

@@ -1,5 +1,5 @@
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/screens/favorites.dart';
+import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
 import 'package:cloud_functions/cloud_functions.dart';
