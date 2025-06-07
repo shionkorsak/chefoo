@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chefoo/models/restaurant.dart';
-import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
+import 'package:chefoo/widgets/cards/meal_card_vertical.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/models/user/meal.dart';
 
@@ -40,27 +40,39 @@ class _HistoryListState extends State<HistoryList> {
         }
 
         final meals = snapshot.data ?? [];
-        final places = meals.map((meal) => meal.restaurant).toSet().toList();
-
-        if (places.isEmpty) {
+        if (meals.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text('No history yet.'),
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 220,
-              child: RestaurantCardListHorizontal(
-                without: true,
-                places: places,
-                isLoading: false,
-              ),
-            ),
-          ],
+        final grouped = <String, List<Meal>>{};
+        for (final meal in meals) {
+          final id = meal.restaurant.id;
+          grouped.putIfAbsent(id, () => []).add(meal);
+        }
+        final groupedMeals = grouped.entries.toList().reversed.take(5).toList().reversed.toList();
+
+        return SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            itemCount: groupedMeals.length,
+            itemBuilder: (context, index) {
+              final entry = groupedMeals[index];
+              final place = entry.value.first.restaurant;
+              final meal = entry.value.first;
+              return Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: MealCardVertical(
+                  place: place,
+                  meal: meal,
+                ),
+              );
+            },
+          ),
         );
       },
     );

@@ -1,11 +1,14 @@
+import 'package:chefoo/models/user/meal.dart';
+import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/settings/account_settings.dart';
 import 'package:chefoo/screens/history/history_screen.dart';
 import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/widgets/cards/favorite_list.dart';
-import 'package:chefoo/widgets/cards/history_list.dart';
+import 'package:chefoo/widgets/cards/meal_card_vertical.dart';
 import 'package:chefoo/widgets/healthy_score.dart';
+import 'package:chefoo/widgets/cards/history_list.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -27,8 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          Consumer<UserAccountProvider>(
-              builder: (context, provider, child) {
+          Consumer<UserAccountProvider>(builder: (context, provider, child) {
             if (provider.isLoading) {
               return Center(child: CircularProgressIndicator());
             }
@@ -42,10 +44,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (account == null) {
               return Center(child: Text("No user data available."));
             }
-            
+
             return SafeArea(
               child: SingleChildScrollView(
-                padding: EdgeInsets.only(bottom: kSizeH60.height + 32),
                 child: Padding(
                   padding: EdgeInsets.only(top: 16),
                   child: Column(
@@ -94,7 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     children: [
                                       CircleAvatar(
                                         radius: 40,
-                                        backgroundImage: account.profile?.photoURL != null &&
+                                        backgroundImage: account
+                                                        .profile?.photoURL !=
+                                                    null &&
                                                 account.profile!.photoURL!
                                                     .isNotEmpty
                                             ? NetworkImage(
@@ -106,8 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       const SizedBox(width: 8),
                                       Text(
                                         account.profile!.displayName,
-                                        style:
-                                            AppTextStyles.headline2.copyWith(
+                                        style: AppTextStyles.headline2.copyWith(
                                           color: Colors.white,
                                         ),
                                       ),
@@ -119,7 +121,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(height: 24),
                             SizedBox(
                               width: double.infinity,
-                              child: HealthyScore(score: account.healthInsight?.healthScore.toInt() ?? 0),
+                              child: HealthyScore(
+                                  score: account.healthInsight?.healthScore
+                                          .toInt() ??
+                                      0),
                             ),
                             const SizedBox(height: 24),
                           ],
@@ -131,13 +136,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Favorites', style: AppTextStyles.headline2.copyWith(color: AppColors.textPrimary)),
+                            Text('Favorites',
+                                style: AppTextStyles.headline2
+                                    .copyWith(color: AppColors.textPrimary)),
                             IconButton(
-                              icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.textPrimary),
+                              icon: Icon(Icons.arrow_forward_ios_rounded,
+                                  size: 18, color: AppColors.textPrimary),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => FavoritesScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) => FavoritesScreen()),
                                 );
                               },
                             ),
@@ -153,13 +162,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('History', style: AppTextStyles.headline2.copyWith(color: AppColors.textPrimary)),
+                            Text('History',
+                                style: AppTextStyles.headline2
+                                    .copyWith(color: AppColors.textPrimary)),
                             IconButton(
-                              icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.textPrimary),
+                              icon: Icon(Icons.arrow_forward_ios_rounded,
+                                  size: 18, color: AppColors.textPrimary),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => HistoryScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) => HistoryScreen()),
                                 );
                               },
                             ),
@@ -167,7 +180,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      HistoryList(),
+                      const HistoryList(),
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ),

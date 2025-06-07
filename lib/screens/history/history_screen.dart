@@ -1,7 +1,6 @@
 import 'package:chefoo/models/user/meal.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/widgets/cards/meal_card_horizontal.dart';
-import 'package:chefoo/widgets/cards/restaurant_meal.dart';
 import 'package:flutter/material.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -77,18 +76,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     .reversed
                     .toList();
 
-                return ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  children: recentEntries.map((entry) {
-                    final place = entry.value.first.restaurant;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: RestaurantMealCard(
-                        place: place,
-                        meals: entry.value,
-                      ),
-                    );
-                  }).toList(),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    children: recentEntries.map((entry) {
+                      final place = entry.value.first.restaurant;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: MealCardHorizontal(
+                          place: place,
+                          meals: entry.value,
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 );
               },
             ),
