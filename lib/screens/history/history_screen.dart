@@ -1,5 +1,6 @@
 import 'package:chefoo/models/user/meal.dart';
 import 'package:chefoo/services/database/history_service.dart';
+import 'package:chefoo/widgets/cards/meal_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_meal.dart';
 import 'package:flutter/material.dart';
 
