@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserPreferenceonMealCreateAI = exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.msgAIAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.processMealBatch = exports.processMealAnalysis = exports.generateTagsAndBanner = exports.msgAI = exports.mainPick = exports.triggerUpdatePreference = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
+exports.updateUserPreferenceonMealCreateAI = exports.restaurantBannerAI = exports.analyzeHealthInsightsDailyAI = exports.analyzeHealthInsightsAI = exports.restaurantTagsAI = exports.msgAIAI = exports.mainPickAI = exports.processMealAnalysisAI = exports.updateInsight = exports.processMealBatch = exports.processMealAnalysis = exports.generateTagsAndBanner = exports.msgAI = exports.mainPick = exports.triggerUpdatePreference = exports.updateClientPreferences = exports.deleteUserAccount = exports.createUserAccount = void 0;
 const https_1 = require("firebase-functions/https");
 const processMeal_1 = require("./database/ai/processMeal");
 const mainPick_1 = require("./recommendation/mainPick");
@@ -21,6 +21,8 @@ var processMeal_2 = require("./database/ai/processMeal");
 Object.defineProperty(exports, "processMealAnalysis", { enumerable: true, get: function () { return processMeal_2.processMealAnalysis; } });
 var personality_1 = require("./database/ai/personality");
 Object.defineProperty(exports, "processMealBatch", { enumerable: true, get: function () { return personality_1.processMealBatch; } });
+var healthInsights_2 = require("./database/user/healthInsights");
+Object.defineProperty(exports, "updateInsight", { enumerable: true, get: function () { return healthInsights_2.updateInsight; } });
 exports.processMealAnalysisAI = (0, https_1.onCallGenkit)(processMeal_1.processMealAnalysisFlow);
 exports.mainPickAI = (0, https_1.onCallGenkit)(mainPick_1.mainPickFlow);
 exports.msgAIAI = (0, https_1.onCallGenkit)(mainPick_1.msgAIFlow);

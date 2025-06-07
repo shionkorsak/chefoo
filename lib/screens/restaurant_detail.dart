@@ -7,6 +7,8 @@ import 'package:chefoo/widgets/buttons/circle_button.dart';
 import 'package:chefoo/widgets/star_ratings/star_rating.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chefoo/constants.dart';
+import 'package:chefoo/services/maps.dart';
+import 'dart:math' as math;
 
 class RestaurantDetailScreen extends StatefulWidget {
   final Place place;
@@ -29,6 +31,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     super.initState();
     _loadDetailedInfo();
     _loadPopularTimes();
+    _calculateWalkingDistance();
   }
 
   Future<void> _loadDetailedInfo() async {
@@ -90,7 +93,21 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  
+  void _calculateWalkingDistance() {
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final position = locationService.currentPosition;
+    
+    if (position == null) return;
+    
+    final distance = calculateGeoDistance(
+      position.latitude, position.longitude,
+      widget.place.lat, widget.place.lng
+    );
+    
+    setState(() {
+      widget.place.walkingDistance = distance / 1000;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -276,8 +276,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                   await userAccountProvider.fetchUserAccount();
 
                   final account = userAccountProvider.userAccount;
-                  final hasPrefs = account?.preferences.dietaryPreferences.isNotEmpty == true ||
-                                    account?.preferences.allergies.isNotEmpty == true;
+                  final hasPrefs = account?.preferences!.dietaryPreferences.isNotEmpty == true ||
+                                    account?.preferences!.allergies.isNotEmpty == true;
                   if(hasPrefs) {
                     provider.setState(7);
                     provider.setShowFinalScreenContent(false);

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'dart:math' as math;
+import 'package:chefoo/services/maps.dart';
 import 'package:chefoo/commons.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -66,7 +66,19 @@ class PreloadService {
       
       if (response.success && response.data != null) {
         print('[PRELOAD] Successfully loaded ${response.data!.length} places');
+        
+        print('[PRELOAD] Calculating walking distances...');
+        for (var place in response.data!) {
+          final distance = calculateGeoDistance(
+            position.latitude, position.longitude,
+            place.lat, place.lng
+          );
+          place.walkingDistance = distance / 1000;
+        }
+        
         restaurantProvider.setPlaces(response.data!);
+        
+        await _preloadDetailsForTopPlaces(placeService, response.data!, 8);
       } else {
         print('[PRELOAD] Failed to load places: ${response.message}');
       }
@@ -164,14 +176,6 @@ class PreloadService {
     }
   }
 
-  static double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const p = 0.017453292519943295;
-    final a = 0.5 -
-        math.cos((lat2 - lat1) * p) / 2 +
-        math.cos(lat1 * p) * math.cos(lat2 * p) * (1 - math.cos((lon2 - lon1) * p)) / 2;
-    return 12742 * math.asin(math.sqrt(a));
-  }
-
   static Future<void> _preloadPlacesAlongRoute(
     PlaceService placeService,
     LocationService locationService,
@@ -220,7 +224,7 @@ class PreloadService {
         print('Loaded ${midpointResponse.data!.length} places near route midpoint');
       }
       
-      final distance = _calculateDistance(
+      final distance = calculateGeoDistance(
         position.latitude, position.longitude,
         destination.latitude, destination.longitude
       );
@@ -262,8 +266,20 @@ class PreloadService {
       }
       
       final places = allPlaces.values.toList();
+      
+      print('[PRELOAD] Calculating walking distances for route places...');
+      for (var place in places) {
+        final distance = calculateGeoDistance(
+          position!.latitude, position.longitude,
+          place.lat, place.lng
+        );
+        place.walkingDistance = distance / 1000;
+      }
+      
       restaurantProvider.addPlaces(places);
       restaurantProvider.setRoutePlacesLoaded(true);
+      
+      await _preloadDetailsForTopPlaces(placeService, places, 12);
       
       final nearbyKey = '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}_2000';
       placeService.updateCacheWithRoutePlaces(nearbyKey, places);
@@ -271,6 +287,78 @@ class PreloadService {
       print('Total preloaded places along route: ${places.length}');
     } catch (e) {
       print('Error preloading places along route: $e');
+    }
+  }
+
+  static Future<void> _preloadDetailsForTopPlaces(
+    PlaceService placeService,
+    List<Place> places,
+    int limit
+  ) async {
+    try {
+      places.sort((a, b) => 
+        (a.walkingDistance ?? double.infinity)
+          .compareTo(b.walkingDistance ?? double.infinity)
+      );
+      
+      final placesToLoad = places.take(limit).toList();
+      
+      print('[PRELOAD] Loading details for ${placesToLoad.length} closest places...');
+      
+      for (int i = 0; i < placesToLoad.length; i++) {
+        final place = placesToLoad[i];
+        
+        try {
+          await placeService.loadPlaceDetails(place);
+          print('[PRELOAD] Loaded details for ${i+1}/${placesToLoad.length}: ${place.name}');
+          
+          if (i < placesToLoad.length - 1) {
+            await Future.delayed(Duration(milliseconds: 100));
+          }
+        } catch (e) {
+          print('[PRELOAD] Error loading details for ${place.name}: $e');
+          continue;
+        }
+      }
+      
+      print('[PRELOAD] Finished loading place details');
+    } catch (e) {
+      print('[PRELOAD] Error preloading details: $e');
+    }
+  }
+
+  static Future<void> preloadRecommendedPlaces(
+    BuildContext context,
+    List<Place> recommendedPlaces
+  ) async {
+    try {
+      if (recommendedPlaces.isEmpty) {
+        print('[PRELOAD] No recommended places to preload');
+        return;
+      }
+      
+      print('[PRELOAD] Preloading details for ${recommendedPlaces.length} recommended places');
+      
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final position = locationService.currentPosition;
+      
+      if (position != null) {
+        for (var place in recommendedPlaces) {
+          final distance = calculateGeoDistance(
+            position.latitude, position.longitude,
+            place.lat, place.lng
+          );
+          place.walkingDistance = distance / 1000;
+        }
+      }
+      
+      final limit = recommendedPlaces.length > 5 ? 5 : recommendedPlaces.length;
+      await _preloadDetailsForTopPlaces(placeService, recommendedPlaces, limit);
+      
+      print('[PRELOAD] Successfully preloaded recommended places data');
+    } catch (e) {
+      print('[PRELOAD] Error preloading recommended places: $e');
     }
   }
 }

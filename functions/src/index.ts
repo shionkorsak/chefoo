@@ -10,6 +10,7 @@ export { updateClientPreferences, triggerUpdatePreference } from "./database/use
 export { mainPick, msgAI, generateTagsAndBanner } from "./recommendation/mainPick"
 export { processMealAnalysis } from "./database/ai/processMeal";
 export { processMealBatch } from "./database/ai/personality";
+export { updateInsight } from "./database/user/healthInsights";
 
 export const processMealAnalysisAI = onCallGenkit(processMealAnalysisFlow);
 export const mainPickAI = onCallGenkit(mainPickFlow);

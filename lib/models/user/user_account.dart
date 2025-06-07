@@ -4,9 +4,9 @@ import 'health_insight.dart';
 import 'restaurant.dart';
 
 class UserAccount {
-  final UserProfile profile;
-  final UserPreference preferences;
-  final HealthInsight healthInsight;
+  final UserProfile? profile;
+  final UserPreference? preferences;
+  final HealthInsight? healthInsight;
 
   UserAccount({
     required this.profile,
@@ -16,15 +16,19 @@ class UserAccount {
 
   factory UserAccount.fromMap(Map<String, dynamic> map) {
     return UserAccount(
-      profile: UserProfile.fromMap(Map<String, dynamic>.from(map['profile'] ?? {})),
-      preferences: UserPreference.fromMap(Map<String, dynamic>.from(map['preferences'] ?? {})),
-      healthInsight: HealthInsight.fromMap(Map<String, dynamic>.from(map['healthInsights'] ?? {})),
+      profile: map['profile'] != null ? UserProfile.fromMap(map['profile']) : null,
+      preferences: map['preferences'] != null ? UserPreference.fromMap(map['preferences']) : null,
+      healthInsight: map['healthInsight'] != null
+          ? HealthInsight.fromMap(Map<String, dynamic>.from(map['healthInsight']))
+          : null,
     );
   }
 
-  Map<String, dynamic> toMap() => {
-        'profile': profile.toMap(),
-        'preferences': preferences.toMap(),
-        'healthInsight': healthInsight.toMap(),
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      if (profile != null) 'profile': profile!.toMap(),
+      if (preferences != null) 'preferences': preferences!.toMap(),
+      if (healthInsight != null) 'healthInsight': healthInsight!.toMap(),
+    };
+  }
 }

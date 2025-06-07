@@ -62,9 +62,9 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
 
   void _loadPreferences() {
     final provider = Provider.of<UserAccountProvider>(context, listen: false);
-    _dietaryPreferences = provider.userAccount?.preferences.dietaryPreferences ?? [];
-    _dislikedFood = provider.userAccount?.preferences.dislikedFood ?? [];
-    _allergies = provider.userAccount?.preferences.allergies ?? [];
+    _dietaryPreferences = provider.userAccount?.preferences!.dietaryPreferences ?? [];
+    _dislikedFood = provider.userAccount?.preferences!.dislikedFood ?? [];
+    _allergies = provider.userAccount?.preferences!.allergies ?? [];
   }
 
   @override

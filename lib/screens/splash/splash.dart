@@ -90,9 +90,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (recommendedProvider.recommended.isEmpty) {
           final recommendationService = RecommendationService(restaurantProvider: restaurantProvider);
           await recommendationService.waitForPlacesReady(restaurantProvider);
-          final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
 
-          recommendedProvider.setRecommendations(
+          final Map<String, Place> uniquePlaces = {};
+                            
+          for (var place in restaurantProvider.routePlaces) {
+            uniquePlaces[place.id] = place;
+          }
+          
+          for (var place in restaurantProvider.places) {
+            uniquePlaces[place.id] = place;
+          }
+          
+          final List<Place> combinedPlaces = uniquePlaces.values.toList();
+          
+          final result = await recommendationService.fetchRecommendedPlaces(combinedPlaces, context);
+
+          await recommendedProvider.setRecommendations(
             recommended: result['recommended'] ?? [],
             enriched: result['enriched'] ?? [],
             uid: uid,

@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -85,4 +87,66 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<bool> revokeCalendarPermissions() async {
+  try {
+    final GoogleSignInAccount? currentUser = _googleSignIn.currentUser ?? 
+                                           await _googleSignIn.signInSilently();
+    if (currentUser == null) {
+      print('No signed-in user, cannot revoke calendar permissions');
+      return false;
+    }
+    
+    final auth = await currentUser.authentication;
+    if (auth.accessToken == null) {
+      print('No access token available');
+      return false;
+    }
+    
+    final url = Uri.parse('https://oauth2.googleapis.com/revoke');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {'token': auth.accessToken!},
+    );
+    
+    if (response.statusCode == 200) {
+      print('Successfully revoked OAuth token with Google');
+      
+      await _googleSignIn.disconnect();
+      
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('calendar_access_revoked', true);
+      
+      return true;
+    } else {
+      print('Failed to revoke token: ${response.statusCode} ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    print('Error revoking calendar permissions: $e');
+    return false;
+  }
+}
+
+Future<bool> signInWithGoogleAndCalendarScope() async {
+  try {
+    await _googleSignIn.signOut();
+    
+    final GoogleSignInAccount? account = await _googleSignIn.signIn();
+    if (account == null) {
+      return false;
+    }
+    
+    final auth = await account.authentication;
+    if (auth.accessToken == null) {
+      return false;
+    }
+    
+    return true;
+  } catch (e) {
+    print('Error signing in with Google calendar scope: $e');
+    return false;
+  }
+}
 }

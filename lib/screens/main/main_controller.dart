@@ -16,6 +16,9 @@ abstract class MainController extends State<MainScreen> {
   List<Place> _recommendedPlaces = [];
   List<Place> get recommendedPlaces => _recommendedPlaces;
 
+  bool _showRatePopup = true;
+  bool get showRatePopup => _showRatePopup;
+
   late PageController carouselController;
   Timer? _inactivityTimer;
   int _carouselPage = 2;
@@ -126,7 +129,18 @@ abstract class MainController extends State<MainScreen> {
           print('[MAIN-CTRL] Waiting for restaurant provider.');
           await recommendationService.waitForPlacesReady(restaurantProvider);
           print('[MAIN-CTRL] Fetching recommendations.');
-          final result = await recommendationService.fetchRecommendedPlaces(restaurantProvider.places, context);
+          final Map<String, Place> uniquePlaces = {};
+                            
+          for (var place in restaurantProvider.routePlaces) {
+            uniquePlaces[place.id] = place;
+          }
+          
+          for (var place in restaurantProvider.places) {
+            uniquePlaces[place.id] = place;
+          }
+          
+          final List<Place> combinedPlaces = uniquePlaces.values.toList();
+          final result = await recommendationService.fetchRecommendedPlaces(combinedPlaces, context);
 
           recommendedProvider.setRecommendations(
             recommended: result['recommended'] ?? [],
@@ -254,5 +268,11 @@ abstract class MainController extends State<MainScreen> {
     _inactivityTimer?.cancel();
     carouselController.dispose();
     super.dispose();
+  }
+  
+  void dismissRatePopup() {
+    setState(() {
+      _showRatePopup = false;
+    });
   }
 }

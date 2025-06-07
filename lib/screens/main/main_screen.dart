@@ -1,4 +1,5 @@
 import 'package:chefoo/providers/rating_session.dart';
+import 'package:chefoo/widgets/rate_popup.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/rating/rating_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -119,133 +120,137 @@ class _MainScreenState extends MainController {
       body: Consumer2<LocationService, RecommendedProvider>(
         builder: (context, locationService, recommendedProvider, _) { 
           return SafeArea(
-            child: Padding(
-              padding: kPadd20,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Search Bar
-                    const AIInputField(),
-                    kGap20,
-                    // Chefoo’s Pick
-                    if (!shouldShowGpsWarning)
-                      Animate(
-                        target: 0.0,
-                        effects: [
-                          ShakeEffect(
-                            duration: Duration(milliseconds: 500),
-                            hz: 4,
-                            offset: Offset(8, 0),
+            child: Stack(
+              children: [
+                Padding(
+                  padding: kPadd20,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AIInputField(),
+                        kGap20,
+                        if (!shouldShowGpsWarning)
+                          Animate(
+                            target: 0.0,
+                            effects: [
+                              ShakeEffect(
+                                duration: Duration(milliseconds: 500),
+                                hz: 4,
+                                offset: Offset(8, 0),
+                              ),
+                            ],
+                            child: Text(
+                              "Chefoo’s Pick",
+                              style: AppTextStyles.headline1.copyWith(color: AppColors.primary),
+                            ),
                           ),
-                        ],
-                        child: Text(
-                          "Chefoo’s Pick",
-                          style: AppTextStyles.headline1.copyWith(color: AppColors.primary),
+                        eventLocation.isNotEmpty
+                          ? Text(
+                              "You have class at $eventLocation soon, this place is on the way!",
+                              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                            )
+                          : Text(
+                              "Check out this restaurant near you!",
+                              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                            ),
+                        kGap8,
+                        _buildChefoosPick(recommendedProvider),
+                        kGap20,
+              
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Other Recommendations", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right, color: AppColors.primary),
+                              onPressed: () {
+                                final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                                
+                                final Map<String, Place> uniquePlaces = {};
+                                
+                                for (var place in restaurantProvider.routePlaces) {
+                                  uniquePlaces[place.id] = place;
+                                }
+                                
+                                for (var place in restaurantProvider.places) {
+                                  uniquePlaces[place.id] = place;
+                                }
+                                
+                                final List<Place> combinedPlaces = uniquePlaces.values.toList();
+                                
+                                print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
+                                print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
+                                
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OtherRecomScreen(places: recommendedProvider.enriched),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                      ),
-                    //kGap5,
-                    eventLocation.isNotEmpty
-                      ? Text(
-                          "You have class at $eventLocation soon, this place is on the way!",
-                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                        )
-                      : Text(
-                          "Check out this restaurant near you!",
-                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                        Text("Here are some options only for you!", style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                        GestureDetector(
+                          onTap: resetInactivityTimer,
+                          onPanDown: (_) => resetInactivityTimer(),
+                          child: SizedBox(
+                            height: 270,
+                            child: RestaurantCardListHorizontal(
+                              without: false,
+                              places: recommendedProvider.enriched,
+                              isLoading: isLoading,
+                            ),
+                          ),
                         ),
-                    kGap8,
-                    //[UNCOMMENT LATER]
-                    _buildChefoosPick(recommendedProvider),
-                    kGap20,
-          
-                    // Other Recommendations (auto-scroll carousel)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Other Recommendations", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-                          onPressed: () {
-                            final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-                            
-                            final Map<String, Place> uniquePlaces = {};
-                            
-                            for (var place in restaurantProvider.routePlaces) {
-                              uniquePlaces[place.id] = place;
-                            }
-                            
-                            for (var place in restaurantProvider.places) {
-                              uniquePlaces[place.id] = place;
-                            }
-                            
-                            final List<Place> combinedPlaces = uniquePlaces.values.toList();
-                            
-                            print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
-                            print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
-                            
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OtherRecomScreen(places: combinedPlaces),
-                              ),
-                            );
-                          },
+              
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Your Meals Lately...", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right, color: AppColors.primary),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:(context) => HistoryScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
+                        kGap8,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: SizedBox(
+                            height: 270,
+                            child: RestaurantCardListHorizontal(
+                              without: false, 
+                              places: mainProvider.recentMeals,
+                              isLoading: mainProvider.isLoading,
+                            ),
+                          ),
+                        ),
+                        ClearPreferencesButton()
                       ],
                     ),
-                    //kGap5,
-                    Text("Here are some options only for you!", style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
-                    //kGap8,
-                    GestureDetector(
-                      onTap: resetInactivityTimer,
-                      onPanDown: (_) => resetInactivityTimer(),
-                      child: SizedBox(
-                        height: 270,
-                        child: RestaurantCardListHorizontal(
-                          without: false,
-                          places: recommendedProvider.enriched,
-                          isLoading: isLoading,
-                        ),
-                      ),
-                    ),
-                    //kGap20,
-          
-                    // Your Meals Lately (static list)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Your Meals Lately...", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                // builder: (context) => HistoryScreen(places: mainProvider.recentMeals),
-                                builder:(context) => HistoryScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    kGap8,
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: SizedBox(
-                        height: 270,
-                        child: RestaurantCardListHorizontal(
-                          without: false, 
-                          places: mainProvider.recentMeals,
-                          isLoading: mainProvider.isLoading,
-                        ),
-                      ),
-                    ),
-                    ClearPreferencesButton()
-                  ],
+                  ),
                 ),
-              ),
+                if (showRatePopup)
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 90, // just above nav bar
+                    child: RatePopup(
+                      restaurantName: '吳哥哥牛肉麵店',
+                      onDismissed: dismissRatePopup,
+                    ),
+                  ),
+              ],
             ),
           );
         }
