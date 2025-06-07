@@ -15,6 +15,10 @@ class Tag extends StatefulWidget {
   final bool isTappable;
   final bool isLongPressable;
   final VoidCallback? onLongPress;
+  final Color? backgroundColor;
+  final Color? selectedBorderColor;
+  final int? labelMaxLines;  // Add this parameter
+  final TextOverflow? labelOverflow;  // Add this parameter
 
   const Tag({
     Key? key,
@@ -30,6 +34,10 @@ class Tag extends StatefulWidget {
     this.isTappable = true,
     this.isLongPressable = true,
     this.onLongPress,
+    this.backgroundColor,
+    this.selectedBorderColor,
+    this.labelMaxLines,  // Add this to constructor
+    this.labelOverflow,  // Add this to constructor
   }) : super(key: key);
 
   @override
@@ -119,6 +127,12 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
       vertical: effectiveFontSize * 0.4,
     );
 
+    // Use provided colors or fall back to defaults
+    final Color effectiveBackgroundColor =
+        widget.backgroundColor ?? AppColors.secondary.withOpacity(0.4);
+    final Color effectiveBorderColor =
+        widget.selectedBorderColor ?? AppColors.primary;
+
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -153,7 +167,7 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
                   Container(
                     padding: effectivePadding,
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacity(0.4),
+                      color: effectiveBackgroundColor,
                       borderRadius: kRadius30,
                     ),
                     child: Text(
@@ -162,6 +176,8 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
                         color: AppColors.textPrimary,
                         fontSize: effectiveFontSize,
                       ),
+                      maxLines: widget.labelMaxLines, // Use the maxLines property
+                      overflow: widget.labelOverflow ?? TextOverflow.clip, // Use the overflow property
                     ),
                   ),
                   if (_selected)
@@ -170,8 +186,8 @@ class _TagState extends State<Tag> with SingleTickerProviderStateMixin {
                         decoration: BoxDecoration(
                           borderRadius: kRadius30,
                           border: Border.all(
-                            color: AppColors.primary,
-                            width: effectiveFontSize * 0.2,
+                            color: effectiveBorderColor,
+                            width: effectiveFontSize * 0.15,
                           ),
                         ),
                       ),

@@ -1,39 +1,164 @@
 import 'package:chefoo/widgets/star_ratings/star_rating.dart';
+import 'package:chefoo/widgets/tags/tag.dart';
 import 'package:marquee/marquee.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/buttons/like_button.dart';
+import 'package:chefoo/utils/place_utils.dart';
+import 'package:chefoo/screens/restaurant_detail.dart'; // Add this import
 
-class RestaurantCardHorizontal extends StatelessWidget {
-  final _banner = PictureCategoryAssets();
-  final Place place;
-  final bool isLoading;
-
+class RestaurantCardHorizontal extends StatefulWidget {
   RestaurantCardHorizontal({
     Key? key,
     required this.place,
     this.isLoading = false,
   }) : super(key: key);
 
+  final bool isLoading;
+  final Place place;
+
+  @override
+  _RestaurantCardHorizontalState createState() =>
+      _RestaurantCardHorizontalState();
+}
+
+class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
+  final _banner = PictureCategoryAssets();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.place.popularTimesLoaded) {
+      Provider.of<PlaceService>(context, listen: false)
+          .fetchPopularTimes(widget.place)
+          .then((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  Widget buildCrowdednessIndicator() {
+    // Get crowdedness status
+    final crowdednessStatus = PlaceUtils.getCrowdednessStatus(widget.place);
+
+    if (!widget.place.popularTimesLoaded) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 10,
+            height: 10,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          SizedBox(width: 4),
+          Text("Loading...", style: AppTextStyles.detail),
+        ],
+      );
+    } else if (crowdednessStatus != null) {
+      // Removed the Padding wrapper to fix alignment
+      return Tag(
+        label: _getCrowdednessText(crowdednessStatus),
+        isLongPressable: false,
+        isTappable: false,
+        fontSize: 10,
+        backgroundColor:
+            _getCrowdednessColor(crowdednessStatus).withOpacity(0.2),
+        selectedBorderColor: _getCrowdednessColor(crowdednessStatus),
+      );
+    }
+    return SizedBox.shrink();
+  }
+
+  Widget buildOpeningHours() {
+    if (widget.place.openingHours == null ||
+        widget.place.openingHours!.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    try {
+      final now = DateTime.now();
+      final dayIndex = now.weekday % 7;
+      final weekdayTexts = widget.place.openingHours!;
+
+      if (weekdayTexts.isEmpty || weekdayTexts.length <= dayIndex) {
+        return SizedBox.shrink();
+      }
+
+      final fullHours = weekdayTexts[dayIndex];
+      final parts = fullHours.split(': ');
+
+      if (parts.length > 1) {
+        final hoursText = parts[1].trim();
+
+        if (hoursText.toLowerCase() == 'closed') {
+          return Text('Today: Closed', style: AppTextStyles.detail);
+        }
+
+        return Text(
+          'Open Hours: $hoursText',
+          style: AppTextStyles.detail,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      }
+      return SizedBox.shrink();
+    } catch (e) {
+      print('Error formatting opening hours: $e');
+      return SizedBox.shrink();
+    }
+  }
+
+  Color _getCrowdednessColor(String status) {
+    switch (status) {
+      case "empty":
+        return Colors.green;
+      case "normal":
+        return Colors.orange;
+      case "crowded":
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getCrowdednessText(String status) {
+    switch (status) {
+      case "empty":
+        return "Not Busy";
+      case "normal":
+        return "Moderately Busy";
+      case "crowded":
+        return "Very Busy";
+      default:
+        return "Unknown";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    print('place.pictureCategory = ${place.pictureCategory}');
+    print('place.pictureCategory = ${widget.place.pictureCategory}');
     print('_banner has keys: ${_banner.pictureCategoryAssets.keys}');
 
-    
-    final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] 
-    ?? 'https://maps.googleapis.com/maps/api/place/photo'
-        '?maxwidth=400'
-        '&photo_reference=${place.pictureUrls.first}'
-        '&key=${MapsConstants.mapsKey}';
+    final pictureUrl =
+        _banner.pictureCategoryAssets[widget.place.pictureCategory] ??
+            'https://maps.googleapis.com/maps/api/place/photo'
+                '?maxwidth=400'
+                '&photo_reference=${widget.place.pictureUrls.first}'
+                '&key=${MapsConstants.mapsKey}';
 
     print('pictureUrl: $pictureUrl');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RestaurantDetailScreen(place: widget.place),
+          ),
+        );
+      },
       child: Container(
         padding: kPadd10,
         decoration: BoxDecoration(
@@ -71,80 +196,71 @@ class RestaurantCardHorizontal extends StatelessWidget {
                   Positioned(
                     top: 6,
                     right: 6,
-                    child: LikeButton(place: place),
+                    child: LikeButton(place: widget.place),
                   ),
                 ],
               ),
             ),
             SizedBox(width: 12), // spacing between image and text
             Expanded(
-              // <-- This constrains the text section
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    place.name,
+                    widget.place.name,
                     style: AppTextStyles.headline2
                         .copyWith(color: AppColors.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  // SizedBox(
-                  //   height: 28,
-                  //   width: double.infinity,
-                  //   child: Marquee(
-                  //     text: place.name,
-                  //     style: AppTextStyles.headline3
-                  //         .copyWith(color: AppColors.textPrimary),
-                  //     scrollAxis: Axis.horizontal,
-                  //     blankSpace: 20.0,
-                  //     velocity: 30.0,
-                  //     pauseAfterRound: Duration(seconds: 1),
-                  //     startPadding: 10.0,
-                  //     accelerationDuration: Duration(seconds: 1),
-                  //     accelerationCurve: Curves.linear,
-                  //     decelerationDuration: Duration(milliseconds: 500),
-                  //     decelerationCurve: Curves.easeOut,
-                  //   ),
-                  // ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           StarRating(
-                            rating: place.rating,
+                            rating: widget.place.rating,
                             size: 20,
                           ),
                           SizedBox(width: 4),
                           Text(
-                            place.rating.toStringAsFixed(1),
+                            widget.place.rating.toStringAsFixed(1),
                             style: AppTextStyles.detail
                                 .copyWith(height: 1, fontSize: 16),
                           ),
                         ],
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            place.tags.isNotEmpty
-                                ? place.tags.first
-                                : 'No tags available',
-                            style: AppTextStyles.detail,
-                          ),
-                          Text(
-                            '${(place.walkingDistance * 1000).round()}m',
-                            style: AppTextStyles.detail,
-                          )
-                        ],
+                      Text(
+                        '${(widget.place.walkingDistance * 1000).round()}m',
+                        style: AppTextStyles.detail,
                       ),
                     ],
                   ),
-                  Text(
-                      "Suggest message. Suggesest message. Suggest message.Suggest message. Suggesest message. Suggest message.Suggest message. Suggesest message. Suggest message.",
-                      style: AppTextStyles.caption),
+                  SizedBox(
+                    height: 6,
+                  ),
+                  Wrap(
+                    spacing: 8.0, // Horizontal space between tags
+                    runSpacing: 4.0, // Vertical space between rows
+                    children: [
+                      if (widget.place.tags.isNotEmpty)
+                        Tag(
+                          label: widget.place.tags[0],
+                          isLongPressable: false,
+                          isTappable: false,
+                          fontSize: 10,
+                          selected: false,
+                          backgroundColor: AppColors.secondary.withOpacity(0.2),
+                        ),
+                      buildCrowdednessIndicator(),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 6,
+                  ),
+                  buildOpeningHours(),
                 ],
               ),
             ),

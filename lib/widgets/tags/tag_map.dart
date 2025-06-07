@@ -8,6 +8,8 @@ class TagMap extends StatefulWidget {
   final double? fontSize;
   final bool isTappable;
   final bool isLongPressable;
+  final Color? backgroundColor;
+  final Color? selectedBorderColor;
 
   const TagMap({
     Key? key,
@@ -16,6 +18,8 @@ class TagMap extends StatefulWidget {
     this.fontSize,
     this.isTappable = true,
     this.isLongPressable = true,
+    this.backgroundColor,
+    this.selectedBorderColor,
   }) : super(key: key);
 
   @override
@@ -61,12 +65,10 @@ class _TagMapState extends State<TagMap> {
 
   void _onTagTapped(String tag, bool isSelected) {
     if (!widget.isTappable) return;
-
     if (_isShaking) {
       _stopShaking();
       return;
     }
-
     setState(() {
       selectedTags[tag] = isSelected;
     });
@@ -102,6 +104,8 @@ class _TagMapState extends State<TagMap> {
           frequency: params['frequency'],
           isTappable: widget.isTappable,
           isLongPressable: widget.isLongPressable,
+          backgroundColor: widget.backgroundColor,
+          selectedBorderColor: widget.selectedBorderColor,
           onLongPress: widget.isLongPressable
               ? () {
                   if (!_isShaking) {

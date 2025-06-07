@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CalendarEvent {
   final String id;
@@ -35,11 +36,32 @@ class CalendarEvent {
   }
 }
 
+class Calendar {
+  final String id;
+  final String name;
+  final bool isPrimary;
+  
+  Calendar({
+    required this.id, 
+    required this.name, 
+    this.isPrimary = false
+  });
+}
+
 class CalendarService {
   final AuthService _authService = AuthService();
   
   Future<ApiResponse<CalendarEvent?>> getNextEvent({bool forceRefresh = false}) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('calendar_access_revoked') == true) {
+        return ApiResponse(
+          success: false,
+          message: 'Calendar access has been revoked by user',
+          error: 'Permission denied',
+        );
+      }
+      
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) {
         return ApiResponse(
@@ -210,6 +232,56 @@ class CalendarService {
       print('Calendar state synced with user profile');
     } catch (e) {
       print('Error syncing calendar state: $e');
+    }
+  }
+
+  Future<List<Calendar>> getCalendars() async {
+    try {
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        return [];
+      }
+      
+      GoogleSignInAccount? account = _authService.googleSignIn.currentUser;
+      if (account == null) {
+        account = await _authService.googleSignIn.signInSilently();
+        if (account == null) {
+          return [];
+        }
+      }
+      
+      final auth = await account.authentication;
+      if (auth.accessToken == null) {
+        return [];
+      }
+      
+      final url = Uri.parse('https://www.googleapis.com/calendar/v3/users/me/calendarList');
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer ${auth.accessToken}'},
+      );
+      
+      if (response.statusCode != 200) {
+        print('Error fetching calendars: ${response.statusCode}');
+        return [Calendar(id: 'primary', name: 'Primary Calendar', isPrimary: true)];
+      }
+      
+      final data = json.decode(response.body);
+      final items = data['items'] as List;
+      
+      final List<Calendar> calendars = [];
+      for (var item in items) {
+        calendars.add(Calendar(
+          id: item['id'],
+          name: item['summary'] ?? 'Unnamed Calendar',
+          isPrimary: item['primary'] ?? false,
+        ));
+      }
+      
+      return calendars;
+    } catch (e) {
+      print('Error fetching calendars: $e');
+      return [Calendar(id: 'primary', name: 'Primary Calendar', isPrimary: true)];
     }
   }
 }

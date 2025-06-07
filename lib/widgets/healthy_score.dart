@@ -121,13 +121,13 @@ class _HalfDonutPainter extends CustomPainter {
     final Paint yellowArc = Paint()
       ..color = Colors.yellow
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
+      ..strokeWidth = 6.7
       ..strokeCap = StrokeCap.round;
 
     final Paint greenArc = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
+      ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
 
     // Draw red 0-40

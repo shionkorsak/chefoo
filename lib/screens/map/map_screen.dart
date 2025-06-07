@@ -491,6 +491,77 @@ class _MapScreenState extends MapController {
             bottom: 0,
             child: showPlaceCard ? buildRestaurantCard() : SizedBox.shrink(),
           ),
+          
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: SafeArea(
+              child: Builder(
+                builder: (context) {
+                  final calendarState = Provider.of<CalendarStateProvider>(context, listen: false);
+                  
+                  if (!hasActiveRoute || calendarState.nextEvent == null) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  final eventTitle = calendarState.nextEvent!.title;
+                  final eventLocation = calendarState.nextEvent!.location;
+                  
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: kRadius15,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.event,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Next up: $eventTitle",
+                                style: AppTextStyles.body.copyWith(color: AppColors.textPrimary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                "at $eventLocation",
+                                style: AppTextStyles.detail.copyWith(color: AppColors.textPrimary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import 'package:chefoo/services/maps.dart';
 
 class LocationService with ChangeNotifier {
   static const bool debugMode = true; 
@@ -211,17 +212,9 @@ class LocationService with ChangeNotifier {
 
   void startLocationUpdates(BuildContext context) {
     locationStream.listen((position) {
-      // Only update if it's been at least 3 seconds since last update
-      final now = DateTime.now();
-      if (now.difference(_lastLocationUpdate).inSeconds < 3) {
-        return; // Too soon to update
-      }
-      
-      _currentPosition = position;
-      _lastLocationUpdate = now;
-      
       if (_lastFetchPosition == null || 
-          _calculateDistance(_lastFetchPosition!, position) > 0.2) {
+          calculateGeoDistance(_lastFetchPosition!.latitude, _lastFetchPosition!.longitude, 
+                             position.latitude, position.longitude) > 200) { // 200m
         
         print('Location changed significantly');
         _lastFetchPosition = position;
@@ -238,16 +231,12 @@ class LocationService with ChangeNotifier {
     _locationChangedSignificantly = false;
   }
 
-  double _calculateDistance(Position pos1, Position pos2) {
-    return Geolocator.distanceBetween(
+  double calculateDistance(Position pos1, Position pos2) {
+    return calculateGeoDistance(
       pos1.latitude, 
       pos1.longitude, 
       pos2.latitude, 
       pos2.longitude
-    ) / 1000;
-  }
-
-  double calculateDistance(Position pos1, Position pos2) {
-    return _calculateDistance(pos1, pos2);
+    );
   }
 }
