@@ -37,26 +37,24 @@ class _MainScreenState extends MainController {
 
     if (widget.showWelcomeDialog && !_dialogShown && ratingSession.restaurantId != null) {
       _dialogShown = true;
-
+      print('[MAIN] Showing rate.');
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text("Welcome Back"),
-            content: Text("You've returned from Google Maps for ${ratingSession.restaurantName ?? 'a place'}"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RatingScreen()),
-                  );
-                },
-                child: const Text("Rate"),
-              ),
-            ],
+        final overlay = Overlay.of(context);
+        late OverlayEntry entry;
+
+        entry = OverlayEntry(
+          builder: (context) => Positioned(
+            left: 20,
+            right: 20,
+            bottom: 90,
+            child: RatePopup(
+              restaurantName: ratingSession.restaurantName ?? 'a place',
+              onDismissed: () => entry.remove(),
+            ),
           ),
         );
+
+        overlay.insert(entry);
       });
     }
   }
@@ -76,6 +74,19 @@ class _MainScreenState extends MainController {
         "No recommendation found.",
         style: AppTextStyles.body,
       );
+    }
+    
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final position = locationService.currentPosition;
+    final place = recommendedPlaces[0];
+    
+    if (position != null) {
+      final distance = calculateGeoDistance(
+        position.latitude, position.longitude,
+        place.lat, place.lng
+      );
+      
+      place.walkingDistance = distance / 1000;
     }
 
     return RestaurantCardHorizontal(
@@ -119,6 +130,19 @@ class _MainScreenState extends MainController {
       backgroundColor: AppColors.background,
       body: Consumer2<LocationService, RecommendedProvider>(
         builder: (context, locationService, recommendedProvider, _) { 
+          
+          final position = locationService.currentPosition;
+          if (position != null && recommendedProvider.enriched.isNotEmpty) {
+            for (var place in recommendedProvider.enriched) {
+              final distance = calculateGeoDistance(
+                position.latitude, position.longitude,
+                place.lat, place.lng
+              );
+              
+              place.walkingDistance = distance / 1000;
+            }
+          }
+          
           return SafeArea(
             child: Stack(
               children: [
@@ -271,16 +295,6 @@ class _MainScreenState extends MainController {
                     ),
                   ),
                 ),
-                if (showRatePopup)
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 90, // just above nav bar
-                    child: RatePopup(
-                      restaurantName: '吳哥哥牛肉麵店',
-                      onDismissed: dismissRatePopup,
-                    ),
-                  ),
               ],
             ),
           );
@@ -297,17 +311,7 @@ class ClearPreferencesButton extends StatelessWidget {
     // final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
     final uid = AuthService().getCurrentUserUID() ?? 'guest';
     final prefs = await SharedPreferences.getInstance();
-    final keys = [
-      '${uid}_recommended',
-      '${uid}_enriched',
-      '${uid}_lat',
-      '${uid}_lng',
-      '${uid}_timestamp',
-    ];
-
-    for (final key in keys) {
-      await prefs.remove(key);
-    }
+    await prefs.remove('${uid}_recommended_entries');
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Recommendation prefs cleared.')),

@@ -39,6 +39,12 @@ class LocationHandler {
       if (response.success && response.data != null) {
         print('Successfully loaded ${response.data!.length} places');
         restaurantProvider.setPlaces(response.data!);
+        
+        restaurantProvider.updateCurrentPlaces(
+          position.latitude,
+          position.longitude,
+          1000.0
+        );
       } else {
         print('Failed to load places: ${response.message}');
         restaurantProvider.setError(response.message);

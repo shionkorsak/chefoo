@@ -45,18 +45,19 @@ class RatePopup extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  const SizedBox(height: 4),
                   Text.rich(
                     TextSpan(
                       text: 'How was the meal at ',
-                      style: TextStyle(color: AppColors.surface),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.surface,
+                        ),
                       children: [
                         TextSpan(
                           text: restaurantName,
-                          style: const TextStyle(
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.purpleAccent,
-                          ),
+                          // style: const TextStyle(
+                          //   decoration: TextDecoration.underline,
+                          //   decorationColor: Colors.purpleAccent,
+                          // ),
                         ),
                         const TextSpan(text: '?'),
                       ],
@@ -67,6 +68,7 @@ class RatePopup extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
+                onDismissed();
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const RatingScreen()),
                 );

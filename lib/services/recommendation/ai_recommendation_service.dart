@@ -9,10 +9,12 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 class RecommendationService  {
   final RestaurantProvider restaurantProvider;
+  final PlaceService placeService;
   final FirebaseFunctions functions;
 
   RecommendationService ({
     required this.restaurantProvider,
+    required this.placeService,
     FirebaseFunctions? firebaseFunctions,
   }) : functions = firebaseFunctions ?? FirebaseFunctions.instance;
 
@@ -151,6 +153,45 @@ class RecommendationService  {
     }
   }
 
+  Future<Map<String, List<Place>>>fetchRecommendedPlacesFromCache({
+    required BuildContext context,
+    required double lat,
+    required double lng,
+  }) async {
+    print('[AI] Start AI recommendation using cached places');
+
+    try {
+      final availablePlaces = await getCachedPlacesByPriority(lat: lat, lng: lng);
+
+      if (availablePlaces.isEmpty) {
+        return _emptyResult();
+      }
+
+      print('[AI] Cached Places provided: ${availablePlaces.map((p) => p.toJson()).toList()}');
+
+      final enrichedPlaceMap = await _enrichPlacesWithTagsAndBanner(availablePlaces);
+
+      final placesList = enrichedPlaceMap.values.map((p) => p.toJson()).toList();
+
+      final List<Place> recommendedPlaces =
+          await _getRecommendedPlacesFromAI(placesList, enrichedPlaceMap);
+
+      final Set<String> recommendedIds = recommendedPlaces.map((p) => p.id).toSet();
+      final List<Place> filteredEnriched = enrichedPlaceMap.values
+          .where((p) => !recommendedIds.contains(p.id))
+          .toList();
+
+      return {
+        'recommended': recommendedPlaces,
+        'enriched': filteredEnriched,
+      };
+    } catch (e) {
+      print('[ERROR FETCH] Exception during fetchFromCache: $e');
+      return _emptyResult();
+    }
+  }
+
+
   Future<void> waitForPlacesReady(RestaurantProvider provider) async {
     if (provider.places.isNotEmpty) {
         print('[AI] Places are provided');
@@ -172,5 +213,35 @@ class RecommendationService  {
     provider.addListener(listener);
     print('[AI] Completing the wait...');
     return completer.future;
+  }
+
+  Future<List<Place>> getCachedPlacesByPriority({
+    required double lat,
+    required double lng,
+    List<double> radiusPriority = const [3000.0, 2000.0, 1500.0, 1000.0],
+  }) async {
+    final baseKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}';
+    final List<Place> allPlaces = [];
+    final Set<String> seenPlaceIds = {};
+
+    for (final radius in radiusPriority) {
+      final cacheKey = '${baseKey}_${radius.toStringAsFixed(1)}';
+      final places = placeService.cachedPlaces[cacheKey];
+
+      if (places != null && places.isNotEmpty) {
+        for (final place in places) {
+          if (seenPlaceIds.add(place.id)) {
+            allPlaces.add(place);
+          }
+        }
+        print('[CACHE] Added places from $cacheKey (${places.length} entries, ${allPlaces.length} unique so far)');
+      }
+    }
+
+    if (allPlaces.isEmpty) {
+      print('[CACHE] No cached places found for any radius at location: $baseKey');
+    }
+
+    return allPlaces;
   }
 }

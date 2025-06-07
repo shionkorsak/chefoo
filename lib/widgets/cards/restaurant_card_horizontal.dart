@@ -36,6 +36,27 @@ class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final locationService = Provider.of<LocationService>(context);
+    final position = locationService.currentPosition;
+
+    if (position != null) {
+      final distance = calculateGeoDistance(
+        position.latitude,
+        position.longitude,
+        widget.place.lat,
+        widget.place.lng,
+      );
+
+      setState(() {
+        widget.place.walkingDistance = distance / 1000;
+      });
+    }
+  }
+
   Widget buildCrowdednessIndicator() {
     // Get crowdedness status
     final crowdednessStatus = PlaceUtils.getCrowdednessStatus(widget.place);

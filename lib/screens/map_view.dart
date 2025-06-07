@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'dart:convert';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:http/http.dart' as http;
@@ -44,6 +45,23 @@ class _MapViewScreenState extends State<MapViewScreen> {
   bool _hasActiveRoute = false;
   bool _showPlaceCard = false;
   bool _isNavigatingToEvent = false;
+
+  Place? get selectedEnrichedPlace {
+    if (_selectedPlace == null) return null;
+
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final res = recommendedProvider.recommended.firstWhere(
+      (p) => p.id == _selectedPlace!.id,
+      orElse: () => recommendedProvider.enriched.firstWhere(
+        (p) => p.id == _selectedPlace!.id,
+        orElse: () => _selectedPlace!,
+      ),
+    );
+
+    print('${_selectedPlace!.id} ${res.id}');
+    return res;
+  }
+
 
   @override
   void initState() {
@@ -913,13 +931,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
   // SECTION 8: UI COMPONENTS
   Widget _buildRestaurantCard() {
-    if (_selectedPlace == null) {
+    final enriched = selectedEnrichedPlace;
+    if (_selectedPlace == null || enriched == null) {
       return const SizedBox.shrink();
     }
-    
+
     final pictureUrl = _selectedPlace!.pictureUrls.isNotEmpty 
       ? _selectedPlace!.pictureUrls.first 
       : null;
+
+    final headerImageUrl = selectedEnrichedPlace?.pictureCategory;
       
     return Container(
       margin: const EdgeInsets.all(8),
@@ -946,6 +967,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
               child: ClipRRect(
                 borderRadius: kRadius10,
                 child: Image.network(
+                  headerImageUrl ?? 
                   'https://maps.googleapis.com/maps/api/place/photo'
                   '?maxwidth=400'
                   '&photo_reference=${pictureUrl}'
@@ -971,7 +993,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                   height: 28,
                   width: double.infinity,
                   child: Marquee(
-                    text: _selectedPlace!.name,
+                    text: selectedEnrichedPlace!.name,
                     style: AppTextStyles.headline3.copyWith(color: AppColors.textPrimary),
                     scrollAxis: Axis.horizontal,
                     blankSpace: 20.0,
@@ -997,14 +1019,14 @@ class _MapViewScreenState extends State<MapViewScreen> {
                           color: AppColors.primary,
                         ),
                         Text(
-                          _selectedPlace!.rating.toString(),
+                          selectedEnrichedPlace!.rating.toString(),
                           style: AppTextStyles.detail.copyWith(height: 1),
                         )
                       ],
                     ),
                     Text(
-                      _selectedPlace!.tags.isNotEmpty
-                          ? _selectedPlace!.tags.first
+                      selectedEnrichedPlace!.tags.isNotEmpty
+                          ? selectedEnrichedPlace!.tags.first
                           : 'No tags available',
                       style: AppTextStyles.detail,
                     ),
@@ -1012,7 +1034,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 ),
                 
                 Text(
-                  '${(_selectedPlace!.walkingDistance * 1000).round()}m',
+                  '${(selectedEnrichedPlace!.walkingDistance * 1000).round()}m',
                   style: AppTextStyles.detail,
                 ),
                 
@@ -1021,8 +1043,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    if (_selectedPlace!.phone != null)
-                      PhoneButton(phoneNumber: _selectedPlace!.phone!),
+                    if (selectedEnrichedPlace!.phone != null)
+                      PhoneButton(phoneNumber: selectedEnrichedPlace!.phone ?? '0123456789'),
                     SizedBox(width: 16),
                     IconButton(
                       icon: Icon(Icons.info_outline),
@@ -1030,7 +1052,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RestaurantDetailScreen(place: _selectedPlace!),
+                            builder: (context) => RestaurantDetailScreen(place: selectedEnrichedPlace!),
                           ),
                         );
                       },
