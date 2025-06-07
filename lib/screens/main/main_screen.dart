@@ -75,6 +75,19 @@ class _MainScreenState extends MainController {
         style: AppTextStyles.body,
       );
     }
+    
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    final position = locationService.currentPosition;
+    final place = recommendedPlaces[0];
+    
+    if (position != null) {
+      final distance = calculateGeoDistance(
+        position.latitude, position.longitude,
+        place.lat, place.lng
+      );
+      
+      place.walkingDistance = distance / 1000;
+    }
 
     return RestaurantCardHorizontal(
       place: recommendedPlaces[0],
