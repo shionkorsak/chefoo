@@ -263,7 +263,7 @@ class _MainScreenState extends MainController {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => OtherRecomScreen(places: recommendedProvider.enriched),
+                                          builder: (context) => OtherRecomScreen(places: combinedPlaces),
                                         ),
                                       );
                                     },

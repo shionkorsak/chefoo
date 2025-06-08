@@ -60,10 +60,22 @@ class LocationHandler {
 
   static void startLocationUpdates(BuildContext context) {
     final locationService = Provider.of<LocationService>(context, listen: false);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     
-    locationService.locationChangedStream.listen((position) {
-      print('Location changed significantly, fetching new places');
-      fetchNearbyPlaces(context, position);
+    final subscription = locationService.locationChangedStream.listen((position) {
+      restaurantProvider.updateCurrentPlaces(
+        position.latitude,
+        position.longitude,
+        1000.0
+      );
+      
+      final state = context.findAncestorStateOfType<State>();
+      if (state?.mounted == true) {
+        print('Location changed significantly, fetching new places');
+        fetchNearbyPlaces(context, position);
+      } else {
+        print('Skipping fetchNearbyPlaces because widget is no longer mounted');
+      }
     });
   }
 

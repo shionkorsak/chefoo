@@ -21,7 +21,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
+    });
   }
 
   @override

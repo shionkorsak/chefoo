@@ -16,12 +16,19 @@ class UserAccountProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> fetchUserAccount() async {
-    await _handleAsyncOperation(() async {
-      _userAccount = await _service.fetchUserAccount();
-      if (_userAccount == null) {
+    try {
+      final result = await _service.fetchUserAccount();
+      
+      if (result != null) {
+        _userAccount = result;
+      } else {
         _errorMessage = "User account not found.";
       }
-    });
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = "An error occurred: $e";
+      notifyListeners();
+    }
   }
 
   Future<void> watchUserAccountOnce() async {
