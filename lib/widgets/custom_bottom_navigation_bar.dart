@@ -3,7 +3,6 @@ import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
 import 'package:chefoo/screens/profile/profile.dart';
 import 'package:chefoo/screens/map/map_screen.dart';
-import 'package:chefoo/screens/main/main_screen.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;

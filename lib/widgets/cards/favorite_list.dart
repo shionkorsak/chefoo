@@ -1,4 +1,4 @@
-import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
+import 'package:chefoo/widgets/cards/restaurant_card_vertical.dart';
 
 import '../../commons.dart';
 
@@ -51,13 +51,32 @@ class _FavoriteListState extends State<FavoriteList> {
                 return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                        SizedBox(
-                            height: 220,
-                            child: RestaurantCardListHorizontal(
-                                without: true,
-                                places: favorites,
-                                isLoading: false,
+                        Padding(
+                          padding: EdgeInsets.only(top: 0.0),
+                          child: SizedBox(
+                            height: 237, // slightly increased to allow for visible shadow
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Positioned.fill(
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.only(left: 13, right: 13, bottom: 20),
+                                    itemCount: favorites.length,
+                                    itemBuilder: (context, index) {
+                                      final place = favorites[index];
+                                      return Padding(
+                                        padding: const EdgeInsets.only(right: 16),
+                                        child: RestaurantCardVertical(
+                                          place: place,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
                         ),
                     ],
                 );

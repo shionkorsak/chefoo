@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:chefoo/services/maps.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/restaurant.dart';
 
 class RestaurantProvider with ChangeNotifier {
-  List<Place> _places = [];
+  List<Place> _places = []; // cache
   List<Place> _routePlaces = [];
+  List<Place> _currentPlaces = []; // new list
   bool _isLoading = false;
   String? _error;
   bool _routePlacesLoaded = false;
@@ -14,6 +16,7 @@ class RestaurantProvider with ChangeNotifier {
 
   List<Place> get places => _places;
   List<Place> get routePlaces => _routePlaces;
+  List<Place> get currentPlaces => _currentPlaces;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get routePlacesLoaded => _routePlacesLoaded;
@@ -21,6 +24,11 @@ class RestaurantProvider with ChangeNotifier {
   void setPlaces(List<Place> places) {
     _places = places;
     _savePlacesToPrefs();
+    
+    if (_currentPlaces.isEmpty) {
+      _currentPlaces = List.from(places);
+    }
+    
     notifyListeners();
   }
 
@@ -105,4 +113,33 @@ class RestaurantProvider with ChangeNotifier {
     await _loadPlacesFromPrefs();
   }
   
+  void updateCurrentPlaces(double lat, double lng, double radiusMeters) {
+    final List<Place> nearby = [];
+    final Set<String> addedIds = {};
+    
+    for (var place in _routePlaces) {
+      if (addedIds.add(place.id)) {
+        nearby.add(place);
+      }
+    }
+    
+    for (var place in _places) {
+      if (!addedIds.contains(place.id)) {
+        final distance = calculateGeoDistance(
+          lat, lng, 
+          place.lat, place.lng
+        );
+        
+        if (distance <= radiusMeters) {
+          place.walkingDistance = distance / 1000;
+          nearby.add(place);
+          addedIds.add(place.id);
+        }
+      }
+    }
+    
+    _currentPlaces = nearby;
+    print('[PLACES] Updated current places: ${_currentPlaces.length} places near current location');
+    notifyListeners();
+  }
 }

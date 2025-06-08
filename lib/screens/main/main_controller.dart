@@ -13,6 +13,9 @@ import 'package:chefoo/models/api_response.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
+  final TextEditingController aiInputController = TextEditingController();
+  String _aiQuery = '';
+  List<Place> _aiGeneratedResults = [];
   List<Place> _recommendedPlaces = [];
   List<Place> get recommendedPlaces => _recommendedPlaces;
 
@@ -49,6 +52,13 @@ abstract class MainController extends State<MainScreen> {
       viewportFraction: 0.6,
     );
 
+    aiInputController.addListener(() {
+      final input = aiInputController.text.trim();
+      if (input.isNotEmpty && input != _aiQuery) {
+        onAIQuerySubmitted(input);
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       carouselController.addListener(() {
         if (!carouselController.hasClients) return;
@@ -56,6 +66,17 @@ abstract class MainController extends State<MainScreen> {
         if (current != null && current != _carouselPage) {
           _carouselPage = current;
         }
+      });
+
+      final locationService = Provider.of<LocationService>(context, listen: false);
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      
+      locationService.locationChangedStream.listen((position) {
+        restaurantProvider.updateCurrentPlaces(
+          position.latitude,
+          position.longitude,
+          1000.0
+        );
       });
     });
 
@@ -265,6 +286,7 @@ abstract class MainController extends State<MainScreen> {
   void dispose() {
     _inactivityTimer?.cancel();
     carouselController.dispose();
+    aiInputController.dispose();
     super.dispose();
   }
   
@@ -273,4 +295,53 @@ abstract class MainController extends State<MainScreen> {
       _showRatePopup = false;
     });
   }
+
+  void onAIQuerySubmitted(String query) {
+    setState(() {
+      _aiQuery = query;
+
+      if (_recommendedPlaces.isEmpty) {
+        _aiGeneratedResults = [
+          Place(
+            id: 'mock1',
+            name: 'Mock Cafe 1',
+            address: '123 AI Street',
+            rating: 4.5,
+            distance: 0.3,
+            lat: 25.033,
+            lng: 121.565,
+            pictureUrls: ['mock-photo-1'],
+            pictureCategory: 'default',
+            tags: ['Cozy', 'Cafe'],
+            walkingDistance: 150.0,
+            reviews: [],
+          ),
+          Place(
+            id: 'mock2',
+            name: 'Mock Diner 2',
+            address: '456 Neural Ln',
+            rating: 4.7,
+            distance: 0.6,
+            lat: 25.034,
+            lng: 121.566,
+            pictureUrls: ['mock-photo-2'],
+            pictureCategory: 'default',
+            tags: ['Modern', 'Bistro'],
+            walkingDistance: 220.0,
+            reviews: [],
+          ),
+        ];
+      } else {
+        _aiGeneratedResults = _getMockResults();
+      }
+    });
+  }
+
+  // TODO: Implement actual AI recommendation fetching logic using RecommendationService
+  List<Place> _getMockResults() {
+    return _recommendedPlaces.take(3).toList(); // Just mock using subset of recommendedPlaces
+  }
+
+  List<Place> get aiGeneratedResults => _aiGeneratedResults;
+  String get aiQuery => _aiQuery;
 }
