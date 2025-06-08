@@ -79,28 +79,31 @@ class _MainNavigationState extends State<MainNavigation> {
       ProfileScreen(),
     ];
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: IndexedStack(
-            index: _currentIndex,
-            children: screens,
+    return SafeArea(
+      top: false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: screens,
+            ),
           ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: CustomBottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomBottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
