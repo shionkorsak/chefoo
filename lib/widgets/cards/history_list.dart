@@ -52,26 +52,29 @@ class _HistoryListState extends State<HistoryList> {
           final id = meal.restaurant.id;
           grouped.putIfAbsent(id, () => []).add(meal);
         }
-        final groupedMeals = grouped.entries.toList().reversed.take(5).toList().reversed.toList();
+        final groupedMeals = grouped.entries
+            .toList()
+            .reversed
+            .take(5)
+            .toList()
+            .reversed
+            .toList();
 
-        return SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 13),
-            itemCount: groupedMeals.length,
-            itemBuilder: (context, index) {
-              final entry = groupedMeals[index];
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 13),
+          child: Row(
+            children: groupedMeals.map((entry) {
               final place = entry.value.first.restaurant;
               final meal = entry.value.first;
               return Padding(
-                padding: EdgeInsets.only(right: 16),
+                padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
                 child: MealCardVertical(
                   place: place,
                   meal: meal,
                 ),
               );
-            },
+            }).toList(),
           ),
         );
       },
