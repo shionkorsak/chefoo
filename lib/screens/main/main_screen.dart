@@ -163,22 +163,22 @@ class _MainScreenState extends MainController {
                             IconButton(
                               icon: const Icon(Icons.chevron_right, color: AppColors.primary),
                               onPressed: () {
-                                final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                                // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
                                 
-                                final Map<String, Place> uniquePlaces = {};
+                                // final Map<String, Place> uniquePlaces = {};
                                 
-                                for (var place in restaurantProvider.routePlaces) {
-                                  uniquePlaces[place.id] = place;
-                                }
+                                // for (var place in restaurantProvider.routePlaces) {
+                                //   uniquePlaces[place.id] = place;
+                                // }
                                 
-                                for (var place in restaurantProvider.places) {
-                                  uniquePlaces[place.id] = place;
-                                }
+                                // for (var place in restaurantProvider.places) {
+                                //   uniquePlaces[place.id] = place;
+                                // }
                                 
-                                final List<Place> combinedPlaces = uniquePlaces.values.toList();
+                                // final List<Place> combinedPlaces = uniquePlaces.values.toList();
                                 
-                                print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
-                                print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
+                                // print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
+                                // print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
                                 
                                 Navigator.push(
                                   context,
@@ -198,7 +198,7 @@ class _MainScreenState extends MainController {
                             height: 270,
                             child: RestaurantCardListHorizontal(
                               without: false,
-                              places: recommendedProvider.enriched,
+                              places: enrichedPlaces,
                               isLoading: isLoading,
                             ),
                           ),
