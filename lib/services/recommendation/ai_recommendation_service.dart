@@ -350,35 +350,35 @@ class RecommendationService {
 //     return completer.future;
 //   }
 
-//   // Future<List<Place>> getCachedPlacesByPriority({
-//   //   required double lat,
-//   //   required double lng,
-//   //   List<double> radiusPriority = const [3000.0, 2000.0, 1500.0, 1000.0],
-//   // }) async {
-//   //   final baseKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}';
-//   //   final List<Place> allPlaces = [];
-//   //   final Set<String> seenPlaceIds = {};
+  // Future<List<Place>> getCachedPlacesByPriority({
+  //   required double lat,
+  //   required double lng,
+  //   List<double> radiusPriority = const [3000.0, 2000.0, 1500.0, 1000.0],
+  // }) async {
+  //   final baseKey = '${lat.toStringAsFixed(4)},${lng.toStringAsFixed(4)}';
+  //   final List<Place> allPlaces = [];
+  //   final Set<String> seenPlaceIds = {};
 
-//   //   for (final radius in radiusPriority) {
-//   //     final cacheKey = '${baseKey}_${radius.toStringAsFixed(1)}';
-//   //     final places = placeService.cachedPlaces[cacheKey];
+  //   for (final radius in radiusPriority) {
+  //     final cacheKey = '${baseKey}_${radius.toStringAsFixed(1)}';
+  //     final places = placeService.cachedPlaces[cacheKey];
 
-//   //     if (places != null && places.isNotEmpty) {
-//   //       for (final place in places) {
-//   //         if (seenPlaceIds.add(place.id)) {
-//   //           allPlaces.add(place);
-//   //         }
-//   //       }
-//   //       print('[CACHE] Added places from $cacheKey (${places.length} entries, ${allPlaces.length} unique so far)');
-//   //     }
-//   //   }
+  //     if (places != null && places.isNotEmpty) {
+  //       for (final place in places) {
+  //         if (seenPlaceIds.add(place.id)) {
+  //           allPlaces.add(place);
+  //         }
+  //       }
+  //       print('[CACHE] Added places from $cacheKey (${places.length} entries, ${allPlaces.length} unique so far)');
+  //     }
+  //   }
 
-//   //   if (allPlaces.isEmpty) {
-//   //     print('[CACHE] No cached places found for any radius at location: $baseKey');
-//   //   }
+  //   if (allPlaces.isEmpty) {
+  //     print('[CACHE] No cached places found for any radius at location: $baseKey');
+  //   }
 
-//   //   return allPlaces;
-//   // }
+  //   return allPlaces;
+  // }
 //   Future<List<Place>> getCachedPlacesByPriority({
 //     required double lat,
 //     required double lng,

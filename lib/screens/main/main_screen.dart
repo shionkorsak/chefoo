@@ -110,7 +110,6 @@ class _MainScreenState extends MainController {
         ),
       );
     }
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Consumer2<LocationService, RecommendedProvider>(
