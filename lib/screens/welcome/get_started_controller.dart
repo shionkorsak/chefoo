@@ -13,7 +13,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     provider = Provider.of<GetStartedProvider>(context);
-    userAccountProvider = Provider.of<UserAccountProvider>(context, listen: false);
+    userAccountProvider =
+        Provider.of<UserAccountProvider>(context, listen: false);
   }
 
   @override
@@ -28,7 +29,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
       child: AnimatedPadding(
         duration: Duration(milliseconds: 600), // Increased duration
         curve: Curves.easeOutCubic, // Smoother curve
-        padding: EdgeInsets.only(top: (provider.state == 5 || provider.state == 6) ? 20 : 120),
+        padding: EdgeInsets.only(
+            top: (provider.state == 5 || provider.state == 6) ? 20 : 120),
         child: Stack(
           children: [
             OverflowBox(
@@ -151,7 +153,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
           duration: const Duration(milliseconds: 600), // Increased duration
           curve: Curves.easeOutCubic, // Smoother curve
           child: AnimatedSlide(
-            offset: provider.state >= 2 ? const Offset(0, 0) : const Offset(0, 1),
+            offset:
+                provider.state >= 2 ? const Offset(0, 0) : const Offset(0, 1),
             duration: const Duration(milliseconds: 600), // Increased duration
             curve: Curves.easeOutCubic, // Smoother curve
             child: AnimatedSwitcher(
@@ -236,7 +239,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             ElevatedButton(
               onPressed: () async {
                 await Future.delayed(Duration(milliseconds: 300), () {
-                  provider.setState(3);
+                  provider.setState(6);
                 });
               },
               child: Text("Next"),
@@ -272,13 +275,15 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               onPressed: () async {
                 await Future.delayed(Duration(milliseconds: 300), () async {
                   await _auth.signInWithGoogle();
-                  await Future.delayed(Duration(seconds: 1)); 
+                  await Future.delayed(Duration(seconds: 1));
                   await userAccountProvider.fetchUserAccount();
 
                   final account = userAccountProvider.userAccount;
-                  final hasPrefs = account?.preferences!.dietaryPreferences.isNotEmpty == true ||
-                                    account?.preferences!.allergies.isNotEmpty == true;
-                  if(hasPrefs) {
+                  final hasPrefs =
+                      account?.preferences!.dietaryPreferences.isNotEmpty ==
+                              true ||
+                          account?.preferences!.allergies.isNotEmpty == true;
+                  if (hasPrefs) {
                     provider.setState(7);
                     provider.setShowFinalScreenContent(false);
                     await Future.delayed(Duration(milliseconds: 700));
@@ -317,20 +322,22 @@ abstract class GetStartedController extends State<GetStartedScreen> {
             ),
             kGap5,
             kGap5,
-            TagMap(tags: [
-              'No Preference',
-              'No Pork',
-              'No Beef',
-              'No Seafood',
-              'Dairy-free',
-              'Gluten-free',
-              'Vegan',
-              'Vegetarian',
-              'Pescatarian',
-            ],
-            onSelectionChanged: (tags) {
-              provider.setSelectedTags(tags);
-            },),
+            TagMap(
+              tags: [
+                'No Preference',
+                'No Pork',
+                'No Beef',
+                'No Seafood',
+                'Dairy-free',
+                'Gluten-free',
+                'Vegan',
+                'Vegetarian',
+                'Pescatarian',
+              ],
+              onSelectionChanged: (tags) {
+                provider.setSelectedTags(tags);
+              },
+            ),
             kGap8,
             kGap8,
             kGap8,
@@ -386,19 +393,25 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 ];
 
                 final allergies = [
-                  if(provider.allergiesController.text.trim().isNotEmpty)
+                  if (provider.allergiesController.text.trim().isNotEmpty)
                     provider.allergiesController.text.trim(),
                 ];
 
-                final success = await userAccountProvider.addUserPreferences(dietaryPreferences, allergies);
+                final success = await userAccountProvider.addUserPreferences(
+                    dietaryPreferences, allergies);
 
-                if(success) {
+                if (success) {
                   await Future.delayed(Duration(milliseconds: 300), () {
-                    provider.setState(6);
+                    provider.setState(7);
+                    provider.setShowFinalScreenContent(false);
                   });
+                  await Future.delayed(Duration(milliseconds: 700));
+                  provider.setShowFinalScreenContent(true);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Failed to update preferences. Please try again.")),
+                    SnackBar(
+                        content: Text(
+                            "Failed to update preferences. Please try again.")),
                   );
                 }
               },
@@ -430,15 +443,15 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               ),
             ),
             kGap8,
-            SvgPicture.asset(
-              'assets/svgs/lock.svg',
-              height: 120,
-            ),
+            // SvgPicture.asset(
+            //   'assets/svgs/lock.svg',
+            //   height: 120,
+            // ),
             kGap8,
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 18),
               child: Text(
-                "We’ll only use your data to suggest the best restaurants for you.\nYour information stays private and secure",
+                "We'll only use your data to suggest the best restaurants for you. Your information stays private and secure.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -447,35 +460,32 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               ),
             ),
             kGap8,
-            GoogleImportButton(
-              onPressed: () {
-                // handle import action
-              },
-            ),
+            // GoogleImportButton(
+            //   onPressed: () {
+            //     // handle import action
+            //   },
+            // ),
             kGap8,
             ElevatedButton(
-              onPressed: () async {
+               onPressed: () async {
                 await Future.delayed(Duration(milliseconds: 300), () {
-                  provider.setState(7);
-                  provider.setShowFinalScreenContent(false);
+                  provider.setState(3);
                 });
-                await Future.delayed(Duration(milliseconds: 700));
-                provider.setShowFinalScreenContent(true);
               },
               child: Text("Next"),
             ),
-            kGap8,
-            TextButton(
-              onPressed: () async {
-                await Future.delayed(Duration(milliseconds: 300), () {
-                  provider.setState(7);
-                  provider.setShowFinalScreenContent(false);
-                });
-                await Future.delayed(Duration(milliseconds: 700));
-                provider.setShowFinalScreenContent(true);
-              },
-              child: Text("Skip for now"),
-            ),
+            // kGap8,
+            // TextButton(
+            //   onPressed: () async {
+            //     await Future.delayed(Duration(milliseconds: 300), () {
+            //       provider.setState(7);
+            //       provider.setShowFinalScreenContent(false);
+            //     });
+            //     await Future.delayed(Duration(milliseconds: 700));
+            //     provider.setShowFinalScreenContent(true);
+            //   },
+            //   child: Text("Skip for now"),
+            // ),
             SizedBox(height: 48),
           ],
         );
@@ -510,7 +520,8 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                 ),
                 kGap5,
                 Text(
-                  _auth.getCurrentUserDisplayName() ?? provider.nameController.text,
+                  _auth.getCurrentUserDisplayName() ??
+                      provider.nameController.text,
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -523,11 +534,11 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     provider.setState(0);
                     provider.setShowFinalScreenContent(false);
                     Navigator.pushReplacement(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => MainNavigation(showWelcomeDialog: false,)
-                      )
-                    );
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => MainNavigation(
+                                  showWelcomeDialog: false,
+                                )));
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

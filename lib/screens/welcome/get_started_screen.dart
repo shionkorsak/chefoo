@@ -20,6 +20,16 @@ class GetStartedScreen extends StatefulWidget {
 
 class _GetStartedScreen extends GetStartedController {
   @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      final provider = context.read<GetStartedProvider>();
+      if (provider.state == 0) {
+        provider.setState(1);
+      }
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<GetStartedProvider>();
 

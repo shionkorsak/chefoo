@@ -8,6 +8,8 @@ import 'package:chefoo/widgets/star_ratings/star_rating.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/services/maps.dart';
+import 'package:chefoo/screens/rating/rating_screen.dart';
+import 'package:chefoo/providers/rating_session.dart';
 import 'dart:math' as math;
 
 class RestaurantDetailScreen extends StatefulWidget {
@@ -94,16 +96,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   }
 
   void _calculateWalkingDistance() {
-    final locationService = Provider.of<LocationService>(context, listen: false);
+    final locationService =
+        Provider.of<LocationService>(context, listen: false);
     final position = locationService.currentPosition;
-    
+
     if (position == null) return;
-    
-    final distance = calculateGeoDistance(
-      position.latitude, position.longitude,
-      widget.place.lat, widget.place.lng
-    );
-    
+
+    final distance = calculateGeoDistance(position.latitude, position.longitude,
+        widget.place.lat, widget.place.lng);
+
     setState(() {
       widget.place.walkingDistance = distance / 1000;
     });
@@ -112,12 +113,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final banner = PictureCategoryAssets();
-    final String? categoryImageUrl = banner.pictureCategoryAssets[widget.place.pictureCategory];
+    final String? categoryImageUrl =
+        banner.pictureCategoryAssets[widget.place.pictureCategory];
     final String headerImageUrl = categoryImageUrl ??
-      'https://maps.googleapis.com/maps/api/place/photo'
-          '?maxwidth=800'
-          '&photo_reference=${widget.place.pictureUrls.first}'
-          '&key=${MapsConstants.mapsKey}';
+        'https://maps.googleapis.com/maps/api/place/photo'
+            '?maxwidth=800'
+            '&photo_reference=${widget.place.pictureUrls.first}'
+            '&key=${MapsConstants.mapsKey}';
     return Scaffold(
       appBar: AppBar(
         //title: Text(widget.place.name),
@@ -175,7 +177,32 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                         Colors.white.withOpacity(0.8),
                                     iconColor: AppColors.primary,
                                     onPressed: () {
-                                      // TODO: Chat or review action
+                                      final uid =
+                                          AuthService().getCurrentUserUID();
+
+                                      if (uid == null) {
+                                        print(
+                                            "User not logged in. Skipping session start.");
+                                        return;
+                                      }
+
+                                      final ratingSession =
+                                          Provider.of<RatingSessionProvider>(
+                                              context,
+                                              listen: false);
+                                      ratingSession.startSession(
+                                        id: widget.place.id,
+                                        name: widget.place.name,
+                                        photo: widget.place.pictureCategory,
+                                        tags: widget.place.tags,
+                                        uid: uid,
+                                      );
+
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const RatingScreen()),
+                                      );
                                     },
                                   ),
                                 ],
@@ -248,14 +275,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     onPressed: () {
                                       // final user = FirebaseAuth.instance.currentUser;
                                       // final uid = user?.uid;
-                                      final uid = AuthService().getCurrentUserUID();
+                                      final uid =
+                                          AuthService().getCurrentUserUID();
 
                                       if (uid == null) {
-                                        print("User not logged in. Skipping session start.");
+                                        print(
+                                            "User not logged in. Skipping session start.");
                                         return;
                                       }
 
-                                      final ratingSession = Provider.of<RatingSessionProvider>(context, listen: false);
+                                      final ratingSession =
+                                          Provider.of<RatingSessionProvider>(
+                                              context,
+                                              listen: false);
                                       ratingSession.startSession(
                                         id: widget.place.id,
                                         name: widget.place.name,
@@ -267,17 +299,25 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                       launchUrl(Uri.parse(
                                         'https://www.google.com/maps/dir/?api=1&destination=${widget.place.lat},${widget.place.lng}',
                                       ));
-                                      Future.delayed(Duration(milliseconds: 300), () {
+                                      Future.delayed(
+                                          Duration(milliseconds: 300), () {
                                         Navigator.pushAndRemoveUntil(
                                           context,
-                                          MaterialPageRoute(builder: (_) => MainScreen(showWelcomeDialog: true,)),
+                                          MaterialPageRoute(
+                                              builder: (_) => MainScreen(
+                                                    showWelcomeDialog: true,
+                                                  )),
                                           (route) => false,
                                         );
                                       });
                                     },
                                   ),
                                   const SizedBox(width: 16),
-                                  LikeButton(place: widget.place),
+                                  LikeButton(
+                                    place: widget.place,
+                                    iconSize: 20,
+                                    padding: 10,
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 16),
@@ -645,7 +685,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     ),
                                   );
                                 },
-                                child: Text('View All (${widget.place.pictureUrls.length - 1})'),
+                                child: Text(
+                                    'View All (${widget.place.pictureUrls.length - 1})'),
                               ),
                             ],
                           ),
@@ -660,15 +701,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                               mainAxisSpacing: 8,
                               childAspectRatio: 1,
                             ),
-                            itemCount: widget.place.pictureUrls.length > 1 
-                                ? (widget.place.pictureUrls.length > 5 ? 4 : widget.place.pictureUrls.length - 1)
+                            itemCount: widget.place.pictureUrls.length > 1
+                                ? (widget.place.pictureUrls.length > 5
+                                    ? 4
+                                    : widget.place.pictureUrls.length - 1)
                                 : 0,
                             itemBuilder: (context, index) {
                               final actualIndex = index + 1;
                               final imageUrl =
                                   'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${widget.place.pictureUrls[actualIndex]}&key=${MapsConstants.mapsKey}';
                               final isLast = index == 3 ||
-                                  index == widget.place.pictureUrls.length - 2; // Adjusted for the offset
+                                  index ==
+                                      widget.place.pictureUrls.length -
+                                          2; // Adjusted for the offset
 
                               return GestureDetector(
                                 onTap: () {
@@ -677,7 +722,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     MaterialPageRoute(
                                       builder: (context) => PhotoGrid(
                                         photoRefs: widget.place.pictureUrls,
-                                        initialIndex: actualIndex, // Use the actual index here
+                                        initialIndex:
+                                            actualIndex, // Use the actual index here
                                         placeName: widget.place.name,
                                       ),
                                     ),
