@@ -167,7 +167,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                         Colors.white.withOpacity(0.8),
                                     iconColor: AppColors.primary,
                                     onPressed: () {
-                                      // TODO: Share functionality
+                                      launchUrl(Uri.parse(
+                                        'https://www.google.com/maps/search/?api=1&query=${widget.place.lat},${widget.place.lng}&query_place_id=${widget.place.id}'
+                                      ), mode: LaunchMode.externalApplication);
                                     },
                                   ),
                                   SizedBox(width: 12),
