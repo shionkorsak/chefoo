@@ -11,10 +11,12 @@ class RestaurantCardHorizontal extends StatefulWidget {
     Key? key,
     required this.place,
     this.isLoading = false,
+    this.showDistance = true, 
   }) : super(key: key);
 
   final bool isLoading;
   final Place place;
+  final bool showDistance;
 
   @override
   _RestaurantCardHorizontalState createState() =>
@@ -253,10 +255,12 @@ class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
                           ),
                         ],
                       ),
-                      Text(
-                        '${(widget.place.walkingDistance * 1000).round()}m',
-                        style: AppTextStyles.detail,
-                      ),
+                      widget.showDistance
+                          ? Text(
+                              '${(widget.place.walkingDistance * 1000).round()}m',
+                              style: AppTextStyles.detail,
+                            )
+                          : SizedBox.shrink(),
                     ],
                   ),
                   SizedBox(

@@ -36,10 +36,6 @@ class MealCardVertical extends StatelessWidget {
       },
       child: Container(
         width: 200,
-        constraints: BoxConstraints(
-          minHeight: 230,
-          maxHeight: 280,
-        ),
         padding: kPadd10,
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -122,8 +118,8 @@ class MealCardVertical extends StatelessWidget {
               ),
               SizedBox(height: 4),
               if (meal!.notes.isNotEmpty)
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 36),
+                Container(
+                  height: 30,
                   child: Text(
                     meal!.notes,
                     style: AppTextStyles.detail,
@@ -202,14 +198,14 @@ class MealCardVertical extends StatelessWidget {
                 ),
               ],
             ),
-            place.walkingDistance == 0
-                ? const SizedBox.shrink()
-                : Text(
-                    '${(place.walkingDistance * 1000).round()}m',
-                    style: AppTextStyles.detail,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
+            // place.walkingDistance == 0
+            //     ? const SizedBox.shrink()
+            //     : Text(
+            //         '${(place.walkingDistance * 1000).round()}m',
+            //         style: AppTextStyles.detail,
+            //         maxLines: 1,
+            //         overflow: TextOverflow.ellipsis,
+            //       )
           ],
         ),
       ),
