@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/get_started.dart';
 import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/providers/meal_history.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/user_account.dart';
@@ -61,6 +62,9 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => RecommendedProvider()),
         ChangeNotifierProvider(create: (_) => RatingSessionProvider()),
+        ChangeNotifierProvider(
+          create: (_) => MealHistoryProvider()..fetchMeals(),
+        ),
       ],
       child: const MyApp(),
     ),

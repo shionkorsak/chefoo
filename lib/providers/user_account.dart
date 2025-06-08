@@ -14,6 +14,9 @@ class UserAccountProvider with ChangeNotifier {
   HealthInsight? get healthInsight => _userAccount?.healthInsight;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
+  List<String> get dietaryTags => _userAccount?.preferences?.dietaryPreferences ?? [];
+  List<String> get dislikeTags => _userAccount?.preferences?.dislikedFood ?? [];
+  List<String> get allergyTags => _userAccount?.preferences?.allergies ?? [];
 
   Future<void> fetchUserAccount() async {
     try {
@@ -104,6 +107,70 @@ class UserAccountProvider with ChangeNotifier {
       _errorMessage = 'Failed to fetch health insight: $e';
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void addTag(String category, String tag) {
+    if (_userAccount == null) return;
+    final prefs = _userAccount!.preferences;
+
+    switch (category) {
+      case 'Dietary Preference':
+        if (!prefs!.dietaryPreferences.contains(tag)) prefs!.dietaryPreferences.add(tag);
+        break;
+      case 'Dislike':
+        if (!prefs!.dislikedFood.contains(tag)) prefs!.dislikedFood.add(tag);
+        break;
+      case 'Allergy':
+        if (!prefs!.allergies.contains(tag)) prefs!.allergies.add(tag);
+        break;
+    }
+
+    notifyListeners();
+  }
+
+  void removeTag(String category, String tag) {
+    if (_userAccount == null) return;
+    final prefs = _userAccount!.preferences;
+
+    switch (category) {
+      case 'Dietary Preference':
+        prefs!.dietaryPreferences.remove(tag);
+        break;
+      case 'Dislike':
+        prefs!.dislikedFood.remove(tag);
+        break;
+      case 'Allergy':
+        prefs!.allergies.remove(tag);
+        break;
+    }
+
+    notifyListeners();
+  }
+
+  void editTag(String category, String oldTag, String newTag) {
+    if (_userAccount == null) return;
+    final prefs = _userAccount!.preferences;
+
+    List<String> list;
+    switch (category) {
+      case 'Dietary Preference':
+        list = prefs!.dietaryPreferences;
+        break;
+      case 'Dislike':
+        list = prefs!.dislikedFood;
+        break;
+      case 'Allergy':
+        list = prefs!.allergies;
+        break;
+      default:
+        return;
+    }
+
+    final index = list.indexOf(oldTag);
+    if (index != -1) {
+      list[index] = newTag;
       notifyListeners();
     }
   }

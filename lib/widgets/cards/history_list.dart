@@ -4,20 +4,31 @@ import 'package:chefoo/widgets/cards/meal_card_vertical.dart';
 import 'package:chefoo/models/user/meal.dart';
 import 'package:provider/provider.dart';
 import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/providers/meal_history.dart';
 
-class HistoryList extends StatefulWidget {
+class HistoryList extends StatelessWidget {
   const HistoryList({Key? key}) : super(key: key);
 
   @override
-  State<HistoryList> createState() => _HistoryListState();
-}
-
-class _HistoryListState extends State<HistoryList> {
-  @override
   Widget build(BuildContext context) {
-    return Consumer<MainScreenProvider>(
-      builder: (context, provider, child) {
-        final meals = provider.allMeals;
+    return Consumer<MealHistoryProvider>(
+      builder: (context, provider, _) {
+        final meals = provider.meals;
+
+        if (provider.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (provider.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text('Error: ${provider.errorMessage}'),
+          );
+        }
+
         if (meals.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),

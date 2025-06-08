@@ -158,12 +158,9 @@ abstract class MainController extends State<MainScreen> {
       );
 
       if (response.success && response.data != null) {
-        print('[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API');
-        
-        restaurantProvider.setPlaces(response.data!);
-        
-        final result = await recommendationService.fetchRecommendedPlacesFromCache(
-          context: context,
+        print('[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API and cached.');
+
+        final result = await recommendationService.fetchRecommendedFromProvider(
           lat: position.latitude,
           lng: position.longitude,
         );
