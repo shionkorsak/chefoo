@@ -9,6 +9,7 @@ class MainScreenProvider with ChangeNotifier {
   List<Meal> _allMeals = [];
   String _aiQuery = '';
   bool _isLoading = false;
+  bool _mapNeedsRefresh = false;
 
   List<Place> get recommendations => _recommendations;
   List<Place> get recentMeals => _recentMeals;
@@ -16,6 +17,7 @@ class MainScreenProvider with ChangeNotifier {
   List<Meal> get allMeals => _allMeals;
   String get aiQuery => _aiQuery;
   bool get isLoading => _isLoading;
+  bool get mapNeedsRefresh => _mapNeedsRefresh;
 
   void setRecommendations(List<Place> places) {
     _recommendations = places;
@@ -41,6 +43,15 @@ class MainScreenProvider with ChangeNotifier {
   void setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  void requestMapRefresh() {
+    _mapNeedsRefresh = true;
+    notifyListeners();
+  }
+
+  void clearMapRefreshFlag() {
+    _mapNeedsRefresh = false;
   }
 
   // Example: fetch from backend or cache

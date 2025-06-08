@@ -12,7 +12,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final bool isReloading;
+  final Function? onReloadComplete;
+  
+  const SplashScreen({
+    Key? key, 
+    this.isReloading = false,
+    this.onReloadComplete,
+  }) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -111,7 +118,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         }
       }
 
-      _navigateTo(MainNavigation(showWelcomeDialog: false));
+      if (widget.isReloading) {
+        if (widget.onReloadComplete != null) {
+          widget.onReloadComplete!();
+        }
+        
+        _navigateTo(MainNavigation(showWelcomeDialog: false));
+      } else {
+        _navigateTo(MainNavigation(showWelcomeDialog: false));
+      }
     }
   }
 

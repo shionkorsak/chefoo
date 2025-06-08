@@ -140,6 +140,19 @@ class RestaurantProvider with ChangeNotifier {
     
     _currentPlaces = nearby;
     print('[PLACES] Updated current places: ${_currentPlaces.length} places near current location');
+    
+    _places = List.from(_places);
+    
+    notifyListeners();
+  }
+
+  void forceRefresh() {
+    _places = List.from(_places);
+    _routePlaces = List.from(_routePlaces);
+    _currentPlaces = List.from(_currentPlaces);
+    
+    _routePlacesCache.clear();
+    
     notifyListeners();
   }
 }

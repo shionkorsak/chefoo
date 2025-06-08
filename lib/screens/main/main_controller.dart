@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/restaurant.dart';
+import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:chefoo/services/calendar_service.dart';
 import 'package:chefoo/models/api_response.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/services/location.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
@@ -47,6 +49,9 @@ abstract class MainController extends State<MainScreen> {
 
   StreamSubscription<Position>? _locationSubscription;
 
+  ValueKey<String> _locationKey = ValueKey('initial');
+  ValueKey<String> get locationKey => _locationKey;
+
   @override
   void initState() {
     super.initState();
@@ -66,20 +71,15 @@ abstract class MainController extends State<MainScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationService = Provider.of<LocationService>(context, listen: false);
-      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      
+      if (locationService.currentPosition != null) {
+        print('[MAIN CTRL] Initial position: ${locationService.currentPosition!.latitude}, ${locationService.currentPosition!.longitude}');
+      }
       
       _locationSubscription = locationService.locationChangedStream.listen((position) {
         if (mounted) {
-          restaurantProvider.updateCurrentPlaces(
-            position.latitude,
-            position.longitude,
-            1000.0
-          );
-          
-          if (mounted) {
-            print('[MAIN CTRL] Location changed, refreshing data');
-            _refreshRecommendedPlaces();
-          }
+          print('[MAIN CTRL] Location changed, restarting app flow');
+          handleSignificantLocationChange();
         }
       });
     });
@@ -94,18 +94,13 @@ abstract class MainController extends State<MainScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final locationService = 
-      Provider.of<LocationService>(context);
+    final locationService = Provider.of<LocationService>(context);
 
     if(locationService.locationChangedSignificantly) {
       final position = locationService.currentPosition;
       if(position != null) {
-        log('[MAIN CTRL] Location changed significantly, fetching new places');
-        _refreshRecommendedPlaces();
-      } else {
-        log('position is null');
+        handleSignificantLocationChange();
       }
-
       locationService.resetLocationChangedFlag();
     }
   }
@@ -142,8 +137,11 @@ abstract class MainController extends State<MainScreen> {
       return;
     }
 
+    final newLocationKey = ValueKey('${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}');
+
     setState(() {
       _isLoading = true;
+      _locationKey = newLocationKey;
     });
 
     try {
@@ -321,4 +319,65 @@ abstract class MainController extends State<MainScreen> {
 
   List<Place> get aiGeneratedResults => _aiGeneratedResults;
   String get aiQuery => _aiQuery;
+
+  void handleSignificantLocationChange() {
+    print('[MAIN CTRL] Handling significant location change');
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      
+      print('[MAIN CTRL] Showing location change dialog');
+      
+      bool restartInProgress = true;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            'Location Changed', 
+            style: AppTextStyles.headline2, 
+            textAlign: TextAlign.center
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: AppColors.primary),
+              SizedBox(height: 20),
+              Text(
+                'Your location has changed significantly.\nReloading data, please wait a moment...',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      Future.delayed(Duration(seconds: 3), () {
+        print('[MAIN CTRL] Dialog shown for 3 seconds, navigating to splash screen');
+        
+        if (!mounted) {
+          print('[MAIN CTRL] Widget no longer mounted, cancelling navigation');
+          return;
+        }
+        
+        Navigator.of(context).pop();
+        
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SplashScreen(
+              isReloading: true,
+              onReloadComplete: () {
+                print('[MAIN CTRL] Reload complete, returning to main screen');
+                restartInProgress = false;
+              },
+            ),
+          ),
+          (route) => false,
+        );
+      });
+    });
+  }
 }

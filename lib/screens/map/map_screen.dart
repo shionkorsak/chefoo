@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:chefoo/screens/map/map_controller.dart';
 import 'package:chefoo/utils/place_utils.dart';
@@ -358,6 +359,16 @@ class _MapScreenState extends MapController {
   // SECTION 9: MAIN BUILD METHOD
   @override
   Widget build(BuildContext context) {
+    final mapScreenProvider = Provider.of<MainScreenProvider>(context);
+    
+    if (mapScreenProvider.mapNeedsRefresh) {
+      mapScreenProvider.clearMapRefreshFlag();
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        performFullMapRefresh();
+      });
+    }
+    
     final locationService = Provider.of<LocationService>(context);
     final currentPosition = locationService.currentPosition;
 

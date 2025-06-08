@@ -32,6 +32,7 @@ class LocationService with ChangeNotifier {
 
   DateTime _lastLocationUpdate = DateTime.now();
 
+  bool _isFirstLocationUpdate = true;
   LocationService() {
     _initializeLocation();
   }
@@ -211,14 +212,42 @@ class LocationService with ChangeNotifier {
       );
 
   void startLocationUpdates(BuildContext context) {
-    locationStream.listen((position) {
-      if (_lastFetchPosition == null || 
-          calculateGeoDistance(_lastFetchPosition!.latitude, _lastFetchPosition!.longitude, 
-                             position.latitude, position.longitude) > 200) { // 200m
-        
-        print('Location changed significantly');
+    print('[LOC SVC] Starting location updates');
+    
+    _positionStreamSubscription?.cancel();
+    
+    _positionStreamSubscription = locationStream.listen((position) {
+      _currentPosition = position;
+      
+      print('[LOC SVC] Location update received: ${position.latitude}, ${position.longitude}');
+      
+      if (_isFirstLocationUpdate) {
+        print('[LOC SVC] First location update received, storing as reference');
         _lastFetchPosition = position;
+        _isFirstLocationUpdate = false;
+        notifyListeners();
+        return;
+      }
+      
+      if (_lastFetchPosition == null) {
+        _lastFetchPosition = position;
+        return;
+      }
+      
+      final distance = calculateGeoDistance(
+        _lastFetchPosition!.latitude,
+        _lastFetchPosition!.longitude,
+        position.latitude,
+        position.longitude
+      );
+      
+      print('[LOC SVC] Movement detected: ${distance.toStringAsFixed(2)}m');
+      
+      if (distance > 100) {
+        print('[LOC SVC] Location changed significantly (${distance.toStringAsFixed(2)}m)');
         _locationChangedSignificantly = true;
+        
+        _lastFetchPosition = position;
         
         _locationChangedController.add(position);
         
@@ -238,5 +267,25 @@ class LocationService with ChangeNotifier {
       pos2.latitude, 
       pos2.longitude
     );
+  }
+
+  bool isChangedVerySignificantly(Position newPosition) {
+    if (_lastFetchPosition == null) {
+      print('[LOC SVC] Cannot determine if change is significant: no previous position');
+      return false;
+    }
+    
+    final distance = calculateGeoDistance(
+      _lastFetchPosition!.latitude,
+      _lastFetchPosition!.longitude,
+      newPosition.latitude,
+      newPosition.longitude
+    );
+    
+    final isSignificant = distance > 1000;
+    
+    print('[LOC SVC] Distance moved: ${distance.toStringAsFixed(2)}m, Is very significant: $isSignificant');
+    
+    return isSignificant;
   }
 }
