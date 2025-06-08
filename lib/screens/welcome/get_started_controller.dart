@@ -525,13 +525,13 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     Navigator.pushReplacement(
                       context, 
                       MaterialPageRoute(
-                        builder: (BuildContext context) => ProfileScreen()
+                        builder: (BuildContext context) => MainNavigation(showWelcomeDialog: false,)
                       )
                     );
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
+                    children: const [
                       Text(
                         "Are you hungry yet?",
                         style: TextStyle(

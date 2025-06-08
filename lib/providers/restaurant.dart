@@ -142,4 +142,13 @@ class RestaurantProvider with ChangeNotifier {
     print('[PLACES] Updated current places: ${_currentPlaces.length} places near current location');
     notifyListeners();
   }
+
+  void clearAllPlaces() {
+    _places.clear();
+    _routePlaces.clear();
+    _currentPlaces.clear();
+    _routePlacesCache.clear();
+    notifyListeners();
+  }
+
 }

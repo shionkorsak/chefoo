@@ -6,6 +6,7 @@ import 'package:chefoo/widgets/buttons/glowing_button.dart';
 import 'package:chefoo/widgets/buttons/google_buttons/google_import_button.dart';
 import 'package:chefoo/widgets/buttons/google_buttons/google_login_button.dart';
 import 'package:chefoo/widgets/cards/auth_card.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 part 'get_started_controller.dart';

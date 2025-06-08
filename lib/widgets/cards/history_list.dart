@@ -1,45 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/widgets/cards/meal_card_vertical.dart';
-import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/models/user/meal.dart';
+import 'package:provider/provider.dart';
+import 'package:chefoo/providers/meal_history.dart';
 
-class HistoryList extends StatefulWidget {
+class HistoryList extends StatelessWidget {
   const HistoryList({Key? key}) : super(key: key);
 
   @override
-  State<HistoryList> createState() => _HistoryListState();
-}
-
-class _HistoryListState extends State<HistoryList> {
-  late Future<List<Meal>> _mealsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _mealsFuture = HistoryService().fetchMeals();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Meal>>(
-      future: _mealsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return Consumer<MealHistoryProvider>(
+      builder: (context, provider, _) {
+        final meals = provider.meals;
+
+        if (provider.isLoading) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
             child: CircularProgressIndicator(),
           );
         }
 
-        if (snapshot.hasError) {
+        if (provider.hasError) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text('Error: ${snapshot.error}'),
+            child: Text('Error: ${provider.errorMessage}'),
           );
         }
 
-        final meals = snapshot.data ?? [];
         if (meals.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
