@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:chefoo/models/restaurant.dart';
+import 'package:chefoo/models/user/meal.dart';
 
 class MainScreenProvider with ChangeNotifier {
   List<Place> _recommendations = [];
   List<Place> _recentMeals = [];
   List<Place> _aiGeneratedResults = [];
+  List<Meal> _allMeals = [];
   String _aiQuery = '';
   bool _isLoading = false;
 
   List<Place> get recommendations => _recommendations;
   List<Place> get recentMeals => _recentMeals;
   List<Place> get aiGeneratedResults => _aiGeneratedResults;
+  List<Meal> get allMeals => _allMeals;
   String get aiQuery => _aiQuery;
   bool get isLoading => _isLoading;
 
@@ -27,6 +30,11 @@ class MainScreenProvider with ChangeNotifier {
   void setAIGeneratedResults(String query, List<Place>? results) {
     _aiQuery = query;
     _aiGeneratedResults = results ?? [];
+    notifyListeners();
+  }
+
+  void setAllMeals(List<Meal> meals) {
+    _allMeals = meals;
     notifyListeners();
   }
 
