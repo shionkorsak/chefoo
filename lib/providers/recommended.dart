@@ -132,7 +132,7 @@ class RecommendedProvider with ChangeNotifier {
       final double lat = entry['lat'];
       final double lng = entry['lng'];
       final int timestamp = entry['timestamp'];
-      final double entryRadius = entry['radius'] ?? 1000.0;
+      final double entryRadius = entry['radius'] ?? 100.0;
 
       final isTooOld = DateTime.now()
           .difference(DateTime.fromMillisecondsSinceEpoch(timestamp)) >

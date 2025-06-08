@@ -45,6 +45,8 @@ abstract class MainController extends State<MainScreen> {
   String? _eventLocation;
   String get eventLocation => _eventLocation ?? "";
 
+  StreamSubscription<Position>? _locationSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -63,23 +65,22 @@ abstract class MainController extends State<MainScreen> {
     aiInputController.text = 'mock';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      carouselController.addListener(() {
-        if (!carouselController.hasClients) return;
-        final current = carouselController.page?.round();
-        if (current != null && current != _carouselPage) {
-          _carouselPage = current;
-        }
-      });
-
       final locationService = Provider.of<LocationService>(context, listen: false);
       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
       
-      locationService.locationChangedStream.listen((position) {
-        restaurantProvider.updateCurrentPlaces(
-          position.latitude,
-          position.longitude,
-          1000.0
-        );
+      _locationSubscription = locationService.locationChangedStream.listen((position) {
+        if (mounted) {
+          restaurantProvider.updateCurrentPlaces(
+            position.latitude,
+            position.longitude,
+            1000.0
+          );
+          
+          if (mounted) {
+            print('[MAIN CTRL] Location changed, refreshing data');
+            _refreshRecommendedPlaces();
+          }
+        }
       });
     });
 
@@ -126,7 +127,7 @@ abstract class MainController extends State<MainScreen> {
   Future<void> _refreshRecommendedPlaces() async {
     final locationService = Provider.of<LocationService>(context, listen: false);
     final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false); // still needed for injection
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
@@ -141,10 +142,12 @@ abstract class MainController extends State<MainScreen> {
       return;
     }
 
-    final hasCache = await recommendedProvider.hasValidCacheNearby(uid, position);
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (!hasCache) {
-      print('[MAIN-CTRL] No valid nearby cache — fetching nearby places.');
+    try {
+      await recommendedProvider.cleanupOldEntries(uid);
       
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude,
@@ -157,8 +160,7 @@ abstract class MainController extends State<MainScreen> {
       if (response.success && response.data != null) {
         print('[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API and cached.');
 
-        final result = await recommendationService.fetchRecommendedPlacesFromCache(
-          context: context,
+        final result = await recommendationService.fetchRecommendedFromProvider(
           lat: position.latitude,
           lng: position.longitude,
         );
@@ -170,20 +172,22 @@ abstract class MainController extends State<MainScreen> {
           position: position,
           radius: 1000.0,
         );
-      } else {
-        print('[MAIN-CTRL] Failed to fetch nearby places.');
       }
-    } else {
-      print('[MAIN-CTRL] Using cached recommendations');
-      await recommendedProvider.loadFromPrefs(uid, position);
-    }
 
-    if (mounted) {
-      print('[MAIN-CTRL] Changing places states.');
-      setState(() {
-        _recommendedPlaces = recommendedProvider.recommended;
-        _enrichedPlaces = recommendedProvider.enriched;
-      });
+      if (mounted) {
+        setState(() {
+          _recommendedPlaces = recommendedProvider.recommended;
+          _enrichedPlaces = recommendedProvider.enriched;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('[MAIN-CTRL] Error refreshing data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -293,6 +297,7 @@ abstract class MainController extends State<MainScreen> {
     _inactivityTimer?.cancel();
     carouselController.dispose();
     aiInputController.dispose();
+    _locationSubscription?.cancel();
     super.dispose();
   }
   

@@ -1,3 +1,4 @@
+import 'package:chefoo/providers/meal_history.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -210,6 +211,8 @@ class _RatingScreenState extends State<RatingScreen> {
                         );
 
                         await ratingSession.clearSession(uid: uid);
+
+                        Provider.of<MealHistoryProvider>(context, listen: false).fetchMeals();
                       }
 
                       Navigator.of(context).pop();

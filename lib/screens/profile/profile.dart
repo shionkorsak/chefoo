@@ -1,14 +1,11 @@
-import 'package:chefoo/models/user/meal.dart';
-import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/user_account.dart';
-import 'package:chefoo/screens/settings/account_settings.dart';
-import 'package:chefoo/screens/history/history_screen.dart';
 import 'package:chefoo/screens/favorites/favorites_screen.dart';
+import 'package:chefoo/screens/history/history_screen.dart';
+import 'package:chefoo/screens/settings/account_settings.dart';
 import 'package:chefoo/widgets/cards/favorite_list.dart';
-import 'package:chefoo/widgets/cards/meal_card_vertical.dart';
-import 'package:chefoo/widgets/healthy_score.dart';
 import 'package:chefoo/widgets/cards/history_list.dart';
+import 'package:chefoo/widgets/healthy_score.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,7 +18,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserAccountProvider>(context, listen: false).fetchUserAccount();
+    });
   }
 
   @override
