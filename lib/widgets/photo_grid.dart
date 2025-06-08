@@ -27,21 +27,24 @@ class PhotoGrid extends StatelessWidget {
       ),
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "Pictures",
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Padding(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  "Pictures",
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16, right: 16, left: 16),
                 child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: photoRefs.length > 0 ? photoRefs.length - 1 : 0,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -74,8 +77,8 @@ class PhotoGrid extends StatelessWidget {
                   },
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

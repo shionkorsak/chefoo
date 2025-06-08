@@ -22,80 +22,76 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.arrow_back, size: 24, color: Colors.black),
-                ),
-                const SizedBox(width: 16),
-                Text(
+      appBar: AppBar(
+        leading: const BackButton(),
+        backgroundColor: Theme.of(context).colorScheme.background,
+        elevation: 0,
+      ),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
                   'Meal History',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder<List<Meal>>(
-              future: _mealsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              ),
+              const SizedBox(height: 8),
+              FutureBuilder<List<Meal>>(
+                future: _mealsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                final meals = snapshot.data ?? [];
+                  final meals = snapshot.data ?? [];
 
-                if (meals.isEmpty) {
-                  return const Center(child: Text('No meal history found.'));
-                }
+                  if (meals.isEmpty) {
+                    return const Center(child: Text('No meal history found.'));
+                  }
 
-                final groupedMeals = <String, List<Meal>>{};
-                for (final meal in meals) {
-                  final id = meal.restaurant.id;
-                  groupedMeals.putIfAbsent(id, () => []).add(meal);
-                }
+                  final groupedMeals = <String, List<Meal>>{};
+                  for (final meal in meals) {
+                    final id = meal.restaurant.id;
+                    groupedMeals.putIfAbsent(id, () => []).add(meal);
+                  }
 
-                final recentEntries = groupedMeals.entries
-                    .toList()
-                    .reversed
-                    .take(5)
-                    .toList()
-                    .reversed
-                    .toList();
+                  final recentEntries = groupedMeals.entries
+                      .toList()
+                      .reversed
+                      .take(5)
+                      .toList()
+                      .reversed
+                      .toList();
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  return Column(
                     children: recentEntries.map((entry) {
                       final place = entry.value.first.restaurant;
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: 16, right: 16, left: 16),
                         child: MealCardHorizontal(
                           place: place,
                           meals: entry.value,
                         ),
                       );
                     }).toList(),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
