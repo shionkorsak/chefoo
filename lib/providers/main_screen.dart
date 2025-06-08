@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:chefoo/models/restaurant.dart';
+import 'package:chefoo/models/user/meal.dart';
 
 class MainScreenProvider with ChangeNotifier {
   List<Place> _recommendations = [];
   List<Place> _recentMeals = [];
+  List<Place> _aiGeneratedResults = [];
+  List<Meal> _allMeals = [];
+  String _aiQuery = '';
   bool _isLoading = false;
 
   List<Place> get recommendations => _recommendations;
   List<Place> get recentMeals => _recentMeals;
+  List<Place> get aiGeneratedResults => _aiGeneratedResults;
+  List<Meal> get allMeals => _allMeals;
+  String get aiQuery => _aiQuery;
   bool get isLoading => _isLoading;
 
   void setRecommendations(List<Place> places) {
@@ -17,6 +24,17 @@ class MainScreenProvider with ChangeNotifier {
 
   void setRecentMeals(List<Place> meals) {
     _recentMeals = meals;
+    notifyListeners();
+  }
+
+  void setAIGeneratedResults(String query, List<Place>? results) {
+    _aiQuery = query;
+    _aiGeneratedResults = results ?? [];
+    notifyListeners();
+  }
+
+  void setAllMeals(List<Meal> meals) {
+    _allMeals = meals;
     notifyListeners();
   }
 
@@ -86,6 +104,36 @@ class MainScreenProvider with ChangeNotifier {
         pictureCategory: 'default',
         tags: ['Tag4'],
         walkingDistance: 250.0,
+        reviews: [],
+      ),
+    ];
+    _aiGeneratedResults = [
+      Place(
+        id: '5',
+        name: 'AI Place 1',
+        address: '111 AI Street',
+        rating: 4.6,
+        distance: 0.4,
+        lat: 25.036,
+        lng: 121.569,
+        pictureUrls: ['sample-photo-ai1'],
+        pictureCategory: 'default',
+        tags: ['AI Tag1'],
+        walkingDistance: 220.0,
+        reviews: [],
+      ),
+      Place(
+        id: '6',
+        name: 'AI Place 2',
+        address: '222 AI Avenue',
+        rating: 4.3,
+        distance: 0.6,
+        lat: 25.037,
+        lng: 121.570,
+        pictureUrls: ['sample-photo-ai2'],
+        pictureCategory: 'default',
+        tags: ['AI Tag2'],
+        walkingDistance: 280.0,
         reviews: [],
       ),
     ];

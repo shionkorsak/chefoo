@@ -10,11 +10,19 @@ import 'package:location/location.dart';
 import 'package:chefoo/providers/calendar_state.dart';
 import 'package:chefoo/services/calendar_service.dart';
 import 'package:chefoo/models/api_response.dart';
+import 'package:chefoo/services/database/history_service.dart';
+import 'package:chefoo/providers/main_screen.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
+  final TextEditingController aiInputController = TextEditingController();
+  String _aiQuery = '';
+  List<Place> _aiGeneratedResults = [];
   List<Place> _recommendedPlaces = [];
   List<Place> get recommendedPlaces => _recommendedPlaces;
+
+  List<Place> _enrichedPlaces = [];
+  List<Place> get enrichedPlaces => _enrichedPlaces;
 
   bool _showRatePopup = true;
   bool get showRatePopup => _showRatePopup;
@@ -45,6 +53,14 @@ abstract class MainController extends State<MainScreen> {
       initialPage: 0,
       viewportFraction: 0.6,
     );
+
+    aiInputController.addListener(() {
+      final input = aiInputController.text.trim();
+      if (input.isNotEmpty && input != _aiQuery) {
+        onAIQuerySubmitted(input);
+      }
+    });
+    aiInputController.text = 'mock';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       carouselController.addListener(() {
@@ -102,6 +118,9 @@ abstract class MainController extends State<MainScreen> {
         _recommendedPlaces = recommended;
       });
     }
+    final meals = await HistoryService().fetchMeals();
+    final mainScreenProvider = Provider.of<MainScreenProvider>(context, listen: false);
+    mainScreenProvider.setAllMeals(meals);
   }
 
   Future<void> _refreshRecommendedPlaces() async {
@@ -132,7 +151,7 @@ abstract class MainController extends State<MainScreen> {
         lng: position.longitude,
         radius: 1000,
         apiKey: MapsConstants.mapsKey,
-        addToCache: true, // make sure this gets stored!
+        addToCache: true,
       );
 
       if (response.success && response.data != null) {
@@ -160,8 +179,10 @@ abstract class MainController extends State<MainScreen> {
     }
 
     if (mounted) {
+      print('[MAIN-CTRL] Changing places states.');
       setState(() {
         _recommendedPlaces = recommendedProvider.recommended;
+        _enrichedPlaces = recommendedProvider.enriched;
       });
     }
   }
@@ -271,6 +292,7 @@ abstract class MainController extends State<MainScreen> {
   void dispose() {
     _inactivityTimer?.cancel();
     carouselController.dispose();
+    aiInputController.dispose();
     super.dispose();
   }
   
@@ -279,4 +301,19 @@ abstract class MainController extends State<MainScreen> {
       _showRatePopup = false;
     });
   }
+
+  void onAIQuerySubmitted(String query) {
+    setState(() {
+      _aiQuery = query;
+      _aiGeneratedResults = _getMockResults(); // always show 3 mock cards for visuals
+    });
+  }
+
+  // TODO: Implement actual AI recommendation fetching logic using RecommendationService
+  List<Place> _getMockResults() {
+    return _recommendedPlaces.take(3).toList(); // Just mock using subset of recommendedPlaces
+  }
+
+  List<Place> get aiGeneratedResults => _aiGeneratedResults;
+  String get aiQuery => _aiQuery;
 }

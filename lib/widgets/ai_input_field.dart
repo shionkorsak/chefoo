@@ -3,7 +3,9 @@ import 'package:chefoo/commons.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 class AIInputField extends StatefulWidget {
-  const AIInputField({super.key});
+  final Function(String)? onSubmitted;
+
+  const AIInputField({super.key, this.onSubmitted});
 
   @override
   State<AIInputField> createState() => _AIInputFieldState();
@@ -15,6 +17,9 @@ class _AIInputFieldState extends State<AIInputField> {
   void _sendInput() {
     final input = _controller.text;
     print('Input sent: $input');
+    if (widget.onSubmitted != null) {
+      widget.onSubmitted!(input);
+    }
     _controller.clear();
     setState(() {});
   }

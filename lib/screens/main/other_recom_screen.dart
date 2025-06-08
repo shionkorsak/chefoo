@@ -30,50 +30,60 @@ class OtherRecomScreen extends StatelessWidget {
     if (hasRoutePlaces && hasNearbyPlaces) {
       screenTitle = "Recommended Places";
     } else {
-      screenTitle = "Places Near You";
+      screenTitle = "Recommendations";
     }
             
     if (displayPlaces.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text(screenTitle),
-          backgroundColor: AppColors.background,
-          elevation: 0,
-          foregroundColor: AppColors.primary,
-        ),
-        body: const Center(
+        body: Center(
           child: Text(
             "No places found.\nTry exploring a different area!",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(screenTitle),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        foregroundColor: AppColors.primary,
-      ),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height - kToolbarHeight,
-        child: ListWheelScrollView.useDelegate(
-          itemExtent: 200,
-          physics: const FixedExtentScrollPhysics(),
-          controller: FixedExtentScrollController(
-            initialItem: (displayPlaces.length / 2).floor(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.arrow_back, size: 24, color: Colors.black),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  screenTitle,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
           ),
-          childDelegate: ListWheelChildBuilderDelegate(
-            builder: (context, index) {
-              if (index < 0 || index >= displayPlaces.length) return null;
-              return RestaurantCardHorizontal(place: displayPlaces[index]);
-            },
-            childCount: displayPlaces.length,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                itemCount: displayPlaces.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: RestaurantCardHorizontal(place: displayPlaces[index]),
+                  );
+                },
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
