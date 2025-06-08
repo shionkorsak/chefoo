@@ -55,6 +55,7 @@ abstract class MainController extends State<MainScreen> {
         onAIQuerySubmitted(input);
       }
     });
+    aiInputController.text = 'mock';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       carouselController.addListener(() {
@@ -294,41 +295,7 @@ abstract class MainController extends State<MainScreen> {
   void onAIQuerySubmitted(String query) {
     setState(() {
       _aiQuery = query;
-
-      if (_recommendedPlaces.isEmpty) {
-        _aiGeneratedResults = [
-          Place(
-            id: 'mock1',
-            name: 'Mock Cafe 1',
-            address: '123 AI Street',
-            rating: 4.5,
-            distance: 0.3,
-            lat: 25.033,
-            lng: 121.565,
-            pictureUrls: ['mock-photo-1'],
-            pictureCategory: 'default',
-            tags: ['Cozy', 'Cafe'],
-            walkingDistance: 150.0,
-            reviews: [],
-          ),
-          Place(
-            id: 'mock2',
-            name: 'Mock Diner 2',
-            address: '456 Neural Ln',
-            rating: 4.7,
-            distance: 0.6,
-            lat: 25.034,
-            lng: 121.566,
-            pictureUrls: ['mock-photo-2'],
-            pictureCategory: 'default',
-            tags: ['Modern', 'Bistro'],
-            walkingDistance: 220.0,
-            reviews: [],
-          ),
-        ];
-      } else {
-        _aiGeneratedResults = _getMockResults();
-      }
+      _aiGeneratedResults = _getMockResults(); // always show 3 mock cards for visuals
     });
   }
 

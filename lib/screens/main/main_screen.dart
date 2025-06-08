@@ -155,21 +155,41 @@ class _MainScreenState extends MainController {
                         AIInputField(
                           onSubmitted: (text) => onAIQuerySubmitted(text),
                         ),
-                        if (aiQuery.isNotEmpty && aiGeneratedResults.isNotEmpty)
+                        if (aiQuery.isNotEmpty)
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(height: 4),
-                              ...aiGeneratedResults.map((place) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: RestaurantMealCard(
-                                  place: place,
-                                  meals: [],
-                                  isLoading: false,
+                              SizedBox(
+                                height: 190,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  itemCount: 3,
+                                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                                  itemBuilder: (context, index) {
+                                    final place = recommendedPlaces.isNotEmpty
+                                        ? recommendedPlaces[index % recommendedPlaces.length]
+                                        : null;
+
+                                    return place != null
+                                        ? Padding(
+                                            padding: const EdgeInsets.only(bottom: 12),
+                                            child: SizedBox(
+                                              width: 320,
+                                              child: RestaurantCardHorizontal(
+                                                place: place,
+                                                isLoading: false,
+                                              ),
+                                            ),
+                                          )
+                                        : const SizedBox.shrink();
+                                  },
                                 ),
-                              )),
+                              ),
+                              const SizedBox(height: 12),
                             ],
-                          ),
+                          )
+                        else
+                          const SizedBox.shrink(),
                         if (!shouldShowGpsWarning)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -30,7 +30,7 @@ class OtherRecomScreen extends StatelessWidget {
     if (hasRoutePlaces && hasNearbyPlaces) {
       screenTitle = "Recommended Places";
     } else {
-      screenTitle = "Places Near You";
+      screenTitle = "Recommendations";
     }
             
     if (displayPlaces.isEmpty) {
