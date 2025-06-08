@@ -18,37 +18,37 @@ class RecommendationService  {
     FirebaseFunctions? firebaseFunctions,
   }) : functions = firebaseFunctions ?? FirebaseFunctions.instance;
 
-  Future<Map<String, List<Place>>> fetchRecommendedPlaces(
-    List<Place> availablePlaces,
-    BuildContext context,
-  ) async {
-    print('[AI] Start AI recommendation');
-    try {
-      print('[AI] Places provided: ${availablePlaces.map((p) => p.toJson()).toList()}');
-      final allPlaces = availablePlaces;
-      final enrichedPlaceMap = 
-        await _enrichPlacesWithTagsAndBanner(allPlaces);
+  // Future<Map<String, List<Place>>> fetchRecommendedPlaces(
+  //   List<Place> availablePlaces,
+  //   BuildContext context,
+  // ) async {
+  //   print('[AI] Start AI recommendation');
+  //   try {
+  //     print('[AI] Places provided: ${availablePlaces.map((p) => p.toJson()).toList()}');
+  //     final allPlaces = availablePlaces;
+  //     final enrichedPlaceMap = 
+  //       await _enrichPlacesWithTagsAndBanner(allPlaces);
 
-      final placesList = enrichedPlaceMap.values.map((p) => p.toJson()).toList();
+  //     final placesList = enrichedPlaceMap.values.map((p) => p.toJson()).toList();
 
-      final List<Place> recommendedPlaces = 
-        await _getRecommendedPlacesFromAI(placesList, enrichedPlaceMap);
-      print('[DEBUG] recommendedPlaces: ${recommendedPlaces.length}');
+  //     final List<Place> recommendedPlaces = 
+  //       await _getRecommendedPlacesFromAI(placesList, enrichedPlaceMap);
+  //     print('[DEBUG] recommendedPlaces: ${recommendedPlaces.length}');
 
-      final Set<String> recommendedIds = recommendedPlaces.map((p) => p.id).toSet();
-      final List<Place> filteredEnriched = enrichedPlaceMap.values
-          .where((p) => !recommendedIds.contains(p.id))
-          .toList();
+  //     final Set<String> recommendedIds = recommendedPlaces.map((p) => p.id).toSet();
+  //     final List<Place> filteredEnriched = enrichedPlaceMap.values
+  //         .where((p) => !recommendedIds.contains(p.id))
+  //         .toList();
 
-      return {
-        'recommended': recommendedPlaces,
-        'enriched': filteredEnriched,
-      };
-    } catch (e) {
-      print('[ERROR FETCH] Exception during fetchAndRecommendNearbyPlaces: $e');
-      return _emptyResult();
-    }
-  }
+  //     return {
+  //       'recommended': recommendedPlaces,
+  //       'enriched': filteredEnriched,
+  //     };
+  //   } catch (e) {
+  //     print('[ERROR FETCH] Exception during fetchAndRecommendNearbyPlaces: $e');
+  //     return _emptyResult();
+  //   }
+  // }
 
   Map<String, List<Place>> _emptyResult() {
     return {

@@ -125,7 +125,7 @@ class MealCardVertical extends StatelessWidget {
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: 36),
                   child: Text(
-                    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                    meal!.notes,
                     style: AppTextStyles.detail,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

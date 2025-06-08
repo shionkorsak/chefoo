@@ -228,43 +228,34 @@ class _MainScreenState extends MainController {
                           child: _buildChefoosPick(recommendedProvider),
                         ),
                         kGap20,
-              
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("Other Recommendations", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
-                                  IconButton(
-                                    icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-                                    onPressed: () {
-                                      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-                                      
-                                      final Map<String, Place> uniquePlaces = {};
-                                      
-                                      for (var place in restaurantProvider.routePlaces) {
-                                        uniquePlaces[place.id] = place;
-                                      }
-                                      
-                                      for (var place in restaurantProvider.places) {
-                                        uniquePlaces[place.id] = place;
-                                      }
-                                      
-                                      final List<Place> combinedPlaces = uniquePlaces.values.toList();
-                                      
-                                      print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
-                                      print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
-                                      
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => OtherRecomScreen(places: recommendedProvider.enriched),
-                                        ),
-                                      );
-                                    },
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Other Recommendations", style: AppTextStyles.headline2.copyWith(color: AppColors.primary)),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right, color: AppColors.primary),
+                              onPressed: () {
+                                // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                                
+                                // final Map<String, Place> uniquePlaces = {};
+                                
+                                // for (var place in restaurantProvider.routePlaces) {
+                                //   uniquePlaces[place.id] = place;
+                                // }
+                                
+                                // for (var place in restaurantProvider.places) {
+                                //   uniquePlaces[place.id] = place;
+                                // }
+                                
+                                // final List<Place> combinedPlaces = uniquePlaces.values.toList();
+                                
+                                // print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
+                                // print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
+                                
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OtherRecomScreen(places: recommendedProvider.enriched)
                                   ),
                                 ],
                               ),
@@ -280,7 +271,7 @@ class _MainScreenState extends MainController {
                             height: 230,
                             child: RestaurantCardListHorizontal(
                               without: false,
-                              places: recommendedProvider.enriched,
+                              places: enrichedPlaces,
                               isLoading: isLoading,
                             ),
                           ),

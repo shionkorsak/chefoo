@@ -19,6 +19,9 @@ abstract class MainController extends State<MainScreen> {
   List<Place> _recommendedPlaces = [];
   List<Place> get recommendedPlaces => _recommendedPlaces;
 
+  List<Place> _enrichedPlaces = [];
+  List<Place> get enrichedPlaces => _enrichedPlaces;
+
   bool _showRatePopup = true;
   bool get showRatePopup => _showRatePopup;
 
@@ -143,7 +146,7 @@ abstract class MainController extends State<MainScreen> {
         lng: position.longitude,
         radius: 1000,
         apiKey: MapsConstants.mapsKey,
-        addToCache: true, // make sure this gets stored!
+        addToCache: true,
       );
 
       if (response.success && response.data != null) {
@@ -171,8 +174,10 @@ abstract class MainController extends State<MainScreen> {
     }
 
     if (mounted) {
+      print('[MAIN-CTRL] Changing places states.');
       setState(() {
         _recommendedPlaces = recommendedProvider.recommended;
+        _enrichedPlaces = recommendedProvider.enriched;
       });
     }
   }
