@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/rating/rating_screen.dart';
+import 'package:chefoo/providers/rating_session.dart';
 
 class RatePopup extends StatelessWidget {
   final VoidCallback onDismissed;
