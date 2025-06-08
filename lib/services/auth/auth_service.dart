@@ -52,11 +52,23 @@ class AuthService {
     return await _auth.signInWithCredential(credential);
   }
 
-  Future<void> signOut() async { // To sign out
-    await _googleSignIn.disconnect();
-    await _googleSignIn.signOut();
-    await _auth.signOut();
-    log("fully sign out\n");
+  Future<void> signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      
+      try {
+        if (_googleSignIn.currentUser != null) {
+          await _googleSignIn.signOut();
+        }
+      } catch (e) {
+        print('Error signing out from Google: $e');
+      }
+      
+      log('User signed out');
+    } catch (e) {
+      log('Error signing out: $e');
+      rethrow;
+    }
   }
 
   Future<void> deleteAccount() async { // To delete account
@@ -112,8 +124,6 @@ class AuthService {
     
     if (response.statusCode == 200) {
       print('Successfully revoked OAuth token with Google');
-      
-      await _googleSignIn.disconnect();
       
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('calendar_access_revoked', true);
