@@ -277,7 +277,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     },
                                   ),
                                   const SizedBox(width: 16),
-                                  LikeButton(place: widget.place),
+                                  LikeButton(place: widget.place, iconSize: 20, padding: 10,),
                                 ],
                               ),
                               const SizedBox(height: 16),

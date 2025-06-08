@@ -18,7 +18,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _circleAnimation;
   late Animation<double> _logoOpacity;
@@ -38,20 +39,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _circleAnimation = Tween<double>(begin: 0, end: 3.5).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.7, curve: Curves.easeOut)),
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.0, 0.7, curve: Curves.easeOut)),
     );
 
     _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.6, 1.0, curve: Curves.easeIn)),
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.6, 1.0, curve: Curves.easeIn)),
     );
 
     _controller.forward();
   }
 
   Future<void> _startApp() async {
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final locationService =
+        Provider.of<LocationService>(context, listen: false);
+    final restaurantProvider =
+        Provider.of<RestaurantProvider>(context, listen: false);
+    final recommendedProvider =
+        Provider.of<RecommendedProvider>(context, listen: false);
 
     locationService.startLocationUpdates(context);
     LocationHandler.startLocationUpdates(context);
@@ -88,16 +96,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         await recommendedProvider.loadFromPrefs(uid, position);
 
         if (recommendedProvider.recommended.isEmpty) {
-            final recommendationService = RecommendationService(
+          final recommendationService = RecommendationService(
             restaurantProvider: restaurantProvider,
             placeService: Provider.of<PlaceService>(context, listen: false),
           );
 
-          final result = await recommendationService.fetchRecommendedFromProvider(
+          final result =
+              await recommendationService.fetchRecommendedFromProvider(
             lat: position.latitude,
             lng: position.longitude,
           );
-
 
           await recommendedProvider.setRecommendations(
             recommended: result['recommended'] ?? [],
@@ -120,7 +128,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       PageRouteBuilder(
         pageBuilder: (_, animation, __) => page,
         transitionsBuilder: (_, animation, __, child) {
-          final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+          final curved =
+              CurvedAnimation(parent: animation, curve: Curves.easeInOut);
           return FadeTransition(opacity: curved, child: child);
         },
         transitionDuration: const Duration(milliseconds: 1500),
