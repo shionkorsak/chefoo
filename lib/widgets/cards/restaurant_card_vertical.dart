@@ -7,20 +7,22 @@ import 'package:chefoo/constants.dart';
 
 class RestaurantCardVertical extends StatelessWidget {
   final Place place;
+  final bool showDistance;
   final _banner = PictureCategoryAssets();
 
   RestaurantCardVertical({
     Key? key,
     required this.place,
+    this.showDistance = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] 
-    ?? 'https://maps.googleapis.com/maps/api/place/photo'
-        '?maxwidth=400'
-        '&photo_reference=${place.pictureUrls.first}'
-        '&key=${MapsConstants.mapsKey}';
+    final pictureUrl = _banner.pictureCategoryAssets[place.pictureCategory] ??
+        'https://maps.googleapis.com/maps/api/place/photo'
+            '?maxwidth=400'
+            '&photo_reference=${place.pictureUrls.first}'
+            '&key=${MapsConstants.mapsKey}';
 
     return GestureDetector(
       onTap: () {
@@ -144,12 +146,12 @@ class RestaurantCardVertical extends StatelessWidget {
                     ),
                   ],
                 ),
-                place.walkingDistance == 0
-                ? const SizedBox.shrink()
-                : Text(
-                    '${(place.walkingDistance * 1000).round()}m',
-                    style: AppTextStyles.detail,
-                  )
+                (showDistance && place.walkingDistance > 0)
+                    ? Text(
+                        '${(place.walkingDistance * 1000).round()}m',
+                        style: AppTextStyles.detail,
+                      )
+                    : const SizedBox.shrink()
               ],
             ),
           ],
