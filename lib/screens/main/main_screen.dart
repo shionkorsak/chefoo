@@ -222,7 +222,7 @@ class _MainScreenState extends MainController {
                                 ),
                                 eventLocation.isNotEmpty
                                     ? Text(
-                                        "You have class at $eventLocation soon, this place is on the way!",
+                                        "You have ${eventName.isNotEmpty ? "$eventName at " : "class at "}$eventLocation soon, this place is on the way!",
                                         style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                                       )
                                     : Text(

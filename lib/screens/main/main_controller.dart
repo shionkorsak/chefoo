@@ -39,8 +39,8 @@ abstract class MainController extends State<MainScreen> {
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  String? _eventLocation;
-  String get eventLocation => _eventLocation ?? "";
+  String eventLocation = '';
+  String eventName = '';
 
   StreamSubscription<Position>? _locationSubscription;
 
@@ -258,27 +258,31 @@ abstract class MainController extends State<MainScreen> {
         if (event.location != null && event.location.isNotEmpty) {
           final fullLocation = event.location;
           setState(() {
-            _eventLocation = fullLocation.contains(',') 
+            eventLocation = fullLocation.contains(',') 
                 ? fullLocation.substring(0, fullLocation.indexOf(','))
                 : fullLocation;
+            eventName = event.title ?? '';
           });
-          print('Event location set to: $_eventLocation');
+          print('Event location set to: $eventLocation');
         } else {
           print('Event has no location data');
           setState(() {
-            _eventLocation = null;
+            eventLocation = '';
+            eventName = '';
           });
         }
       } else {
         print('No calendar event data available');
         setState(() {
-          _eventLocation = null;
+          eventLocation = '';
+          eventName = '';
         });
       }
     } catch (e) {
       print('Error loading calendar data: $e');
       setState(() {
-        _eventLocation = null;
+        eventLocation = '';
+        eventName = '';
       });
     } finally {
       setState(() {
