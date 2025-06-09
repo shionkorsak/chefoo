@@ -167,38 +167,29 @@ class RecommendationService {
   Future<Place?> fetchSingleRecommendationFromAIQuery({
     required String message,
     required String uid,
-    bool includeRoutePlaces = true,
+    List<Place>? enrichedPlaces,
+    required FavoritesProvider favoritesProvider,
   }) async {
     try {
-      final List<Place> combined = includeRoutePlaces
-          ? [...restaurantProvider.routePlaces, ...restaurantProvider.places]
-          : [...restaurantProvider.places];
+      final List<Place> places = enrichedPlaces ??
+          restaurantProvider.places; 
 
-      final Set<String> seen = {};
-      final List<Place> unique = [];
-      for (final place in combined) {
-        if (seen.add(place.id)) {
-          unique.add(place);
-        }
-      }
-
-      if (unique.isEmpty) {
-        print('[msgAI] No available places to evaluate.');
+      if (places.isEmpty) {
+        print('[msgAI] No enriched places provided.');
         return null;
       }
 
-      final enrichedMap = await _enrichPlacesWithTagsAndBanner(unique);
-
-      final restaurants = unique.map((place) {
-        final enriched = enrichedMap[place.id];
+      final restaurants = places.map((place) {
         return {
           'id': place.id,
           'name': place.name,
           'rating': place.rating,
-          'tags': enriched?.tags ?? [],
-          'isFavorite': false, // Optional: link with FavoritesProvider if needed
+          'tags': place.tags,
+          'isFavorite': favoritesProvider.isFavorite(place.id),
         };
       }).toList();
+
+      print('[msgAI] Restaurant IDs passed to AI: ${restaurants.map((r) => r['id']).toList()}');
 
       final msgAiCall = functions.httpsCallable('msgAI');
       final response = await msgAiCall.call({
@@ -206,17 +197,28 @@ class RecommendationService {
         'restaurants': restaurants,
       });
 
-      final result = response.data;
+      final result = response.data['result'];
       if (result == null || result['id'] == null) {
-        print('[msgAI] No valid recommendation from AI.');
+        print('[msgAI] No valid recommendation from AI: $result');
         return null;
       }
 
-      final matched = enrichedMap[result['id']];
-      if (matched == null) {
-        print('[msgAI] Could not find matching place for ID ${result['id']}');
-        return null;
-      }
+      final matched = places.firstWhere(
+        (p) => p.id == result['id'],
+        orElse: () => Place(
+          id: result['id'],
+          name: 'Unknown',
+          address: '',
+          rating: 0.0,
+          distance: 0.0,
+          lat: 0.0,
+          lng: 0.0,
+          pictureUrls: [],
+          tags: List<String>.from(result['tags'] ?? []),
+          pictureCategory: result['pictureCategory'] ?? 'default',
+          reviews: [],
+        ),
+      );
 
       return matched.copyWith(
         tags: List<String>.from(result['tags'] ?? matched.tags),

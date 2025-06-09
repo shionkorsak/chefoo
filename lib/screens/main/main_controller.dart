@@ -62,12 +62,13 @@ abstract class MainController extends State<MainScreen> {
     );
 
     aiInputController.addListener(() {
-      final input = aiInputController.text.trim();
-      if (input.isNotEmpty && input != _aiQuery) {
-        onAIQuerySubmitted(input);
-      }
-    });
-    aiInputController.text = 'mock';
+    final input = aiInputController.text.trim();
+
+    if (input.isNotEmpty && input != _aiQuery && input != 'mock') {
+      onAIQuerySubmitted(input);
+    }
+  });
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationService = Provider.of<LocationService>(context, listen: false);
@@ -306,6 +307,16 @@ abstract class MainController extends State<MainScreen> {
   }
 
   void onAIQuerySubmitted(String query) async {
+    final cleanedQuery = query.trim();
+
+    if (cleanedQuery.isEmpty) {
+      setState(() {
+        _aiQuery = '';
+        _aiGeneratedResults.clear();
+      });
+      return;
+    }
+
     setState(() {
       _aiQuery = query;
       _isLoading = true;
@@ -313,7 +324,6 @@ abstract class MainController extends State<MainScreen> {
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      print('[AI] No user authenticated');
       setState(() {
         _aiGeneratedResults = [];
         _isLoading = false;
@@ -323,6 +333,9 @@ abstract class MainController extends State<MainScreen> {
 
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
+
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
       placeService: placeService,
@@ -332,20 +345,23 @@ abstract class MainController extends State<MainScreen> {
       final result = await recommendationService.fetchSingleRecommendationFromAIQuery(
         message: query,
         uid: uid,
+        enrichedPlaces: recommendedProvider.enriched,
+        favoritesProvider: favoritesProvider,
       );
 
       if (!mounted) return;
 
       setState(() {
-        _aiGeneratedResults = result != null ? [result] : [];
+        if (result != null && !_aiGeneratedResults.any((p) => p.id == result.id)) {
+          _aiGeneratedResults.add(result);
+        }
       });
+
     } catch (e) {
-      print('[AI] Error fetching recommendation: $e');
-      if (mounted) {
-        setState(() {
-          _aiGeneratedResults = [];
-        });
-      }
+      print('[AI] Error during msgAI call: $e');
+      setState(() {
+        _aiGeneratedResults = [];
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -354,7 +370,6 @@ abstract class MainController extends State<MainScreen> {
       }
     }
   }
-
 
   // TODO: Implement actual AI recommendation fetching logic using RecommendationService
   List<Place> _getMockResults() {
