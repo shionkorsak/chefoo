@@ -245,9 +245,17 @@ export const updateInsight = functions
     updatedWeekly.push(dailyEntry);
 
     // 1. Sort and take latest entries
+    const now = new Date();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(now.getDate() - 6); // inclusive of today
+
     let weeklyData = updatedWeekly
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(-7);
+      .filter(d => {
+        const entryDate = new Date(d.date);
+        return entryDate >= sevenDaysAgo && entryDate <= now;
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+
 
     // 2. Pad to exactly 7 entries if needed
     while (weeklyData.length < 7) {
