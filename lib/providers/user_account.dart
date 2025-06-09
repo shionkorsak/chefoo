@@ -117,17 +117,23 @@ class UserAccountProvider with ChangeNotifier {
 
     switch (category) {
       case 'Dietary Preference':
-        if (!prefs!.dietaryPreferences.contains(tag)) prefs!.dietaryPreferences.add(tag);
+        if (!prefs!.dietaryPreferences.contains(tag)) prefs.dietaryPreferences.add(tag);
         break;
       case 'Dislike':
-        if (!prefs!.dislikedFood.contains(tag)) prefs!.dislikedFood.add(tag);
+        if (!prefs!.dislikedFood.contains(tag)) prefs.dislikedFood.add(tag);
         break;
       case 'Allergy':
-        if (!prefs!.allergies.contains(tag)) prefs!.allergies.add(tag);
+        if (!prefs!.allergies.contains(tag)) prefs.allergies.add(tag);
         break;
     }
 
     notifyListeners();
+
+    // Persist the updated preferences to backend
+    _service.updateUserPreferences(
+      dietaryPreferences: prefs!.dietaryPreferences,
+      allergies: prefs.allergies,
+    );
   }
 
   void removeTag(String category, String tag) {
@@ -147,6 +153,12 @@ class UserAccountProvider with ChangeNotifier {
     }
 
     notifyListeners();
+
+    // Persist the updated preferences to backend
+    _service.updateUserPreferences(
+      dietaryPreferences: prefs!.dietaryPreferences,
+      allergies: prefs.allergies,
+    );
   }
 
   void editTag(String category, String oldTag, String newTag) {
@@ -172,6 +184,12 @@ class UserAccountProvider with ChangeNotifier {
     if (index != -1) {
       list[index] = newTag;
       notifyListeners();
+
+      // Persist the updated preferences to backend
+      _service.updateUserPreferences(
+        dietaryPreferences: prefs!.dietaryPreferences,
+        allergies: prefs.allergies,
+      );
     }
   }
 }
