@@ -70,7 +70,12 @@ class _TagMapState extends State<TagMap> {
       return;
     }
     setState(() {
-      selectedTags[tag] = isSelected;
+      if (tag == "No Preference" && isSelected) {
+        selectedTags.updateAll((key, value) => key == "No Preference");
+      } else {
+        selectedTags["No Preference"] = false;
+        selectedTags[tag] = isSelected;
+      }
     });
 
     if (widget.onSelectionChanged != null) {
@@ -93,7 +98,8 @@ class _TagMapState extends State<TagMap> {
         return Tag(
           label: tag,
           selected: selectedTags[tag] ?? false,
-          onSelected: widget.isTappable
+          onSelected: widget.isTappable &&
+                  (!selectedTags["No Preference"]! || tag == "No Preference")
               ? (isSelected) => _onTagTapped(tag, isSelected)
               : null,
           fontSize: widget.fontSize,

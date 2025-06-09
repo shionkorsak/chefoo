@@ -30,7 +30,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
         duration: Duration(milliseconds: 600), // Increased duration
         curve: Curves.easeOutCubic, // Smoother curve
         padding: EdgeInsets.only(
-            top: (provider.state == 5 || provider.state == 6) ? 20 : 120),
+            top: (provider.state == 5) ? 20 : 120),
         child: Stack(
           children: [
             OverflowBox(
