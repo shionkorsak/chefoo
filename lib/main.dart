@@ -7,8 +7,10 @@ import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/splash/splash.dart';
+import 'package:chefoo/services/connectivity_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:chefoo/constants.dart';
 
 Future<void> initializeApp() async {
   try {
@@ -51,9 +53,7 @@ void main() async {
         ChangeNotifierProvider<CalendarStateProvider>(
           create: (_) => CalendarStateProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => RestaurantProvider()
-        ),
+        ChangeNotifierProvider(create: (_) => RestaurantProvider()),
         ChangeNotifierProvider<GetStartedProvider>(
           create: (_) => GetStartedProvider(),
         ),
@@ -64,6 +64,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RatingSessionProvider()),
         ChangeNotifierProvider(
           create: (_) => MealHistoryProvider()..fetchMeals(),
+        ),
+        ChangeNotifierProvider<ConnectivityService>(
+          create: (_) => ConnectivityService(),
         ),
       ],
       child: const MyApp(),
@@ -76,6 +79,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ConnectivityService>(context, listen: false)
+          .initialize(context);
+    });
+
     return MaterialApp(
       theme: lightTheme,
       navigatorKey: navigatorKey,
