@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
 import 'package:chefoo/widgets/cards/auth_card.dart';
+import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:chefoo/widgets/tags/unclickable_tag.dart';
 import 'package:chefoo/widgets/buttons/circle_button.dart';
 import 'package:chefoo/widgets/star_ratings/star_rating.dart';
@@ -306,7 +307,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                         Navigator.pushAndRemoveUntil(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (_) => MainScreen(
+                                              builder: (_) => MainNavigation(
                                                     showWelcomeDialog: true,
                                                   )),
                                           (route) => false,
