@@ -655,36 +655,82 @@ class PlaceService {
   bool _calculateIsOpenFromHours(List<String> openingHours) {
     try {
       final now = DateTime.now();
-      final currentDay = now.weekday % 7;
-      final dayIndex = (currentDay + 6) % 7;
+      final currentDay = now.weekday == 7 ? 0 : now.weekday;
+      final dayIndex = currentDay % 7;
+      
+      print('[HOURS] Current day index: $dayIndex, total hours entries: ${openingHours.length}');
       
       if (dayIndex >= openingHours.length) {
+        print('[HOURS] Day index out of bounds');
         return false;
       }
       
       final todayHours = openingHours[dayIndex];
+      print('[HOURS] Today\'s hours: $todayHours');
       
       if (todayHours.toLowerCase().contains('closed')) {
+        print('[HOURS] Place explicitly marked as closed today');
         return false;
+      }
+      
+      if (todayHours.toLowerCase().contains('open 24 hours') || 
+          todayHours.toLowerCase().contains('24 hours')) {
+        print('[HOURS] Place is open 24 hours');
+        return true;
       }
       
       final parts = todayHours.split(': ');
       if (parts.length < 2) {
+        print('[HOURS] Invalid hours format, no colon separator');
         return false;
       }
       
       final timeRanges = parts[1].split(',');
+      print('[HOURS] Found ${timeRanges.length} time ranges for today');
       
       for (var timeRange in timeRanges) {
+        timeRange = timeRange.trim();
+        
+        // Handle special format for 24 hours
+        if (timeRange.toLowerCase().contains('24 hours') || 
+            timeRange.toLowerCase() == 'open 24 hours') {
+          print('[HOURS] Time range indicates 24 hours');
+          return true;
+        }
+        
         final times = timeRange.split('–');
         if (times.length != 2) {
+          // Try alternative dash character
+          final altTimes = timeRange.split('-');
+          if (altTimes.length != 2) {
+            print('[HOURS] Invalid time range format: $timeRange');
+            continue;
+          }
+          times.clear();
+          times.addAll(altTimes);
+        }
+        
+        final openTimeStr = times[0].trim();
+        final closeTimeStr = times[1].trim();
+        
+        print('[HOURS] Processing range: $openTimeStr - $closeTimeStr');
+        
+        // Special case for 24-hour restaurants with same open/close time
+        if (openTimeStr.contains('12:00 AM') && closeTimeStr.contains('12:00 AM')) {
+          print('[HOURS] 24-hour format detected (12:00 AM - 12:00 AM)');
+          return true;
+        }
+        
+        final openTime = _parseTimeString(openTimeStr);
+        final closeTime = _parseTimeString(closeTimeStr);
+        
+        if (openTime == null) {
+          print('[HOURS] Failed to parse open time: $openTimeStr');
           continue;
         }
         
-        final openTime = _parseTimeString(times[0].trim());
-        final closeTime = _parseTimeString(times[1].trim());
-        
-        if (openTime == null || closeTime == null) {
+        if (closeTime == null) {
+          print('[HOURS] Failed to parse close time: $closeTimeStr');
           continue;
         }
         
@@ -693,18 +739,29 @@ class PlaceService {
           now.hour, now.minute
         );
         
-        if (closeTime.isBefore(openTime)) {
+        print('[HOURS] Current time: ${now.hour}:${now.minute}');
+        print('[HOURS] Open time: ${openTime.hour}:${openTime.minute}');
+        print('[HOURS] Close time: ${closeTime.hour}:${closeTime.minute}');
+        
+        // Closing time is before opening time = spans midnight
+        if (closeTime.isBefore(openTime) || closeTime.isAtSameMomentAs(openTime)) {
+          // For midnight crossing: either it's after opening time OR before closing time
           if (currentTime.isAfter(openTime) || currentTime.isBefore(closeTime)) {
+            print('[HOURS] Place is open (midnight crossing case)');
             return true;
           }
-        } else if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
+        } 
+        // Normal case: open time before close time on same day
+        else if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
+          print('[HOURS] Place is open (same day case)');
           return true;
         }
       }
       
+      print('[HOURS] No matching time ranges found, place is closed');
       return false;
     } catch (e) {
-      print('Error determining open status from hours: $e');
+      print('[HOURS] Error determining open status from hours: $e');
       return false;
     }
   }
@@ -712,22 +769,38 @@ class PlaceService {
   DateTime? _parseTimeString(String timeStr) {
     try {
       final now = DateTime.now();
-      final isPM = timeStr.toUpperCase().contains('PM');
-      final is12AM = timeStr.toUpperCase().contains('12 AM');
+      final normalized = timeStr.toUpperCase().replaceAll('.', '');
+      final isPM = normalized.contains('PM');
+      final isAM = normalized.contains('AM');
       
-      final timeParts = timeStr.replaceAll(RegExp(r'[APM]'), '').trim().split(':');
+      // Handle special cases like "Open 24 hours" or just "Open"
+      if (normalized.contains('OPEN') || normalized.contains('24 HOURS')) {
+        return null;
+      }
+      
+      // Remove the AM/PM indicator and any other text
+      final cleanTime = normalized.replaceAll(RegExp(r'[^\d:]'), '').trim();
+      
+      if (cleanTime.isEmpty) {
+        print('[TIME] Invalid time string after cleaning: "$timeStr"');
+        return null;
+      }
+      
+      final timeParts = cleanTime.split(':');
       int hours = int.parse(timeParts[0]);
       int minutes = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
       
+      // Handle 12-hour clock conversion
       if (isPM && hours < 12) {
         hours += 12;
-      } else if (is12AM && hours == 12) {
-        hours = 0;
+      } else if (isAM && hours == 12) {
+        hours = 0;  // 12 AM = 00:00
       }
       
+      print('[TIME] Parsed $timeStr to $hours:$minutes');
       return DateTime(now.year, now.month, now.day, hours, minutes);
     } catch (e) {
-      print('Error parsing time string "$timeStr": $e');
+      print('[TIME] Error parsing time string "$timeStr": $e');
       return null;
     }
   }
