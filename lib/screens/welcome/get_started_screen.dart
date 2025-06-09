@@ -2,6 +2,7 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/get_started.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/profile/profile.dart';
+import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/widgets/buttons/glowing_button.dart';
 import 'package:chefoo/widgets/buttons/google_buttons/google_import_button.dart';
 import 'package:chefoo/widgets/buttons/google_buttons/google_login_button.dart';

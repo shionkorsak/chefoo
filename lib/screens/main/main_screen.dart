@@ -1,5 +1,6 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/providers/meal_history.dart';
 import 'package:chefoo/providers/rating_session.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/history/history_screen.dart';
@@ -65,6 +66,9 @@ class _MainScreenState extends MainController {
       
       final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
       restaurantProvider.notifyListeners();
+
+      final mealHistoryProvider = Provider.of<MealHistoryProvider>(context, listen: false);
+      mealHistoryProvider.fetchMeals();
     });
   }
 

@@ -536,9 +536,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (BuildContext context) => MainNavigation(
-                                  showWelcomeDialog: false,
-                                )));
+                            builder: (BuildContext context) => MainNavigation(showWelcomeDialog: false)));
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
