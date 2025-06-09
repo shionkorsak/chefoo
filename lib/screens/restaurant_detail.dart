@@ -240,7 +240,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         // Left side: Title, rating, distance, address, buttons
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Text(
                               //   widget.place.name,
@@ -257,7 +257,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              RestaurantAddress(widget.place.address),
+                              RestaurantAddress(widget.place.address.trim()),
                               const SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
