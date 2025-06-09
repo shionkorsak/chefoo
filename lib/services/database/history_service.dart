@@ -143,4 +143,30 @@ class HistoryService {
       throw Exception('Failed to fetch meal history.');
     }
   }
+
+  Future<void> deleteMealInput(String mealId) async {
+    if (uid == null) throw Exception('[HISTORY] User not logged in.');
+
+    final docRef = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('mealHistory')
+        .doc(mealId);
+
+    try {
+      final docSnapshot = await docRef.get();
+      if (!docSnapshot.exists) {
+        print('[HISTORY] Meal $mealId does not exist.');
+        return;
+      }
+
+      await docRef.delete();
+      print('[HISTORY] Deleted meal input: $mealId');
+
+    } catch (e) {
+      print('[HISTORY] Failed to delete meal $mealId: $e');
+      throw Exception('Failed to delete meal input.');
+    }
+  }
+
 }

@@ -2,18 +2,15 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/recommended.dart';
-import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:chefoo/providers/calendar_state.dart';
-import 'package:chefoo/services/calendar_service.dart';
 import 'package:chefoo/models/api_response.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/providers/main_screen.dart';
-import 'package:chefoo/services/location.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
