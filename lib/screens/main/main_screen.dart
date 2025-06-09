@@ -221,7 +221,7 @@ class _MainScreenState extends MainController {
                           ),
                         kGap8,
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
                           child: _buildChefoosPick(recommendedProvider),
                         ),
                         kGap20,

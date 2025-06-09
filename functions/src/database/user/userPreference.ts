@@ -21,6 +21,7 @@ export const updateClientPreferences = functions.https.onCall(async (data, conte
         await userRef.update({
             'preferences.dietaryPreferences': validatedData.dietaryPreferences,
             'preferences.allergies': validatedData.allergies,
+            'preferences.dislikedFood': validatedData.dislikedFood
         })
 
         const userSnap = await userRef.get();

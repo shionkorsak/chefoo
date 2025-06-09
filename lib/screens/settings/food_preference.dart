@@ -17,6 +17,10 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
   bool isShaking = false;
   late final PageController _pageController;
 
+  String? _editingTagKey;
+  TextEditingController? _editingController;
+  FocusNode? _editingFocusNode;
+
   final List<String> tabLabels = [
     'Dietary Preference',
     'Dislike',
@@ -35,6 +39,8 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _editingController?.dispose();
+    _editingFocusNode?.dispose();
     super.dispose();
   }
 
@@ -170,6 +176,25 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
   }
 
   Widget _buildTag(String tag, String category) {
+    if (_editingTagKey == tag) {
+      return SizedBox(
+        width: 100,
+        child: TextField(
+          controller: _editingController,
+          focusNode: _editingFocusNode,
+          autofocus: true,
+          onSubmitted: (_) => _completeEdit(tag),
+          onEditingComplete: () => _completeEdit(tag),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            hintText: 'Enter tag',
+            border: OutlineInputBorder(),
+          ),
+        ),
+      );
+    }
+
     return KeyedSubtree(
       key: ValueKey(tag),
       child: isShaking
@@ -210,24 +235,64 @@ class _PreferenceScreenState extends State<PreferenceScreen> {
     );
   }
 
-  void _addTag() {
+  void _addTag() async {
     final provider = Provider.of<UserAccountProvider>(context, listen: false);
-    final baseName = 'New ${selectedTab.split(' ').first}';
-    int counter = 1;
-    String newTag = baseName;
-
-    final existingTags = selectedTab == 'Dislike'
+    final tags = selectedTab == 'Dislike'
         ? provider.dislikeTags
         : selectedTab == 'Allergy'
             ? provider.allergyTags
             : provider.dietaryTags;
 
-    while (existingTags.contains(newTag)) {
-      newTag = '$baseName $counter';
-      counter++;
+    final controller = TextEditingController();
+    final newTag = await showDialog<String>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text("Add Tag"),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: CupertinoTextField(controller: controller, autofocus: true),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            child: const Text("Add"),
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+          ),
+        ],
+      ),
+    );
+
+    if (newTag != null && newTag.isNotEmpty && !tags.contains(newTag)) {
+      provider.addTag(selectedTab, newTag);
+    }
+  }
+
+  void _completeEdit(String oldTag) {
+    final newTag = _editingController?.text.trim() ?? '';
+    final provider = Provider.of<UserAccountProvider>(context, listen: false);
+
+    final tags = selectedTab == 'Dislike'
+        ? provider.dislikeTags
+        : selectedTab == 'Allergy'
+            ? provider.allergyTags
+            : provider.dietaryTags;
+
+    if (newTag.isEmpty) {
+      provider.removeTag(selectedTab, oldTag);
+    } else if (!tags.contains(newTag)) {
+      provider.editTag(selectedTab, oldTag, newTag);
     }
 
-    provider.addTag(selectedTab, newTag);
+    setState(() {
+      _editingTagKey = null;
+      _editingController?.dispose();
+      _editingFocusNode?.dispose();
+      _editingController = null;
+      _editingFocusNode = null;
+    });
   }
 
   void _editTag(String oldValue) async {
