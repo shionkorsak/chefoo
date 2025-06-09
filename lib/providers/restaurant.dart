@@ -87,7 +87,7 @@ class RestaurantProvider with ChangeNotifier {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String placesJson = jsonEncode(_places.map((p) => p.toJson()).toList());
       await prefs.setString('nearby_places', placesJson);
-      print('Saved ${_places.length} places to SharedPreferences: ${placesJson}');
+      print('Saved ${_places.length} places to SharedPreferences: $placesJson');
       
     } catch (e) {
       print('Error saving places to SharedPreferences: $e');
@@ -140,6 +140,19 @@ class RestaurantProvider with ChangeNotifier {
     
     _currentPlaces = nearby;
     print('[PLACES] Updated current places: ${_currentPlaces.length} places near current location');
+    
+    _places = List.from(_places);
+    
+    notifyListeners();
+  }
+
+  void forceRefresh() {
+    _places = List.from(_places);
+    _routePlaces = List.from(_routePlaces);
+    _currentPlaces = List.from(_currentPlaces);
+    
+    _routePlacesCache.clear();
+    
     notifyListeners();
   }
 }

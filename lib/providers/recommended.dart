@@ -155,4 +155,11 @@ class RecommendedProvider with ChangeNotifier {
     print('[REC] No valid cache nearby with matching radius');
     return false;
   }
+
+  void forceRefresh() {
+    _recommended = List.from(_recommended);
+    _enriched = List.from(_enriched);
+    
+    notifyListeners();
+  }
 }

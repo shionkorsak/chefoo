@@ -623,6 +623,35 @@ abstract class MapController extends State<MapScreen> {
       );
     }
   }
+  
+  void performFullMapRefresh() {
+    print("Performing full map refresh");
+    
+    setState(() {
+      markers.clear();
+      polylines.clear();
+    });
+    
+    createMarkersWithDestination();
+    
+    if (hasActiveRoute) {
+      forceDrawRoute();
+    }
+    
+    if (selectedPlace != null) {
+      final originalPlace = selectedPlace;
+      setState(() {
+        selectedPlace = null;
+        showPlaceCard = false;
+      });
+      
+      Future.delayed(Duration(milliseconds: 300), () {
+        if (mounted && originalPlace != null) {
+          onMarkerTapped(originalPlace);
+        }
+      });
+    }
+  }
 }
 
 // Helper class for map bounds calculation
