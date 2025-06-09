@@ -13,11 +13,21 @@ class OtherRecomScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final restaurantProvider = Provider.of<RestaurantProvider>(context);
     
-    final displayPlaces = places.isNotEmpty 
-        ? places 
-        : restaurantProvider.routePlaces.isNotEmpty
-            ? restaurantProvider.routePlaces
-            : restaurantProvider.places;
+    List<Place> filterValidPlaces(List<Place> places) {
+      return places.where((place) => 
+        place.isOpenNow == true && place.rating > 0
+      ).toList();
+    }
+    
+    final List<Place> filteredInputPlaces = filterValidPlaces(places);
+    final List<Place> filteredRoutePlaces = filterValidPlaces(restaurantProvider.routePlaces);
+    final List<Place> filteredNearbyPlaces = filterValidPlaces(restaurantProvider.places);
+    
+    final displayPlaces = filteredInputPlaces.isNotEmpty 
+        ? filteredInputPlaces 
+        : filteredRoutePlaces.isNotEmpty
+            ? filteredRoutePlaces
+            : filteredNearbyPlaces;
 
     String screenTitle;
 
