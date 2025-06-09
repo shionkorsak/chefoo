@@ -8,7 +8,6 @@ import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/providers/user_account.dart';
 import 'package:chefoo/screens/splash/splash.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'services/notification/notification_service.dart';
 import 'firebase_options.dart';
 
 Future<void> initializeApp() async {
