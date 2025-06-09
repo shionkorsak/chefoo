@@ -18,7 +18,7 @@ class RatingScreen extends StatefulWidget {
 }
 
 class _RatingScreenState extends State<RatingScreen> {
-  late RatingController _controller;
+  late RatingController _controller; 
 
   @override
   void initState() {
@@ -36,6 +36,20 @@ class _RatingScreenState extends State<RatingScreen> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  bool _isInputValid() {
+    for (var entry in _controller.entries) {
+      if (entry['meal']!.text.trim().isEmpty) {
+        return false;
+      }
+      
+      if (entry['comment']!.text.trim().isEmpty) {
+        return false;
+      }
+    }
+    
+    return _controller.entries.isNotEmpty;
   }
 
   @override
@@ -137,9 +151,9 @@ class _RatingScreenState extends State<RatingScreen> {
                             BorderTextField(
                               label: '',
                               controller: entry['meal']!,
-                              // key: ValueKey(entry['meal']),
                               onChanged: (value) {
-                                entry['meal']?.text = value;
+                                setState(() {
+                                });
                               },
                             ),
                             const SizedBox(height: 16),
@@ -164,9 +178,9 @@ class _RatingScreenState extends State<RatingScreen> {
                             BorderTextField(
                               label: '',
                               controller: entry['comment']!,
-                              // key: ValueKey(entry['comment']),
                               onChanged: (value) {
-                                entry['comment']?.text = value;
+                                setState(() {
+                                });
                               },
                             ),
                           ],
@@ -186,6 +200,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 Center(
                   child: GlowingButton(
                     text: 'Done',
+                    isEnabled: _isInputValid(),
                     onPressed: () async {
                       final uid = AuthService().getCurrentUserUID();
                       final ratingSession = Provider.of<RatingSessionProvider>(context, listen: false);

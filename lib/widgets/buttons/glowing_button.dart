@@ -3,11 +3,12 @@ import 'package:chefoo/commons.dart';
 import 'package:chefoo/styles/colors.dart';
 
 class GlowingButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String text;
   final Color? textColor;
   final Color? backgroundColor;
   final Color? glowColor;
+  final bool isEnabled;
 
   const GlowingButton({
     Key? key,
@@ -16,6 +17,7 @@ class GlowingButton extends StatelessWidget {
     this.textColor,
     this.backgroundColor,
     this.glowColor,
+    this.isEnabled = true,
   }) : super(key: key);
 
   @override
@@ -23,19 +25,23 @@ class GlowingButton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: kRadius30,
-        boxShadow: [
-          BoxShadow(
-            color: (glowColor ?? AppColors.primary).withOpacity(0.4),
-            blurRadius: 12,
-            spreadRadius: 2,
-          ),
-        ],
+        boxShadow: isEnabled
+            ? [
+                BoxShadow(
+                  color: (glowColor ?? AppColors.primary).withOpacity(0.4),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ]
+            : [],
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppColors.primary,
+          backgroundColor: isEnabled
+              ? (backgroundColor ?? AppColors.primary)
+              : Colors.grey,
         ),
-        onPressed: onPressed,
+        onPressed: isEnabled ? onPressed : null,
         child: Text(
           text,
           style: TextStyle(color: textColor ?? AppColors.surface),
