@@ -1,4 +1,3 @@
-import 'package:badges/badges.dart' as badges;
 import 'package:chefoo/models/user/meal.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/styles/colors.dart';
