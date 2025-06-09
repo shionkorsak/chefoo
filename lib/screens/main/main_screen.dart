@@ -259,12 +259,16 @@ class _MainScreenState extends MainController {
                                         )
                                         .toList();
                                       
-                                      print('Showing filtered places in Other Recommendations: ${combinedPlaces.length} valid places');
+                                      final displayPlaces2 = combinedPlaces.isNotEmpty 
+                                          ? Provider.of<RecommendedProvider>(context, listen: false).enriched 
+                                          : combinedPlaces;
+                                      
+                                      print('Showing filtered places in Other Recommendations: ${displayPlaces2.length} valid places');
                                       
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => OtherRecomScreen(places: combinedPlaces),
+                                          builder: (context) => OtherRecomScreen(places: displayPlaces2),
                                         ),
                                       );
                                     },
@@ -284,6 +288,7 @@ class _MainScreenState extends MainController {
                             child: Builder(
                               builder: (context) {
                                 final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                                final recommendedProvider = Provider.of<RecommendedProvider>(context);
                                 
                                 final Map<String, Place> uniquePlaces = {};
                                 
@@ -301,9 +306,13 @@ class _MainScreenState extends MainController {
                                   )
                                   .toList();
                                 
+                                final displayPlaces2 = filteredPlaces.isNotEmpty 
+                                    ? recommendedProvider.enriched 
+                                    : filteredPlaces;
+                                
                                 return RestaurantCardListHorizontal(
                                   without: false,
-                                  places: filteredPlaces,
+                                  places: displayPlaces2,
                                   isLoading: isLoading,
                                 );
                               },

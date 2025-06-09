@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:chefoo/screens/map/map_controller.dart';
 import 'package:chefoo/utils/place_utils.dart';
@@ -576,5 +577,112 @@ class _MapScreenState extends MapController {
         ],
       ),
     );
+  }
+  
+  Future<void> createMarkersWithDestination() async {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final locationService = Provider.of<LocationService>(context, listen: false);
+    
+    final Map<String, Place> uniquePlaces = {};
+    
+    for (var place in restaurantProvider.routePlaces) {
+      uniquePlaces[place.id] = place;
+    }
+    
+    for (var place in restaurantProvider.places) {
+      uniquePlaces[place.id] = place;
+    }
+    
+    final List<Place> filteredPlaces = uniquePlaces.values
+      .where((place) => 
+        place.isOpenNow == true && place.rating > 0
+      )
+      .toList();
+    
+    final displayPlaces2 = filteredPlaces.isNotEmpty 
+        ? recommendedProvider.enriched 
+        : filteredPlaces;
+    
+    final currentPosition = locationService.currentPosition;
+    if (currentPosition != null) {
+      for (var place in displayPlaces2) {
+        final distance = calculateGeoDistance(
+          currentPosition.latitude, currentPosition.longitude,
+          place.lat, place.lng
+        );
+        
+        place.walkingDistance = distance / 1000;
+      }
+    }
+    
+    final Set<Marker> newMarkers = {};
+
+    for (var place in displayPlaces2) {
+      final isSelected = place.id == selectedPlace?.id;
+      
+      final marker = Marker(
+        markerId: MarkerId(place.id),
+        position: LatLng(place.lat, place.lng),
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          isSelected ? BitmapDescriptor.hueGreen : BitmapDescriptor.hueRed,
+        ),
+        zIndex: isSelected ? 2 : 1,
+        onTap: () => onMarkerTapped(place),
+      );
+      
+      newMarkers.add(marker);
+    }
+
+    if (widget.destination != null) {
+      newMarkers.add(
+        Marker(
+          markerId: const MarkerId('event_destination'),
+          position: widget.destination!,
+          infoWindow: InfoWindow(
+            title: widget.destinationName ?? 'Event Location',
+            snippet: 'Your event location',
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          zIndex: 10,
+        ),
+      );
+    }
+    
+    if (mounted) {
+      setState(() {
+        markers = newMarkers;
+      });
+    }
+  }
+
+  List<Place> getSortedPlacesByDistance() {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    
+    final Map<String, Place> uniquePlaces = {};
+    
+    for (var place in restaurantProvider.routePlaces) {
+      uniquePlaces[place.id] = place;
+    }
+    
+    for (var place in restaurantProvider.places) {
+      uniquePlaces[place.id] = place;
+    }
+    
+    final List<Place> filteredPlaces = uniquePlaces.values
+      .where((place) => 
+        place.isOpenNow == true && place.rating > 0
+      )
+      .toList();
+    
+    final displayPlaces2 = filteredPlaces.isNotEmpty 
+        ? recommendedProvider.enriched 
+        : filteredPlaces;
+    
+    if (displayPlaces2.isEmpty) return [];
+    
+    return List<Place>.from(displayPlaces2)
+      ..sort((a, b) => a.walkingDistance.compareTo(b.walkingDistance));
   }
 }
