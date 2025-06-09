@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/models/user/meal.dart';
-import 'package:flutter/material.dart';
 
 class MainScreenProvider with ChangeNotifier {
   List<Place> _recommendations = [];

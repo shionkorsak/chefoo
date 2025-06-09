@@ -4,7 +4,7 @@ import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/screens/restaurant_detail.dart';
 import 'package:chefoo/screens/map/map_controller.dart';
 import 'package:chefoo/utils/place_utils.dart';
-import 'package:chefoo/widgets/tags/unclickable_tag.dart';
+import 'package:chefoo/widgets/tags/tag.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Place> places;
@@ -194,7 +194,7 @@ class _MapScreenState extends MapController {
                               itemCount: selectedEnrichedPlace!.tags.length,
                               separatorBuilder: (context, index) => const SizedBox(width: 8),
                               itemBuilder: (context, index) {
-                                return TagChip(
+                                return Tag(
                                   label: selectedEnrichedPlace!.tags[index]
                                 );
                               },
