@@ -282,7 +282,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                   final hasPrefs =
                       account?.preferences!.dietaryPreferences.isNotEmpty ==
                               true ||
-                          account?.preferences!.allergies.isNotEmpty == true;
+                          account?.preferences!.allergies.isNotEmpty == true; 
                   if (hasPrefs) {
                     provider.setState(7);
                     provider.setShowFinalScreenContent(false);

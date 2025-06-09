@@ -1,3 +1,4 @@
+import 'package:chefoo/providers/recommended.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
@@ -12,28 +13,46 @@ class OtherRecomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final restaurantProvider = Provider.of<RestaurantProvider>(context);
+    final recommendedProvider = Provider.of<RecommendedProvider>(context);
     
-    final displayPlaces = places.isNotEmpty 
-        ? places 
-        : restaurantProvider.routePlaces.isNotEmpty
-            ? restaurantProvider.routePlaces
-            : restaurantProvider.places;
+    List<Place> filterValidPlaces(List<Place> places) {
+      return places.where((place) => 
+        place.isOpenNow == true && place.rating > 0
+      ).toList();
+    }
+    
+    final List<Place> filteredInputPlaces = filterValidPlaces(places);
+    final List<Place> filteredRoutePlaces = filterValidPlaces(restaurantProvider.routePlaces);
+    final List<Place> filteredNearbyPlaces = filterValidPlaces(restaurantProvider.places);
+    
+    final displayPlaces = filteredInputPlaces.isNotEmpty 
+        ? filteredInputPlaces 
+        : filteredRoutePlaces.isNotEmpty
+            ? filteredRoutePlaces
+            : filteredNearbyPlaces;
 
+    final displayPlaces2 = places.isNotEmpty ? recommendedProvider.enriched : places;
+
+    
     String screenTitle;
 
-    final hasRoutePlaces = restaurantProvider.routePlaces.isNotEmpty &&
-      displayPlaces.any((p) => restaurantProvider.routePlaces.any((rp) => rp.id == p.id));
+    // final hasRoutePlaces = restaurantProvider.routePlaces.isNotEmpty &&
+    //   displayPlaces.any((p) => restaurantProvider.routePlaces.any((rp) => rp.id == p.id));
 
-    final hasNearbyPlaces = restaurantProvider.places.isNotEmpty && 
-      displayPlaces.any((p) => restaurantProvider.places.any((np) => np.id == p.id));
+    // final hasNearbyPlaces = restaurantProvider.places.isNotEmpty && 
+    //   displayPlaces.any((p) => restaurantProvider.places.any((np) => np.id == p.id));
 
-    if (hasRoutePlaces && hasNearbyPlaces) {
-      screenTitle = "Recommended Places";
-    } else {
-      screenTitle = "Recommendations";
-    }
+    // //final hasRecommendedPlaces = displayPlaces2.any((p)) => recommendedProvider.enriched.any((rp) => rp.id == p.id));
+
+    // if (hasRoutePlaces && hasNearbyPlaces) {
+    //   screenTitle = "Recommended Places";
+    // } else {
+    //   screenTitle = "Recommendations";
+    // }
+
+    screenTitle = "Recommendations";
             
-    if (displayPlaces.isEmpty) {
+    if (displayPlaces2.isEmpty) {
       return Scaffold(
         body: Center(
           child: Text(
@@ -72,11 +91,11 @@ class OtherRecomScreen extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  itemCount: displayPlaces.length,
+                  itemCount: displayPlaces2.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: RestaurantCardHorizontal(place: displayPlaces[index]),
+                      child: RestaurantCardHorizontal(place: displayPlaces2[index]),
                     );
                   },
                 ),
