@@ -108,16 +108,13 @@ abstract class MainController extends State<MainScreen> {
 
   Future<void> _setRecommendedPlace() async {
     final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-    final recommended = recommendedProvider.recommended;
 
     if (mounted) {
       setState(() {
-        _recommendedPlaces = recommended;
+        _recommendedPlaces = recommendedProvider.recommended;
+        _enrichedPlaces = recommendedProvider.enriched;
       });
     }
-    final meals = await HistoryService().fetchMeals();
-    final mainScreenProvider = Provider.of<MainScreenProvider>(context, listen: false);
-    mainScreenProvider.setAllMeals(meals);
   }
 
   Future<void> _refreshRecommendedPlaces() async {

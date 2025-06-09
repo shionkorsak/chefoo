@@ -114,7 +114,7 @@ class RecommendedProvider with ChangeNotifier {
     if (entriesJson == null) return;
 
     final entries = List<Map<String, dynamic>>.from(jsonDecode(entriesJson));
-    final cutoff = DateTime.now().subtract(Duration(days: 2)).millisecondsSinceEpoch;
+    final cutoff = DateTime.now().subtract(Duration(hours: 3)).millisecondsSinceEpoch;
 
     final recent = entries.where((e) => e['timestamp'] >= cutoff).toList();
     await prefs.setString(key, jsonEncode(recent));

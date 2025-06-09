@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/providers/meal_history.dart';
@@ -245,34 +247,35 @@ class _MainScreenState extends MainController {
                                   IconButton(
                                     icon: const Icon(Icons.chevron_right, color: AppColors.primary),
                                     onPressed: () {
-                                      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                                      // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
                                       
-                                      final Map<String, Place> uniquePlaces = {};
+                                      // final Map<String, Place> uniquePlaces = {};
                                       
-                                      for (var place in restaurantProvider.routePlaces) {
-                                        uniquePlaces[place.id] = place;
-                                      }
+                                      // for (var place in restaurantProvider.routePlaces) {
+                                      //   uniquePlaces[place.id] = place;
+                                      // }
                                       
-                                      for (var place in restaurantProvider.places) {
-                                        uniquePlaces[place.id] = place;
-                                      }
+                                      // for (var place in restaurantProvider.places) {
+                                      //   uniquePlaces[place.id] = place;
+                                      // }
                                       
-                                      final List<Place> combinedPlaces = uniquePlaces.values
-                                        .where((place) => 
-                                          place.isOpenNow == true && place.rating > 0
-                                        )
-                                        .toList();
+                                      // final List<Place> combinedPlaces = uniquePlaces.values
+                                      //   .where((place) => 
+                                      //     place.isOpenNow == true && place.rating > 0
+                                      //   )
+                                      //   .toList();
                                       
-                                      final displayPlaces2 = combinedPlaces.isNotEmpty 
-                                          ? Provider.of<RecommendedProvider>(context, listen: false).enriched 
-                                          : combinedPlaces;
+                                      // final displayPlaces2 = combinedPlaces.isNotEmpty 
+                                      //     ? Provider.of<RecommendedProvider>(context, listen: false).enriched 
+                                      //     : combinedPlaces;
                                       
-                                      print('Showing filtered places in Other Recommendations: ${displayPlaces2.length} valid places');
+                                      // print('Showing filtered places in Other Recommendations: ${displayPlaces2.length} valid places');
+
                                       
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => OtherRecomScreen(places: displayPlaces2),
+                                          builder: (context) => OtherRecomScreen(places: enrichedPlaces),
                                         ),
                                       );
                                     },
@@ -291,32 +294,9 @@ class _MainScreenState extends MainController {
                             height: 230,
                             child: Builder(
                               builder: (context) {
-                                final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-                                final recommendedProvider = Provider.of<RecommendedProvider>(context);
-                                
-                                final Map<String, Place> uniquePlaces = {};
-                                
-                                for (var place in restaurantProvider.routePlaces) {
-                                  uniquePlaces[place.id] = place;
-                                }
-                                
-                                for (var place in restaurantProvider.places) {
-                                  uniquePlaces[place.id] = place;
-                                }
-                                
-                                final List<Place> filteredPlaces = uniquePlaces.values
-                                  .where((place) => 
-                                    place.isOpenNow == true && place.rating > 0
-                                  )
-                                  .toList();
-                                
-                                final displayPlaces2 = filteredPlaces.isNotEmpty 
-                                    ? recommendedProvider.enriched 
-                                    : filteredPlaces;
-                                
                                 return RestaurantCardListHorizontal(
                                   without: false,
-                                  places: displayPlaces2,
+                                  places: enrichedPlaces,
                                   isLoading: isLoading,
                                 );
                               },

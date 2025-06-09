@@ -124,7 +124,13 @@ class RecommendationService {
           final dist = calculateGeoDistance(lat, lng, place.lat, place.lng);
           if (dist <= radiusMeters) {
             place.walkingDistance = dist / 1000;
-            filtered.add(place);
+            final isOpen = place.isOpenNow ?? true;
+            final hasRating = place.rating != null && place.rating! > 0;
+            print('[FILTER] Place: ${place.name} | isOpen: $isOpen | hasRating: $hasRating');
+            if (isOpen && hasRating) {
+              place.walkingDistance = dist / 1000;
+              filtered.add(place);
+            }
           }
         }
       }
