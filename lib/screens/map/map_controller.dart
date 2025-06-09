@@ -431,10 +431,15 @@ abstract class MapController extends State<MapScreen> {
   Future<void> createMarkersWithDestination() async {
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final locationService = Provider.of<LocationService>(context, listen: false);
-    final places = restaurantProvider.places.isNotEmpty 
+    
+    final allPlaces = restaurantProvider.places.isNotEmpty 
         ? restaurantProvider.places 
         : widget.places;
-        
+
+    final places = allPlaces.where((place) => 
+      place.isOpenNow == true && place.rating > 0
+    ).toList();
+      
     final currentPosition = locationService.currentPosition;
     
     if (currentPosition != null) {
@@ -449,7 +454,7 @@ abstract class MapController extends State<MapScreen> {
     }
     
     final placesToShow = places.length > 50 ? places.sublist(0, 50) : places;
-        
+      
     final Set<Marker> newMarkers = {};
 
     for (var place in placesToShow) {

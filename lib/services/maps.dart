@@ -749,4 +749,10 @@ class PlaceService {
     
     print('[MAPS] Cache cleanup complete across ${cacheKeys.length} location keys');
   }
+
+  List<Place> getFilteredPlaces(List<Place> places) {
+    return places.where((place) => 
+      place.isOpenNow == true && place.rating > 0
+    ).toList();
+  }
 }
