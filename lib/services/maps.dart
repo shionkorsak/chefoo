@@ -128,6 +128,7 @@ class PlaceService {
         if (place.openingHours != null && place.openingHours!.isNotEmpty) {
           try {
             place.isOpenNow = _calculateIsOpenFromHours(place.openingHours!);
+            print('[MAPS] Place ${place.name} is open now: ${place.isOpenNow}');
           } catch (e) {
             print('Error calculating open status from hours: $e');
           }

@@ -120,7 +120,7 @@ class RecommendedProvider with ChangeNotifier {
     await prefs.setString(key, jsonEncode(recent));
   }
 
-  Future<bool> hasValidCacheNearby(String uid, Position currentPosition, {double targetRadius = 1000.0}) async {
+  Future<bool> hasValidCacheNearby(String uid, Position currentPosition, {double targetRadius = 100.0}) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '${uid}_recommended_entries';
     final entriesJson = prefs.getString(key);

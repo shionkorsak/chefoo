@@ -117,22 +117,24 @@ class RecommendationService {
     try {
       final combined = [...restaurantProvider.routePlaces, ...restaurantProvider.places];
       final Set<String> seen = {};
-      final List<Place> filtered = [];
+      final List<Place> rawFiltered = [];
 
       for (final place in combined) {
         if (seen.add(place.id)) {
           final dist = calculateGeoDistance(lat, lng, place.lat, place.lng);
           if (dist <= radiusMeters) {
             place.walkingDistance = dist / 1000;
-            final isOpen = place.isOpenNow ?? true;
-            final hasRating = place.rating != null && place.rating! > 0;
-            print('[FILTER] Place: ${place.name} | isOpen: $isOpen | hasRating: $hasRating');
-            if (isOpen && hasRating) {
-              place.walkingDistance = dist / 1000;
-              filtered.add(place);
-            }
+            rawFiltered.add(place);
           }
         }
+      }
+
+      final filtered = placeService.getFilteredPlaces(rawFiltered);
+
+      for (final place in rawFiltered) {
+        final isOpen = place.isOpenNow ?? true;
+        final hasRating = place.rating != null && place.rating! > 0;
+        print('[FILTER] ${place.name} | isOpen: $isOpen | hasRating: $hasRating');
       }
 
       if (filtered.isEmpty) return _emptyResult();

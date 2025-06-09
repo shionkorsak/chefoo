@@ -102,7 +102,13 @@ class _SplashScreenState extends State<SplashScreen>
         await recommendedProvider.cleanupOldEntries(uid);
         await recommendedProvider.loadFromPrefs(uid, position);
 
-        if (recommendedProvider.recommended.isEmpty) {
+        final isCacheValid = await recommendedProvider.hasValidCacheNearby(
+          uid,
+          position,
+          targetRadius: 100.0,
+        );
+
+        if (!isCacheValid) {
           final recommendationService = RecommendationService(
             restaurantProvider: restaurantProvider,
             placeService: Provider.of<PlaceService>(context, listen: false),
@@ -113,6 +119,7 @@ class _SplashScreenState extends State<SplashScreen>
             lat: position.latitude,
             lng: position.longitude,
           );
+
 
           await recommendedProvider.setRecommendations(
             recommended: result['recommended'] ?? [],

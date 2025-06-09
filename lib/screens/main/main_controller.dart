@@ -95,6 +95,9 @@ abstract class MainController extends State<MainScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
+    final recommendedProvider = Provider.of<RecommendedProvider>(context);
+    recommendedProvider.addListener(_setRecommendedPlace);
+
     final locationService = Provider.of<LocationService>(context);
 
     if(locationService.locationChangedSignificantly) {
@@ -296,6 +299,8 @@ abstract class MainController extends State<MainScreen> {
 
   @override
   void dispose() {
+    Provider.of<RecommendedProvider>(context, listen: false)
+    .removeListener(_setRecommendedPlace);
     _inactivityTimer?.cancel();
     carouselController.dispose();
     aiInputController.dispose();
