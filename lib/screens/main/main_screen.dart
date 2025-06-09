@@ -1,22 +1,17 @@
-import 'package:chefoo/providers/rating_session.dart';
-import 'package:chefoo/widgets/rate_popup.dart';
-import 'package:chefoo/providers/recommended.dart';
-import 'package:chefoo/screens/rating/rating_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/commons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'main_controller.dart';
+import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/providers/rating_session.dart';
+import 'package:chefoo/providers/recommended.dart';
+import 'package:chefoo/screens/history/history_screen.dart';
+import 'package:chefoo/screens/main/other_recom_screen.dart';
 import 'package:chefoo/widgets/ai_input_field.dart';
+import 'package:chefoo/widgets/cards/history_list.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
-import 'package:chefoo/screens/main/other_recom_screen.dart';
-import 'package:chefoo/screens/history/history_screen.dart';
-import 'package:chefoo/widgets/cards/history_list.dart';
-import 'package:chefoo/providers/user_account.dart';
-import 'package:chefoo/widgets/cards/restaurant_meal.dart';
+import 'package:chefoo/widgets/rate_popup.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
+import 'main_controller.dart';
 
 
 class MainScreen extends StatefulWidget {
