@@ -1,19 +1,14 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/providers/recommended.dart';
-import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/screens/splash/splash.dart';
+import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'package:chefoo/providers/calendar_state.dart';
-import 'package:chefoo/services/calendar_service.dart';
-import 'package:chefoo/models/api_response.dart';
-import 'package:chefoo/services/database/history_service.dart';
-import 'package:chefoo/providers/main_screen.dart';
-import 'package:chefoo/services/location.dart';
+
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
@@ -305,11 +300,54 @@ abstract class MainController extends State<MainScreen> {
     });
   }
 
-  void onAIQuerySubmitted(String query) {
+  void onAIQuerySubmitted(String query) async {
     setState(() {
       _aiQuery = query;
-      _aiGeneratedResults = _getMockResults(); // always show 3 mock cards for visuals
+      _isLoading = true;
     });
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      print('[AI] No user authenticated');
+      setState(() {
+        _aiGeneratedResults = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final placeService = Provider.of<PlaceService>(context, listen: false);
+    final recommendationService = RecommendationService(
+      restaurantProvider: restaurantProvider,
+      placeService: placeService,
+    );
+
+    try {
+      final result = await recommendationService.fetchSingleRecommendationFromAIQuery(
+        message: query,
+        uid: uid,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _aiGeneratedResults = result != null ? [result] : [];
+      });
+    } catch (e) {
+      print('[AI] Error fetching recommendation: $e');
+      if (mounted) {
+        setState(() {
+          _aiGeneratedResults = [];
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   // TODO: Implement actual AI recommendation fetching logic using RecommendationService

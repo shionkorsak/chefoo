@@ -1,6 +1,3 @@
-
-import 'package:chefoo/models/user/meal.dart';
-
 class HealthInsight {
   final double healthScore;
   final List<DailyHealthData> weeklyData;

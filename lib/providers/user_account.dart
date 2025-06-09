@@ -117,13 +117,13 @@ class UserAccountProvider with ChangeNotifier {
 
     switch (category) {
       case 'Dietary Preference':
-        if (!prefs!.dietaryPreferences.contains(tag)) prefs!.dietaryPreferences.add(tag);
+        if (!prefs!.dietaryPreferences.contains(tag)) prefs.dietaryPreferences.add(tag);
         break;
       case 'Dislike':
-        if (!prefs!.dislikedFood.contains(tag)) prefs!.dislikedFood.add(tag);
+        if (!prefs!.dislikedFood.contains(tag)) prefs.dislikedFood.add(tag);
         break;
       case 'Allergy':
-        if (!prefs!.allergies.contains(tag)) prefs!.allergies.add(tag);
+        if (!prefs!.allergies.contains(tag)) prefs.allergies.add(tag);
         break;
     }
 
