@@ -1,6 +1,9 @@
 import 'dart:async';
-
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/models/restaurant.dart';
+import 'package:chefoo/providers/restaurant.dart';
+import 'package:chefoo/services/maps.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 class RecommendationService {
@@ -160,7 +163,7 @@ class RecommendationService {
     provider.addListener(listener);
     return completer.future;
   }
-  
+
   Future<Place?> fetchSingleRecommendationFromAIQuery({
     required String message,
     required String uid,
