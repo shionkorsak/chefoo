@@ -11,7 +11,7 @@ class RestaurantCardHorizontal extends StatefulWidget {
     Key? key,
     required this.place,
     this.isLoading = false,
-    this.showDistance = true, 
+    this.showDistance = true,
   }) : super(key: key);
 
   final bool isLoading;
@@ -25,17 +25,35 @@ class RestaurantCardHorizontal extends StatefulWidget {
 
 class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
   final _banner = PictureCategoryAssets();
+  bool _isPopularTimesLoading = true;
 
   @override
   void initState() {
     super.initState();
-    if (!widget.place.popularTimesLoaded) {
-      Provider.of<PlaceService>(context, listen: false)
-          .fetchPopularTimes(widget.place)
-          .then((_) {
-        if (mounted) setState(() {});
-      });
-    }
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted && _isPopularTimesLoading) {
+        setState(() {
+          _isPopularTimesLoading = false;
+        });
+      }
+    });
+
+    Provider.of<PlaceService>(context, listen: false)
+        .fetchPopularTimes(widget.place)
+        .then((_) {
+      if (mounted)
+        setState(() {
+          _isPopularTimesLoading = false;
+        });
+    }).catchError((error) {
+      // Mark as loaded even if there was an error
+      if (mounted) {
+        setState(() {
+          _isPopularTimesLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -63,18 +81,8 @@ class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
     // Get crowdedness status
     final crowdednessStatus = PlaceUtils.getCrowdednessStatus(widget.place);
 
-    if (!widget.place.popularTimesLoaded) {
-      return Row(
-        children: [
-          SizedBox(
-            width: 10,
-            height: 10,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          SizedBox(width: 4),
-          Text("Loading...", style: AppTextStyles.detail),
-        ],
-      );
+    if (_isPopularTimesLoading) {
+      return SizedBox.shrink();
     } else if (crowdednessStatus != null) {
       // Removed the Padding wrapper to fix alignment
       return Tag(
@@ -98,7 +106,8 @@ class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
 
     try {
       final now = DateTime.now();
-      final dayIndex = now.weekday % 7;
+
+      final dayIndex = now.weekday % 7 == 0 ? 6 : now.weekday - 1;
       final weekdayTexts = widget.place.openingHours!;
 
       if (weekdayTexts.isEmpty || weekdayTexts.length <= dayIndex) {
@@ -112,14 +121,39 @@ class _RestaurantCardHorizontalState extends State<RestaurantCardHorizontal> {
         final hoursText = parts[1].trim();
 
         if (hoursText.toLowerCase() == 'closed') {
-          return Text('Today: Closed', style: AppTextStyles.detail);
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Color(0xFFFEE1D3), // Light peach background
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'CLOSED',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          );
         }
 
-        return Text(
-          'Open Hours: $hoursText',
-          style: AppTextStyles.detail,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.green.withOpacity(0.1), // Light green background
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            hoursText, // Show the actual opening hours instead of just "OPEN"
+            style: TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       }
       return SizedBox.shrink();
