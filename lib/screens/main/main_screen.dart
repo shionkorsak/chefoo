@@ -339,7 +339,7 @@ class _MainScreenState extends MainController {
                         onTap: resetInactivityTimer,
                         onPanDown: (_) => resetInactivityTimer(),
                         child: SizedBox(
-                          height: 214,
+                          height: 215,
                           child: Builder(
                             builder: (context) {
                               if (isLoading) {
