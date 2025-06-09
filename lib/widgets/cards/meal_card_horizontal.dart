@@ -11,11 +11,13 @@ import 'package:chefoo/widgets/star_ratings/star_rating.dart';
 class MealCardHorizontal extends StatefulWidget {
   final Place place;
   final List<Meal> meals;
+  final bool disableNavigation; 
 
   MealCardHorizontal({
     Key? key,
     required this.place,
     required this.meals,
+    this.disableNavigation = false,
   }) : super(key: key);
 
   @override
@@ -54,17 +56,20 @@ class _MealCardHorizontalState extends State<MealCardHorizontal> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RestaurantDetailScreen(place: widget.place),
-          ),
-        );
+        // Only navigate if navigation is enabled
+        if (!widget.disableNavigation) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RestaurantDetailScreen(place: widget.place),
+            ),
+          );
+        }
       },
       child: Container(
         constraints: BoxConstraints(
           minHeight: 120,
-          maxHeight: 145, // Slightly increased to accommodate arrows
+          maxHeight: 145,
         ),
         padding: kPadd10,
         decoration: BoxDecoration(
@@ -78,227 +83,222 @@ class _MealCardHorizontalState extends State<MealCardHorizontal> {
             ),
           ],
         ),
-        child: Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image Section
-              Container(
-                width: 120,
-                height: 120,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: kRadius10,
-                        child: Image.network(
-                          pictureUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            print('Error loading image: $error');
-                            return Placeholder();
-                          },
-                        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section
+            Container(
+              width: 120,
+              height: 120,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: kRadius10,
+                      child: Image.network(
+                        pictureUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Error loading image: $error');
+                          return Placeholder();
+                        },
                       ),
                     ),
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: LikeButton(place: widget.place),
-                    ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: LikeButton(place: widget.place),
+                  ),
+                ],
               ),
-              SizedBox(width: 12),
+            ),
+            // ... rest of your existing card content
 
-              // Content Section
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Restaurant name and tag in same row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.place.name,
-                            style: AppTextStyles.headline3
-                                .copyWith(color: AppColors.textPrimary),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (widget.place.tags.isNotEmpty) SizedBox(width: 4),
-                        if (widget.place.tags.isNotEmpty)
-                          Container(
-                            constraints: BoxConstraints(
-                                maxWidth: 100), // Limit maximum width
-                            child: Tag(
-                              label: widget.place.tags.first,
-                              isLongPressable: false,
-                              isTappable: false,
-                              fontSize: 10,
-                              backgroundColor:
-                                  AppColors.secondary.withOpacity(0.2),
-                              labelMaxLines: 1,
-                              labelOverflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-
-                    // Meal information if available
-                    if (currentMeal != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding:
-                            EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              AppColors.primary.withOpacity(0.15),
-                              AppColors.primary.withOpacity(0.00),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+            // Existing content section
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Restaurant name and tag in same row
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                          currentMeal.name,
-                          style: AppTextStyles.caption.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
+                          widget.place.name,
+                          style: AppTextStyles.headline3
+                              .copyWith(color: AppColors.textPrimary),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      if (currentMeal.notes.isNotEmpty)
-                        ConstrainedBox(
-                          constraints: BoxConstraints(maxHeight: 36),
-                          child: Text(
-                            currentMeal.notes,
-                            style: AppTextStyles.detail,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                      if (widget.place.tags.isNotEmpty) SizedBox(width: 4),
+                      if (widget.place.tags.isNotEmpty)
+                        Container(
+                          constraints: BoxConstraints(
+                              maxWidth: 100), // Limit maximum width
+                          child: Tag(
+                            label: widget.place.tags.first,
+                            isLongPressable: false,
+                            isTappable: false,
+                            fontSize: 10,
+                            backgroundColor:
+                                AppColors.secondary.withOpacity(0.2),
+                            labelMaxLines: 1,
+                            labelOverflow: TextOverflow.ellipsis,
                           ),
                         ),
                     ],
+                  ),
+                  SizedBox(height: 4),
 
-                    Spacer(),
+                  // Meal information if available
+                  if (currentMeal != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            AppColors.primary.withOpacity(0.15),
+                            AppColors.primary.withOpacity(0.00),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        currentMeal.name,
+                        style: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    if (currentMeal.notes.isNotEmpty)
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: 36),
+                        child: Text(
+                          currentMeal.notes,
+                          style: AppTextStyles.detail,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
 
-                    // Bottom row with ratings and health score
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Star rating - updated to match RestaurantCardHorizontal
-                        if (currentMeal != null)
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              StarRating(
-                                rating: currentMeal.rating,
-                                size: 20,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                currentMeal.rating.toStringAsFixed(1),
-                                style: AppTextStyles.detail
-                                    .copyWith(height: 1, fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        Column(
+                  Spacer(),
+
+                  // Bottom row with ratings and health score
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Star rating - updated to match RestaurantCardHorizontal
+                      if (currentMeal != null)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            if (currentMeal != null &&
-                                currentMeal.analysis != null &&
-                                currentMeal.analysis!
-                                    .containsKey('healthyScore'))
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.favorite,
-                                    size: 12,
-                                    color: _getHealthScoreColor(
-                                        currentMeal.analysis!['healthyScore']),
-                                  ),
-                                  SizedBox(width: 2),
-                                  Text(
-                                    '${currentMeal.analysis!['healthyScore']}/100',
-                                    style: AppTextStyles.caption.copyWith(
-                                      fontSize: 12,
-                                      color: _getHealthScoreColor(currentMeal
-                                          .analysis!['healthyScore']),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            else if (widget.place.walkingDistance > 0)
-                              Text(
-                                '${(widget.place.walkingDistance * 1000).round()}m',
-                                style: AppTextStyles.detail,
-                              ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  InkWell(
-                                    onTap: _previousMeal,
-                                    child: Container(
-                                      padding: EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            AppColors.primary.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Icon(
-                                        Icons.arrow_back_ios_rounded,
-                                        size: 14,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "${_currentIndex + 1}/${widget.meals.length}",
-                                    style: AppTextStyles.caption,
-                                  ),
-                                  SizedBox(width: 8),
-                                  InkWell(
-                                    onTap: _nextMeal,
-                                    child: Container(
-                                      padding: EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            AppColors.primary.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Icon(
-                                        Icons.arrow_forward_ios_rounded,
-                                        size: 14,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            StarRating(
+                              rating: currentMeal.rating,
+                              size: 20,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              currentMeal.rating.toStringAsFixed(1),
+                              style: AppTextStyles.detail
+                                  .copyWith(height: 1, fontSize: 16),
                             ),
                           ],
                         ),
-                      ],
-                    )
-                    // Health score or walking distance (priority to health score)
-                  ],
-                ),
+                      Column(
+                        children: [
+                          if (currentMeal != null &&
+                              currentMeal.analysis != null &&
+                              currentMeal.analysis!.containsKey('healthyScore'))
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.favorite,
+                                  size: 12,
+                                  color: _getHealthScoreColor(
+                                      currentMeal.analysis!['healthyScore']),
+                                ),
+                                SizedBox(width: 2),
+                                Text(
+                                  '${currentMeal.analysis!['healthyScore']}/100',
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 12,
+                                    color: _getHealthScoreColor(
+                                        currentMeal.analysis!['healthyScore']),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else if (widget.place.walkingDistance > 0)
+                            Text(
+                              '${(widget.place.walkingDistance * 1000).round()}m',
+                              style: AppTextStyles.detail,
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                InkWell(
+                                  onTap: _previousMeal,
+                                  child: Container(
+                                    padding: EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_back_ios_rounded,
+                                      size: 14,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  "${_currentIndex + 1}/${widget.meals.length}",
+                                  style: AppTextStyles.caption,
+                                ),
+                                SizedBox(width: 8),
+                                InkWell(
+                                  onTap: _nextMeal,
+                                  child: Container(
+                                    padding: EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 14,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                  // Health score or walking distance (priority to health score)
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
