@@ -79,7 +79,8 @@ export const userAccountSchema = z.object({
 
 export const clientUpdatePreferenceSchema = z.object({
     dietaryPreferences: z.array(z.string()),
-    allergies: z.array(z.string())
+    allergies: z.array(z.string()),
+    dislikedFood: z.array(z.string()).default([]),
 })
 
 export type UserAccount = z.infer<typeof userAccountSchema>;

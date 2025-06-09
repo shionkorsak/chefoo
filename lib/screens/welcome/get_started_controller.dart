@@ -278,6 +278,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                   final account = userAccountProvider.userAccount;
                   final hasPrefs = account?.preferences!.dietaryPreferences.isNotEmpty == true ||
                                     account?.preferences!.allergies.isNotEmpty == true;
+                                    account?.preferences!.dislikedFood.isNotEmpty == true;
                   if(hasPrefs) {
                     provider.setState(7);
                     provider.setShowFinalScreenContent(false);
@@ -390,7 +391,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                     provider.allergiesController.text.trim(),
                 ];
 
-                final success = await userAccountProvider.addUserPreferences(dietaryPreferences, allergies);
+                final success = await userAccountProvider.addUserPreferences(dietaryPreferences, allergies, dislikedFood);
 
                 if(success) {
                   await Future.delayed(Duration(milliseconds: 300), () {
