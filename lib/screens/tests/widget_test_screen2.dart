@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
-import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:chefoo/constants.dart';
@@ -198,11 +197,7 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
                   : SizedBox(
                       height: 10,
                     ),
-              Container(
-                height: 220,
-                child: RestaurantCardListHorizontal(
-                    without: false, places: restaurantProvider.places, isLoading: _isLoading),
-              ),
+              
             ],
           ),
           floatingActionButton: Column(

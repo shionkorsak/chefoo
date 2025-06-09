@@ -95,25 +95,6 @@ class RestaurantCardVertical extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            // Uncomment if you want to use Marquee instead of simple Text
-            // SizedBox(
-            //   height: 28,
-            //   width: double.infinity,
-            //   child: Marquee(
-            //     text: place.name,
-            //     style: AppTextStyles.headline3
-            //         .copyWith(color: AppColors.textPrimary),
-            //     scrollAxis: Axis.horizontal,
-            //     blankSpace: 20.0,
-            //     velocity: 30.0,
-            //     pauseAfterRound: Duration(seconds: 1),
-            //     startPadding: 10.0,
-            //     accelerationDuration: Duration(seconds: 1),
-            //     accelerationCurve: Curves.linear,
-            //     decelerationDuration: Duration(milliseconds: 500),
-            //     decelerationCurve: Curves.easeOut,
-            //   ),
-            // ),
             SizedBox(
               height: 2,
             ),
