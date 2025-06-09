@@ -30,7 +30,7 @@ class UserAccountService {
   Future<bool> updateUserPreferences({
     required List<String> dietaryPreferences,
     required List<String> allergies,
-    required List<String> dislikedFood, // <-- Add this
+    required List<String> dislikedFood, 
   }) async {
     try {
       final callable = 
@@ -39,7 +39,7 @@ class UserAccountService {
       final response = await callable.call({
         'dietaryPreferences': dietaryPreferences,
         'allergies': allergies,
-        'dislikedFood': dislikedFood, // <-- Add this
+        'dislikedFood': dislikedFood,
       });
 
       // Optional: check response payload
@@ -57,14 +57,12 @@ class UserAccountService {
   Future<bool> addUserPreference({
     required List<String> dietaryPreferences,
     required List<String> allergies,
-    required List<String> dislikedFood, // <-- Add this
   }) async {
     try {
       final doc = await _firestore.collection('users').doc(uid);
       await doc.update({
         'preferences.dietaryPreferences': dietaryPreferences,
         'preferences.allergies': allergies,
-        'preferences.dislikedFood': dislikedFood, // <-- Add this
       });
       log('Update successful.');
       return true;

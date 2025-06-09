@@ -62,12 +62,10 @@ class UserAccountProvider with ChangeNotifier {
   Future<bool> addUserPreferences(
     List<String> dietaryPreferences,
     List<String> allergies,
-    List<String> dislikedFood,
   ) async {
     final success = await _service.addUserPreference(
       dietaryPreferences: dietaryPreferences,
       allergies: allergies,
-      dislikedFood: dislikedFood,
     );
     if (success) {
       await fetchUserAccount();

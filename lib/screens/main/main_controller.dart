@@ -385,7 +385,7 @@ abstract class MainController extends State<MainScreen> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: const [
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 20),
               Text(
