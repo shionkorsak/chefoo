@@ -159,257 +159,255 @@ class _MainScreenState extends MainController {
         return SafeArea(
           child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AIInputField(
-                        onSubmitted: (text) => onAIQuerySubmitted(text),
-                      ),
-                      const SizedBox(height: 12),
-                      if (aiGeneratedResults.isNotEmpty)
-                        Column(
-                          children: [
-                            SizedBox(
-                              height: 190,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                itemCount: aiGeneratedResults.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: 16),
-                                itemBuilder: (context, index) {
-                                  final place = aiGeneratedResults[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: SizedBox(
-                                      width: 320,
-                                      child: RestaurantCardHorizontal(
-                                        place: place,
-                                        isLoading: false,
-                                      ),
+              SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AIInputField(
+                      onSubmitted: (text) => onAIQuerySubmitted(text),
+                    ),
+                    const SizedBox(height: 12),
+                    if (aiGeneratedResults.isNotEmpty)
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: 148,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: aiGeneratedResults.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 16),
+                              itemBuilder: (context, index) {
+                                final place = aiGeneratedResults[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: SizedBox(
+                                    width: MediaQuery.of(context).size.width -
+                                        30,
+                                    child: RestaurantCardHorizontal(
+                                      place: place,
+                                      isLoading: false,
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        )
-                      else
-                        const SizedBox.shrink(),
-                      if (!shouldShowGpsWarning)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Animate(
-                                target: 0.0,
-                                effects: const [
-                                  ShakeEffect(
-                                    duration: Duration(milliseconds: 500),
-                                    hz: 4,
-                                    offset: Offset(8, 0),
                                   ),
-                                ],
-                                child: Text(
-                                  "Chefoo’s Pick",
-                                  style: AppTextStyles.headline1.copyWith(
-                                      color: AppColors.primary, height: 1),
-                                ),
-                              ),
-                              eventLocation.isNotEmpty
-                                  ? Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: "You have ",
-                                            style: AppTextStyles.detail,
-                                          ),
-                                          if (eventName.isNotEmpty)
-                                            TextSpan(
-                                              text: "$eventName",
-                                              style: AppTextStyles.detail
-                                                  .copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                            ),
-                                          if (eventName.isNotEmpty)
-                                            TextSpan(
-                                              text: " at ",
-                                              style: AppTextStyles.detail,
-                                            ),
-                                          TextSpan(
-                                            text: eventLocation,
-                                            style: AppTextStyles.detail
-                                                .copyWith(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                " soon, this place is on the way!",
-                                            style: AppTextStyles.detail,
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : Text(
-                                      "Check out this restaurant near you!",
-                                      style: AppTextStyles.detail,
-                                    ),
-                            ],
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      kGap8,
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: _buildChefoosPick(recommendedProvider),
-                      ),
-                      kGap20,
+                          const SizedBox(height: 12),
+                        ],
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    if (!shouldShowGpsWarning)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Other Recommendations",
-                                    style: AppTextStyles.headline2
-                                        .copyWith(color: AppColors.primary)),
-                                IconButton(
-                                  icon: const Icon(Icons.chevron_right,
-                                      color: AppColors.primary),
-                                  style: IconButton.styleFrom(
-                                    minimumSize: const Size(24, 24),
-                                    padding: EdgeInsets.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  onPressed: () {
-                                    // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
-
-                                    // final Map<String, Place> uniquePlaces = {};
-
-                                    // for (var place in restaurantProvider.routePlaces) {
-                                    //   uniquePlaces[place.id] = place;
-                                    // }
-
-                                    // for (var place in restaurantProvider.places) {
-                                    //   uniquePlaces[place.id] = place;
-                                    // }
-
-                                    // final List<Place> combinedPlaces = uniquePlaces.values
-                                    //   .where((place) =>
-                                    //     place.isOpenNow == true && place.rating > 0
-                                    //   )
-                                    //   .toList();
-
-                                    // final displayPlaces2 = combinedPlaces.isNotEmpty
-                                    //     ? Provider.of<RecommendedProvider>(context, listen: false).enriched
-                                    //     : combinedPlaces;
-
-                                    // print('Showing filtered places in Other Recommendations: ${displayPlaces2.length} valid places');
-
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => OtherRecomScreen(
-                                            places: enrichedPlaces),
-                                      ),
-                                    );
-                                  },
+                            Animate(
+                              target: 0.0,
+                              effects: const [
+                                ShakeEffect(
+                                  duration: Duration(milliseconds: 500),
+                                  hz: 4,
+                                  offset: Offset(8, 0),
                                 ),
                               ],
+                              child: Text(
+                                "Chefoo’s Pick",
+                                style: AppTextStyles.headline1.copyWith(
+                                    color: AppColors.primary, height: 1),
+                              ),
                             ),
-                            Text("Here are some options only for you!",
-                                style: AppTextStyles.detail),
+                            eventLocation.isNotEmpty
+                                ? Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: "You have ",
+                                          style: AppTextStyles.detail,
+                                        ),
+                                        if (eventName.isNotEmpty)
+                                          TextSpan(
+                                            text: "$eventName",
+                                            style: AppTextStyles.detail
+                                                .copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                          ),
+                                        if (eventName.isNotEmpty)
+                                          TextSpan(
+                                            text: " at ",
+                                            style: AppTextStyles.detail,
+                                          ),
+                                        TextSpan(
+                                          text: eventLocation,
+                                          style: AppTextStyles.detail
+                                              .copyWith(
+                                                  fontWeight:
+                                                      FontWeight.bold),
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              " soon, this place is on the way!",
+                                          style: AppTextStyles.detail,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : Text(
+                                    "Check out this restaurant near you!",
+                                    style: AppTextStyles.detail,
+                                  ),
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: 4,
-                      ),
-                      GestureDetector(
-                        onTap: resetInactivityTimer,
-                        onPanDown: (_) => resetInactivityTimer(),
-                        child: SizedBox(
-                          height: 215,
-                          child: Builder(
-                            builder: (context) {
-                              if (isLoading) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-
-                              if (enrichedPlaces.isEmpty) {
-                                return const Center(
-                                    child: Text('No restaurants found nearby'));
-                              }
-
-                              return ListView.separated(
-                                shrinkWrap: true,
-                                scrollDirection: Axis.horizontal,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: enrichedPlaces.length,
-                                itemBuilder: (context, index) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: RestaurantCardVertical(
-                                      place: enrichedPlaces[index]),
+                    kGap8,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: _buildChefoosPick(recommendedProvider),
+                    ),
+                    kGap20,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Other Recommendations",
+                                  style: AppTextStyles.headline2
+                                      .copyWith(color: AppColors.primary)),
+                              IconButton(
+                                icon: const Icon(Icons.chevron_right,
+                                    color: AppColors.primary),
+                                style: IconButton.styleFrom(
+                                  minimumSize: const Size(24, 24),
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                separatorBuilder: (context, index) =>
-                                    const SizedBox(width: 12),
+                                onPressed: () {
+                                  // final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+              
+                                  // final Map<String, Place> uniquePlaces = {};
+              
+                                  // for (var place in restaurantProvider.routePlaces) {
+                                  //   uniquePlaces[place.id] = place;
+                                  // }
+              
+                                  // for (var place in restaurantProvider.places) {
+                                  //   uniquePlaces[place.id] = place;
+                                  // }
+              
+                                  // final List<Place> combinedPlaces = uniquePlaces.values
+                                  //   .where((place) =>
+                                  //     place.isOpenNow == true && place.rating > 0
+                                  //   )
+                                  //   .toList();
+              
+                                  // final displayPlaces2 = combinedPlaces.isNotEmpty
+                                  //     ? Provider.of<RecommendedProvider>(context, listen: false).enriched
+                                  //     : combinedPlaces;
+              
+                                  // print('Showing filtered places in Other Recommendations: ${displayPlaces2.length} valid places');
+              
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => OtherRecomScreen(
+                                          places: enrichedPlaces),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          Text("Here are some options only for you!",
+                              style: AppTextStyles.detail),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    GestureDetector(
+                      onTap: resetInactivityTimer,
+                      onPanDown: (_) => resetInactivityTimer(),
+                      child: SizedBox(
+                        height: 215,
+                        child: Builder(
+                          builder: (context) {
+                            if (isLoading) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+              
+                            if (enrichedPlaces.isEmpty) {
+                              return const Center(
+                                  child: Text('No restaurants found nearby'));
+                            }
+              
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: enrichedPlaces.length,
+                              itemBuilder: (context, index) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: RestaurantCardVertical(
+                                    place: enrichedPlaces[index]),
+                              ),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(width: 12),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Your Meals Lately...",
+                              style: AppTextStyles.headline2
+                                  .copyWith(color: AppColors.primary)),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right,
+                                color: AppColors.primary),
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(24, 24),
+                              padding: EdgeInsets.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HistoryScreen(),
+                                ),
                               );
                             },
                           ),
-                        ),
+                        ],
                       ),
-                      SizedBox(
-                        height: 12,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Your Meals Lately...",
-                                style: AppTextStyles.headline2
-                                    .copyWith(color: AppColors.primary)),
-                            IconButton(
-                              icon: const Icon(Icons.chevron_right,
-                                  color: AppColors.primary),
-                              style: IconButton.styleFrom(
-                                minimumSize: const Size(24, 24),
-                                padding: EdgeInsets.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => HistoryScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 4,
-                      ),
-                      HistoryList(),
-                      SizedBox(height: 12),
-                      Center(child: ClearPreferencesButton()),
-                      const SizedBox(height: 90),
-                    ],
-                  ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    HistoryList(),
+                    SizedBox(height: 12),
+                    Center(child: ClearPreferencesButton()),
+                    const SizedBox(height: 90),
+                  ],
                 ),
               ),
             ],
