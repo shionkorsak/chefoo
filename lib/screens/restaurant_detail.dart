@@ -168,9 +168,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                         Colors.white.withOpacity(0.8),
                                     iconColor: AppColors.primary,
                                     onPressed: () {
-                                      launchUrl(Uri.parse(
-                                        'https://www.google.com/maps/search/?api=1&query=${widget.place.lat},${widget.place.lng}&query_place_id=${widget.place.id}'
-                                      ), mode: LaunchMode.externalApplication);
+                                      launchUrl(
+                                          Uri.parse(
+                                              'https://www.google.com/maps/search/?api=1&query=${widget.place.lat},${widget.place.lng}&query_place_id=${widget.place.id}'),
+                                          mode: LaunchMode.externalApplication);
                                     },
                                   ),
                                   SizedBox(width: 12),
@@ -302,6 +303,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                       launchUrl(Uri.parse(
                                         'https://www.google.com/maps/dir/?api=1&destination=${widget.place.lat},${widget.place.lng}',
                                       ));
+
                                       Future.delayed(
                                           Duration(milliseconds: 300), () {
                                         Navigator.pushAndRemoveUntil(
@@ -331,26 +333,25 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   Text(
                                     "Tags",
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   SizedBox(
-                                    height: 40,
-                                    child: ListView.separated(
+                                    height: 30,
+                                    child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
-                                      itemCount: widget.place.tags.length,
-                                      separatorBuilder: (context, index) =>
-                                          const SizedBox(width: 8),
-                                      itemBuilder: (context, index) {
-                                        return TagChip(
-                                            label: widget.place.tags[index]);
-                                      },
+                                      child: TagMap(
+                                        tags: widget.place.tags,
+                                        isTappable: false,
+                                        isLongPressable: false,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: 8),
                                   //const Divider(),
                                 ],
                               ),
@@ -380,12 +381,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                                   MainAxisAlignment
                                                       .spaceBetween,
                                               children: [
-                                                const Text(
+                                                Text(
                                                   'Opening Hours',
                                                   style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.textPrimary,
+                                                  ),
                                                 ),
                                                 IconButton(
                                                   icon: Icon(
@@ -517,7 +519,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                                 }).toList(),
                                               ),
                                             ),
-                                            const SizedBox(height: 16),
+                                            //const SizedBox(height: 8),
                                             //const Divider(),
                                           ],
                                         );
@@ -566,7 +568,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                 ),
                               ],
                             ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           //const Divider(),
                         ],
                       ],
@@ -582,10 +584,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'Reviews',
                                 style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                               Text('${widget.place.reviews.length} reviews'),
                             ],
@@ -663,7 +668,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   ),
                                 ),
                               )),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           //const Divider(),
                         ],
                         if (_detailsLoaded &&
@@ -671,10 +676,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'Photos',
                                 style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                               TextButton(
                                 onPressed: () {

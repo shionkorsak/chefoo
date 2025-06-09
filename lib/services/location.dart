@@ -207,7 +207,7 @@ class LocationService with ChangeNotifier {
   Stream<Position> get locationStream => Geolocator.getPositionStream(
         locationSettings: LocationSettings(
           accuracy: LocationAccuracy.high,
-          distanceFilter: 100,
+          distanceFilter: 100, //needed to change for demo
         ),
       );
 
