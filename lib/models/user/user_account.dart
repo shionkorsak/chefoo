@@ -1,6 +1,7 @@
-import 'health_insight.dart';
-import 'user_preference.dart';
 import 'user_profile.dart';
+import 'user_preference.dart';
+import 'health_insight.dart';
+import 'restaurant.dart';
 
 class UserAccount {
   final UserProfile? profile;

@@ -1,14 +1,19 @@
 import 'dart:async';
-
+import 'dart:developer';
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/providers/recommended.dart';
+import 'package:chefoo/providers/restaurant.dart';
 import 'package:chefoo/screens/splash/splash.dart';
-import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-
+import 'package:chefoo/providers/calendar_state.dart';
+import 'package:chefoo/services/calendar_service.dart';
+import 'package:chefoo/models/api_response.dart';
+import 'package:chefoo/services/database/history_service.dart';
+import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/services/location.dart';
 import 'main_screen.dart';
 
 abstract class MainController extends State<MainScreen> {
@@ -57,12 +62,13 @@ abstract class MainController extends State<MainScreen> {
     );
 
     aiInputController.addListener(() {
-      final input = aiInputController.text.trim();
-      if (input.isNotEmpty && input != _aiQuery) {
-        onAIQuerySubmitted(input);
-      }
-    });
-    aiInputController.text = 'mock';
+    final input = aiInputController.text.trim();
+
+    if (input.isNotEmpty && input != _aiQuery && input != 'mock') {
+      onAIQuerySubmitted(input);
+    }
+  });
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationService = Provider.of<LocationService>(context, listen: false);
@@ -307,6 +313,16 @@ abstract class MainController extends State<MainScreen> {
   }
 
   void onAIQuerySubmitted(String query) async {
+    final cleanedQuery = query.trim();
+
+    if (cleanedQuery.isEmpty) {
+      setState(() {
+        _aiQuery = '';
+        _aiGeneratedResults.clear();
+      });
+      return;
+    }
+
     setState(() {
       _aiQuery = query;
       _isLoading = true;
@@ -314,7 +330,6 @@ abstract class MainController extends State<MainScreen> {
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      print('[AI] No user authenticated');
       setState(() {
         _aiGeneratedResults = [];
         _isLoading = false;
@@ -324,6 +339,9 @@ abstract class MainController extends State<MainScreen> {
 
     final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
+
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
       placeService: placeService,
@@ -333,20 +351,23 @@ abstract class MainController extends State<MainScreen> {
       final result = await recommendationService.fetchSingleRecommendationFromAIQuery(
         message: query,
         uid: uid,
+        enrichedPlaces: recommendedProvider.enriched,
+        favoritesProvider: favoritesProvider,
       );
 
       if (!mounted) return;
 
       setState(() {
-        _aiGeneratedResults = result != null ? [result] : [];
+        if (result != null && !_aiGeneratedResults.any((p) => p.id == result.id)) {
+          _aiGeneratedResults.add(result);
+        }
       });
+
     } catch (e) {
-      print('[AI] Error fetching recommendation: $e');
-      if (mounted) {
-        setState(() {
-          _aiGeneratedResults = [];
-        });
-      }
+      print('[AI] Error during msgAI call: $e');
+      setState(() {
+        _aiGeneratedResults = [];
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -385,7 +406,7 @@ abstract class MainController extends State<MainScreen> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: const [
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 20),
               Text(

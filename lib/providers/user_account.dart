@@ -62,12 +62,10 @@ class UserAccountProvider with ChangeNotifier {
   Future<bool> addUserPreferences(
     List<String> dietaryPreferences,
     List<String> allergies,
-    //List<String> dislikedFood,
   ) async {
     final success = await _service.addUserPreference(
       dietaryPreferences: dietaryPreferences,
       allergies: allergies,
-      //dislikedFood: dislikedFood,
     );
     if (success) {
       await fetchUserAccount();
@@ -114,13 +112,13 @@ class UserAccountProvider with ChangeNotifier {
     final prefs = _userAccount!.preferences;
     switch (category) {
       case 'Dietary Preference':
-        if (!prefs!.dietaryPreferences.contains(tag)) prefs.dietaryPreferences.add(tag);
+        if (!prefs!.dietaryPreferences.contains(tag)) prefs!.dietaryPreferences.add(tag);
         break;
       case 'Dislike':
-        if (!prefs!.dislikedFood.contains(tag)) prefs.dislikedFood.add(tag);
+        if (!prefs!.dislikedFood.contains(tag)) prefs!.dislikedFood.add(tag);
         break;
       case 'Allergy':
-        if (!prefs!.allergies.contains(tag)) prefs.allergies.add(tag);
+        if (!prefs!.allergies.contains(tag)) prefs!.allergies.add(tag);
         break;
     }
     notifyListeners();

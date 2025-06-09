@@ -87,7 +87,7 @@ class RestaurantProvider with ChangeNotifier {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String placesJson = jsonEncode(_places.map((p) => p.toJson()).toList());
       await prefs.setString('nearby_places', placesJson);
-      print('Saved ${_places.length} places to SharedPreferences: $placesJson');
+      print('Saved ${_places.length} places to SharedPreferences: ${placesJson}');
       
     } catch (e) {
       print('Error saving places to SharedPreferences: $e');

@@ -1,6 +1,6 @@
 import 'package:chefoo/commons.dart' as http;
-import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/models/user/meal.dart';
+import 'package:chefoo/models/restaurant.dart';
 import 'package:chefoo/services/auth/auth_service.dart';
 import 'package:chefoo/services/maps.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -38,9 +38,9 @@ class HistoryService {
       String formatRealName(String name) {
         return name
             .toLowerCase()
-            .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-            .replaceAll(RegExp(r'-+'), '-')
-            .replaceAll(RegExp(r'^-+|-+$'), '');
+            .replaceAll(RegExp(r'[^a-z0-9]+'), '-') // keep only alphanumerics, replace others with hyphens
+            .replaceAll(RegExp(r'-+'), '-')         // compress multiple dashes
+            .replaceAll(RegExp(r'^-+|-+$'), '');    // trim leading/trailing dashes
       }
 
       final formattedName = formatRealName(mealName);

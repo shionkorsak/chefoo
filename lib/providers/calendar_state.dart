@@ -1,10 +1,12 @@
-import 'package:chefoo/services/auth/auth_service.dart';
-import 'package:chefoo/services/calendar_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:chefoo/services/calendar_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:chefoo/services/auth/auth_service.dart';
+import 'package:http/http.dart' as http;
 
 class CalendarStateProvider with ChangeNotifier {
   final CalendarService _calendarService = CalendarService();

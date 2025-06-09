@@ -1,22 +1,17 @@
-import 'package:chefoo/providers/rating_session.dart';
-import 'package:chefoo/widgets/rate_popup.dart';
-import 'package:chefoo/providers/recommended.dart';
-import 'package:chefoo/screens/rating/rating_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:chefoo/providers/main_screen.dart';
 import 'package:chefoo/commons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'main_controller.dart';
+import 'package:chefoo/providers/main_screen.dart';
+import 'package:chefoo/providers/rating_session.dart';
+import 'package:chefoo/providers/recommended.dart';
+import 'package:chefoo/screens/history/history_screen.dart';
+import 'package:chefoo/screens/main/other_recom_screen.dart';
 import 'package:chefoo/widgets/ai_input_field.dart';
+import 'package:chefoo/widgets/cards/history_list.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
 import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
-import 'package:chefoo/screens/main/other_recom_screen.dart';
-import 'package:chefoo/screens/history/history_screen.dart';
-import 'package:chefoo/widgets/cards/history_list.dart';
-import 'package:chefoo/providers/user_account.dart';
-import 'package:chefoo/widgets/cards/restaurant_meal.dart';
+import 'package:chefoo/widgets/rate_popup.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
+import 'main_controller.dart';
 
 
 class MainScreen extends StatefulWidget {
@@ -165,7 +160,7 @@ class _MainScreenState extends MainController {
                           onSubmitted: (text) => onAIQuerySubmitted(text),
                         ),
                         const SizedBox(height: 12),
-                        if (aiQuery.isNotEmpty)
+                        if (aiGeneratedResults.isNotEmpty)
                           Column(
                             children: [
                               SizedBox(
@@ -173,25 +168,20 @@ class _MainScreenState extends MainController {
                                 child: ListView.separated(
                                   scrollDirection: Axis.horizontal,
                                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  itemCount: 3,
+                                  itemCount: aiGeneratedResults.length,
                                   separatorBuilder: (_, __) => const SizedBox(width: 16),
                                   itemBuilder: (context, index) {
-                                    final place = recommendedPlaces.isNotEmpty
-                                        ? recommendedPlaces[index % recommendedPlaces.length]
-                                        : null;
-
-                                    return place != null
-                                        ? Padding(
-                                            padding: const EdgeInsets.only(bottom: 12),
-                                            child: SizedBox(
-                                              width: 320,
-                                              child: RestaurantCardHorizontal(
-                                                place: place,
-                                                isLoading: false,
-                                              ),
-                                            ),
-                                          )
-                                        : const SizedBox.shrink();
+                                    final place = aiGeneratedResults[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: SizedBox(
+                                        width: 320,
+                                        child: RestaurantCardHorizontal(
+                                          place: place,
+                                          isLoading: false,
+                                        ),
+                                      ),
+                                    );
                                   },
                                 ),
                               ),
@@ -208,7 +198,7 @@ class _MainScreenState extends MainController {
                               children: [
                                 Animate(
                                   target: 0.0,
-                                  effects: [
+                                  effects: const [
                                     ShakeEffect(
                                       duration: Duration(milliseconds: 500),
                                       hz: 4,
@@ -345,7 +335,7 @@ class _MainScreenState extends MainController {
                         HistoryList(),
                         SizedBox(height: 12),
                         Center(child: ClearPreferencesButton()),
-                        const SizedBox(height: 90), // to prevent bottom content from being blocked by nav bar
+                        const SizedBox(height: 90), 
                       ],
                     ),
                   ),
