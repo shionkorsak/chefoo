@@ -1,7 +1,6 @@
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/screens/favorites/favorites_screen.dart';
 import 'package:chefoo/screens/map_view.dart';
-import 'package:chefoo/widgets/cards/restaurant_card_list_horizontal.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../providers/restaurant.dart';
@@ -150,12 +149,12 @@ class _RestaurantListContainerState extends State<RestaurantListContainer> {
     return Consumer2<LocationService, RestaurantProvider>(
       builder: (context, locationService, restaurantProvider, _) {
         return Scaffold(
-          // body: RestaurantList(
-          //   places: restaurantProvider.places,
-          //   isLoading: _isLoading,
-          // ),
-          body: RestaurantCardListHorizontal(
-              without: false, places: restaurantProvider.places, isLoading: _isLoading),
+          body: RestaurantList(
+            places: restaurantProvider.places,
+            isLoading: _isLoading,
+          ),
+          // body: RestaurantCardListHorizontal(
+          //     without: false, places: restaurantProvider.places, isLoading: _isLoading),
           floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
