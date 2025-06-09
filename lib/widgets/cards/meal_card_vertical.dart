@@ -172,7 +172,7 @@ class MealCardVertical extends StatelessWidget {
                       ),
                       Flexible(
                         child: Text(
-                          place.rating.toString(),
+                          meal!.rating.toString(),
                           style: AppTextStyles.detail
                               .copyWith(height: 1, fontSize: 14),
                           maxLines: 1,
