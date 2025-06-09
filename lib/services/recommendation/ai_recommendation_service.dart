@@ -1,9 +1,6 @@
 import 'dart:async';
+
 import 'package:chefoo/commons.dart';
-import 'package:chefoo/models/restaurant.dart';
-import 'package:chefoo/providers/restaurant.dart';
-import 'package:chefoo/services/maps.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 class RecommendationService {
@@ -162,6 +159,70 @@ class RecommendationService {
 
     provider.addListener(listener);
     return completer.future;
+  }
+  
+  Future<Place?> fetchSingleRecommendationFromAIQuery({
+    required String message,
+    required String uid,
+    bool includeRoutePlaces = true,
+  }) async {
+    try {
+      final List<Place> combined = includeRoutePlaces
+          ? [...restaurantProvider.routePlaces, ...restaurantProvider.places]
+          : [...restaurantProvider.places];
+
+      final Set<String> seen = {};
+      final List<Place> unique = [];
+      for (final place in combined) {
+        if (seen.add(place.id)) {
+          unique.add(place);
+        }
+      }
+
+      if (unique.isEmpty) {
+        print('[msgAI] No available places to evaluate.');
+        return null;
+      }
+
+      final enrichedMap = await _enrichPlacesWithTagsAndBanner(unique);
+
+      final restaurants = unique.map((place) {
+        final enriched = enrichedMap[place.id];
+        return {
+          'id': place.id,
+          'name': place.name,
+          'rating': place.rating,
+          'tags': enriched?.tags ?? [],
+          'isFavorite': false, // Optional: link with FavoritesProvider if needed
+        };
+      }).toList();
+
+      final msgAiCall = functions.httpsCallable('msgAI');
+      final response = await msgAiCall.call({
+        'message': message,
+        'restaurants': restaurants,
+      });
+
+      final result = response.data;
+      if (result == null || result['id'] == null) {
+        print('[msgAI] No valid recommendation from AI.');
+        return null;
+      }
+
+      final matched = enrichedMap[result['id']];
+      if (matched == null) {
+        print('[msgAI] Could not find matching place for ID ${result['id']}');
+        return null;
+      }
+
+      return matched.copyWith(
+        tags: List<String>.from(result['tags'] ?? matched.tags),
+        pictureCategory: result['pictureCategory'] ?? matched.pictureCategory,
+      );
+    } catch (e) {
+      print('[msgAI ERROR] Failed to fetch AI recommendation: $e');
+      return null;
+    }
   }
 }
 

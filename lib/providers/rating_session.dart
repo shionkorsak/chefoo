@@ -1,5 +1,4 @@
 import 'package:chefoo/commons.dart';
-import 'package:flutter/material.dart';
 
 class RatingSessionProvider extends ChangeNotifier {
   String? restaurantId;
