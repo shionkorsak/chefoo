@@ -261,14 +261,18 @@ class PlaceService {
           }
 
           if (addToCache || !_cachedPlaces.containsKey(cacheKey)) {
-            _cachedPlaces[cacheKey] = places;
-            print('Cached ${places.length} places with key: $cacheKey');
+            final filteredPlaces = places.where((place) => 
+              (place.isOpenNow ?? true) && place.rating > 0
+            ).toList();
+            
+            _cachedPlaces[cacheKey] = filteredPlaces;
+            print('Cached ${filteredPlaces.length} places with key: $cacheKey (filtered from ${places.length})');
           }
-
+          
           return ApiResponse(
             success: true,
             message: 'Places loaded successfully',
-            data: places,
+            data: places.where((place) => (place.isOpenNow ?? true) && place.rating > 0).toList(),
           );
         } else {
           throw Exception('Failed to load places');
@@ -726,5 +730,23 @@ class PlaceService {
       print('Error parsing time string "$timeStr": $e');
       return null;
     }
+  }
+
+  void cleanupPlaceCache() {
+    final cacheKeys = _cachedPlaces.keys.toList();
+    
+    for (String cacheKey in cacheKeys) {
+      if (_cachedPlaces.containsKey(cacheKey) && _cachedPlaces[cacheKey] != null) {
+        final filteredPlaces = _cachedPlaces[cacheKey]!.where((place) => 
+          place.isOpenNow == true && place.rating > 0
+        ).toList();
+        
+        print('[MAPS] Cache cleanup for key $cacheKey: ${_cachedPlaces[cacheKey]!.length} -> ${filteredPlaces.length} places (removed ${_cachedPlaces[cacheKey]!.length - filteredPlaces.length} closed/unrated places)');
+        
+        _cachedPlaces[cacheKey] = filteredPlaces;
+      }
+    }
+    
+    print('[MAPS] Cache cleanup complete across ${cacheKeys.length} location keys');
   }
 }

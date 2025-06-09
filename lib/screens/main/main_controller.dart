@@ -151,6 +151,8 @@ abstract class MainController extends State<MainScreen> {
       );
 
       if (response.success && response.data != null) {
+        placeService.cleanupPlaceCache();
+        
         print('[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API and cached.');
 
         final result = await recommendationService.fetchRecommendedFromProvider(

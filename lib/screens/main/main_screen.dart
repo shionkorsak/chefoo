@@ -63,6 +63,14 @@ class _MainScreenState extends MainController {
   @override
   void initState() {
     super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final placeService = Provider.of<PlaceService>(context, listen: false);
+      placeService.cleanupPlaceCache();
+      
+      final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+      restaurantProvider.notifyListeners();
+    });
   }
 
   Widget _buildChefoosPick(RecommendedProvider recommendedProvider) {
@@ -255,10 +263,13 @@ class _MainScreenState extends MainController {
                                         uniquePlaces[place.id] = place;
                                       }
                                       
-                                      final List<Place> combinedPlaces = uniquePlaces.values.toList();
+                                      final List<Place> combinedPlaces = uniquePlaces.values
+                                        .where((place) => 
+                                          place.isOpenNow == true && place.rating > 0
+                                        )
+                                        .toList();
                                       
-                                      print('Showing combined places in Other Recommendations: ${combinedPlaces.length} total');
-                                      print('(${restaurantProvider.routePlaces.length} route + ${restaurantProvider.places.length} nearby, ${combinedPlaces.length} unique)');
+                                      print('Showing filtered places in Other Recommendations: ${combinedPlaces.length} valid places');
                                       
                                       Navigator.push(
                                         context,
@@ -280,10 +291,32 @@ class _MainScreenState extends MainController {
                           onPanDown: (_) => resetInactivityTimer(),
                           child: SizedBox(
                             height: 230,
-                            child: RestaurantCardListHorizontal(
-                              without: false,
-                              places: recommendedProvider.enriched,
-                              isLoading: isLoading,
+                            child: Builder(
+                              builder: (context) {
+                                final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+                                
+                                final Map<String, Place> uniquePlaces = {};
+                                
+                                for (var place in restaurantProvider.routePlaces) {
+                                  uniquePlaces[place.id] = place;
+                                }
+                                
+                                for (var place in restaurantProvider.places) {
+                                  uniquePlaces[place.id] = place;
+                                }
+                                
+                                final List<Place> filteredPlaces = uniquePlaces.values
+                                  .where((place) => 
+                                    place.isOpenNow == true && place.rating > 0
+                                  )
+                                  .toList();
+                                
+                                return RestaurantCardListHorizontal(
+                                  without: false,
+                                  places: filteredPlaces,
+                                  isLoading: isLoading,
+                                );
+                              },
                             ),
                           ),
                         ),
