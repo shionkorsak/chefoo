@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "246856005380-v2rrs4m1rjsie5vis1sl7da8dccfi71o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chefoo",
+            "certificate_hash": "190d8af1479e38a1f566bdf6d1edd1667845d52b"
+          }
+        },
+        {
           "client_id": "246856005380-5d174gp35c7hnt240imaqftetfva9a5a.apps.googleusercontent.com",
           "client_type": 3
         }
