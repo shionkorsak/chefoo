@@ -285,45 +285,37 @@ class _MapScreenState extends MapController {
                             ],
                           ),
                         ),
-                      
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          selectedPlace!.walkingDistance >= 1.0
-                              ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
-                              : '${(selectedPlace!.walkingDistance * 1000).round()}m',
-                          style: AppTextStyles.detail,
+                        child: Row(
+                          children: [
+                            Text(
+                              selectedPlace!.walkingDistance >= 1.0
+                                  ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
+                                  : '${(selectedPlace!.walkingDistance * 1000).round()}m',
+                              style: AppTextStyles.detail,
+                            ),
+                            Spacer(), // This pushes the buttons to the right
+                            _buildNavigationButton(
+                              icon: Icons.arrow_back_ios_rounded,
+                              onTap: navigateToPreviousPlace,
+                              size: 28,
+                            ),
+                            
+                            SizedBox(width: 4),
+                            
+                            _buildNavigationButton(
+                              icon: Icons.arrow_forward_ios_rounded,
+                              onTap: navigateToNextPlace,
+                              size: 28,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ],
-            ),
-            
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildNavigationButton(
-                      icon: Icons.arrow_back_ios_rounded,
-                      onTap: navigateToPreviousPlace,
-                      size: 28,
-                    ),
-                    
-                    SizedBox(width: 4),
-                    
-                    _buildNavigationButton(
-                      icon: Icons.arrow_forward_ios_rounded,
-                      onTap: navigateToNextPlace,
-                      size: 28,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
