@@ -167,6 +167,13 @@ class _MainScreenState extends MainController {
                       onSubmitted: (text) => onAIQuerySubmitted(text),
                     ),
                     const SizedBox(height: 12),
+                    if (isAILoading)  
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
                     if (aiGeneratedResults.isNotEmpty)
                       Column(
                         children: [

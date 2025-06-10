@@ -41,6 +41,9 @@ abstract class MainController extends State<MainScreen> {
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
+  bool _isAILoading = false;
+  bool get isAILoading => _isAILoading;
+
   String eventLocation = '';
   String eventName = '';
 
@@ -59,22 +62,24 @@ abstract class MainController extends State<MainScreen> {
     );
 
     aiInputController.addListener(() {
-    final input = aiInputController.text.trim();
+      final input = aiInputController.text.trim();
 
-    if (input.isNotEmpty && input != _aiQuery && input != 'mock') {
-      onAIQuerySubmitted(input);
-    }
-  });
-
+      if (input.isNotEmpty && input != _aiQuery && input != 'mock') {
+        onAIQuerySubmitted(input);
+      }
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final locationService = Provider.of<LocationService>(context, listen: false);
-      
+      final locationService =
+          Provider.of<LocationService>(context, listen: false);
+
       if (locationService.currentPosition != null) {
-        print('[MAIN CTRL] Initial position: ${locationService.currentPosition!.latitude}, ${locationService.currentPosition!.longitude}');
+        print(
+            '[MAIN CTRL] Initial position: ${locationService.currentPosition!.latitude}, ${locationService.currentPosition!.longitude}');
       }
-      
-      _locationSubscription = locationService.locationChangedStream.listen((position) {
+
+      _locationSubscription =
+          locationService.locationChangedStream.listen((position) {
         if (mounted) {
           print('[MAIN CTRL] Location changed, restarting app flow');
           handleSignificantLocationChange();
@@ -97,9 +102,9 @@ abstract class MainController extends State<MainScreen> {
 
     final locationService = Provider.of<LocationService>(context);
 
-    if(locationService.locationChangedSignificantly) {
+    if (locationService.locationChangedSignificantly) {
       final position = locationService.currentPosition;
-      if(position != null) {
+      if (position != null) {
         handleSignificantLocationChange();
       }
       locationService.resetLocationChangedFlag();
@@ -107,7 +112,8 @@ abstract class MainController extends State<MainScreen> {
   }
 
   Future<void> _setRecommendedPlace() async {
-    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final recommendedProvider =
+        Provider.of<RecommendedProvider>(context, listen: false);
 
     if (mounted) {
       setState(() {
@@ -118,9 +124,12 @@ abstract class MainController extends State<MainScreen> {
   }
 
   Future<void> _refreshRecommendedPlaces() async {
-    final locationService = Provider.of<LocationService>(context, listen: false);
-    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final locationService =
+        Provider.of<LocationService>(context, listen: false);
+    final recommendedProvider =
+        Provider.of<RecommendedProvider>(context, listen: false);
+    final restaurantProvider =
+        Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
@@ -135,7 +144,8 @@ abstract class MainController extends State<MainScreen> {
       return;
     }
 
-    final newLocationKey = ValueKey('${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}');
+    final newLocationKey = ValueKey(
+        '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}');
 
     setState(() {
       _isLoading = true;
@@ -144,7 +154,7 @@ abstract class MainController extends State<MainScreen> {
 
     try {
       await recommendedProvider.cleanupOldEntries(uid);
-      
+
       final response = await placeService.getNearbyPlaces(
         lat: position.latitude,
         lng: position.longitude,
@@ -155,8 +165,9 @@ abstract class MainController extends State<MainScreen> {
 
       if (response.success && response.data != null) {
         placeService.cleanupPlaceCache();
-        
-        print('[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API and cached.');
+
+        print(
+            '[MAIN-CTRL] Successfully fetched ${response.data!.length} places from API and cached.');
 
         final result = await recommendationService.fetchRecommendedFromProvider(
           lat: position.latitude,
@@ -219,8 +230,9 @@ abstract class MainController extends State<MainScreen> {
 
   void _goToNextPage() {
     if (!mounted) return;
-    
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+
+    final restaurantProvider =
+        Provider.of<RestaurantProvider>(context, listen: false);
     final itemCount = restaurantProvider.places.length;
     if (itemCount == 0) return; // avoid division by zero
 
@@ -242,26 +254,27 @@ abstract class MainController extends State<MainScreen> {
   Future<void> _loadCalendarData() async {
     try {
       print('Loading calendar data directly');
-      
+
       final calendarService = CalendarService();
-      
+
       setState(() {
         _isLoading = true;
       });
-      
+
       final response = await calendarService.getNextEvent(forceRefresh: true);
-      
-      print('Calendar API response: ${response.success}, message: ${response.message}');
-      
+
+      print(
+          'Calendar API response: ${response.success}, message: ${response.message}');
+
       if (response.success && response.data != null) {
         final event = response.data!;
         print('Event title: ${event.title}');
         print('Event location: ${event.location}');
-        
+
         if (event.location != null && event.location.isNotEmpty) {
           final fullLocation = event.location;
           setState(() {
-            eventLocation = fullLocation.contains(',') 
+            eventLocation = fullLocation.contains(',')
                 ? fullLocation.substring(0, fullLocation.indexOf(','))
                 : fullLocation;
             eventName = event.title ?? '';
@@ -297,14 +310,14 @@ abstract class MainController extends State<MainScreen> {
   @override
   void dispose() {
     Provider.of<RecommendedProvider>(context, listen: false)
-    .removeListener(_setRecommendedPlace);
+        .removeListener(_setRecommendedPlace);
     _inactivityTimer?.cancel();
     carouselController.dispose();
     aiInputController.dispose();
     _locationSubscription?.cancel();
     super.dispose();
   }
-  
+
   void dismissRatePopup() {
     setState(() {
       _showRatePopup = false;
@@ -324,7 +337,8 @@ abstract class MainController extends State<MainScreen> {
 
     setState(() {
       _aiQuery = query;
-      _isLoading = true;
+      _isAILoading = true;  // Use AI-specific loading state
+      _aiGeneratedResults.clear();
     });
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -336,10 +350,13 @@ abstract class MainController extends State<MainScreen> {
       return;
     }
 
-    final restaurantProvider = Provider.of<RestaurantProvider>(context, listen: false);
+    final restaurantProvider =
+        Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
-    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
+    final recommendedProvider =
+        Provider.of<RecommendedProvider>(context, listen: false);
+    final favoritesProvider =
+        Provider.of<FavoritesProvider>(context, listen: false);
 
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
@@ -347,7 +364,8 @@ abstract class MainController extends State<MainScreen> {
     );
 
     try {
-      final result = await recommendationService.fetchSingleRecommendationFromAIQuery(
+      final result =
+          await recommendationService.fetchSingleRecommendationFromAIQuery(
         message: query,
         uid: uid,
         enrichedPlaces: recommendedProvider.enriched,
@@ -357,11 +375,10 @@ abstract class MainController extends State<MainScreen> {
       if (!mounted) return;
 
       setState(() {
-        if (result != null && !_aiGeneratedResults.any((p) => p.id == result.id)) {
+        if (result != null) {
           _aiGeneratedResults.add(result);
         }
       });
-
     } catch (e) {
       print('[AI] Error during msgAI call: $e');
       setState(() {
@@ -370,34 +387,32 @@ abstract class MainController extends State<MainScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isAILoading = false;  // Reset AI-specific loading state
         });
       }
     }
   }
+
 
   List<Place> get aiGeneratedResults => _aiGeneratedResults;
   String get aiQuery => _aiQuery;
 
   void handleSignificantLocationChange() {
     print('[MAIN CTRL] Handling significant location change');
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       print('[MAIN CTRL] Showing location change dialog');
-      
+
       bool restartInProgress = true;
 
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
-          title: Text(
-            'Location Changed', 
-            style: AppTextStyles.headline2, 
-            textAlign: TextAlign.center
-          ),
+          title: Text('Location Changed',
+              style: AppTextStyles.headline2, textAlign: TextAlign.center),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
@@ -414,15 +429,16 @@ abstract class MainController extends State<MainScreen> {
       );
 
       Future.delayed(Duration(seconds: 3), () {
-        print('[MAIN CTRL] Dialog shown for 3 seconds, navigating to splash screen');
-        
+        print(
+            '[MAIN CTRL] Dialog shown for 3 seconds, navigating to splash screen');
+
         if (!mounted) {
           print('[MAIN CTRL] Widget no longer mounted, cancelling navigation');
           return;
         }
-        
+
         Navigator.of(context).pop();
-        
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
