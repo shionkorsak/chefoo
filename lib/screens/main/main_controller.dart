@@ -376,11 +376,6 @@ abstract class MainController extends State<MainScreen> {
     }
   }
 
-  // TODO: Implement actual AI recommendation fetching logic using RecommendationService
-  List<Place> _getMockResults() {
-    return _recommendedPlaces.take(3).toList(); // Just mock using subset of recommendedPlaces
-  }
-
   List<Place> get aiGeneratedResults => _aiGeneratedResults;
   String get aiQuery => _aiQuery;
 

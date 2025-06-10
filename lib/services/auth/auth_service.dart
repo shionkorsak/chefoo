@@ -86,13 +86,10 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      // Reauthenticate
       await user.reauthenticateWithCredential(credential);
 
-      // Sign out from Google
       await _googleSignIn.signOut();
       
-      // Delete the account
       await user.delete();
       log("User account deleted.");
     } catch (e) {
