@@ -95,7 +95,7 @@ class _MapScreenState extends MapController {
         );
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: 110, left: 24, right: 24),
+        margin: EdgeInsets.only(bottom: 90, left: 24, right: 24),
         width: double.infinity,
         padding: kPadd10,
         decoration: BoxDecoration(
@@ -444,7 +444,7 @@ class _MapScreenState extends MapController {
           
           Positioned(
             right: 16,
-              bottom: showPlaceCard ? 260 : 110,
+              bottom: showPlaceCard ? 290 : 100,
             child: Column(
               children: [
                 Container(
