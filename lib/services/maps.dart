@@ -119,19 +119,20 @@ class PlaceService {
       if (details['opening_hours'] != null) {
         if (details['opening_hours']['weekday_text'] != null) {
           place.openingHours = List<String>.from(details['opening_hours']['weekday_text']);
-        }
-        
-        if (details['opening_hours']['open_now'] != null) {
-          place.isOpenNow = details['opening_hours']['open_now'];
-        }
-        
-        if (place.openingHours != null && place.openingHours!.isNotEmpty) {
-          try {
-            place.isOpenNow = _calculateIsOpenFromHours(place.openingHours!);
-            print('[MAPS] Place ${place.name} is open now: ${place.isOpenNow}');
-          } catch (e) {
-            print('Error calculating open status from hours: $e');
+          
+          if (place.openingHours != null && place.openingHours!.isNotEmpty) {
+            try {
+              place.isOpenNow = _calculateIsOpenFromHours(place.openingHours!);
+              print('[MAPS] Place ${place.name} is open now: ${place.isOpenNow}');
+            } catch (e) {
+              print('Error calculating open status from hours: $e');
+              place.isOpenNow = details['opening_hours']['open_now'];
+            }
+          } else {
+            place.isOpenNow = details['opening_hours']['open_now'];
           }
+        } else {
+          place.isOpenNow = details['opening_hours']['open_now'];
         }
       }
       
@@ -656,13 +657,10 @@ class PlaceService {
   bool _calculateIsOpenFromHours(List<String> openingHours) {
     try {
       final now = DateTime.now();
-      final currentDay = now.weekday == 7 ? 0 : now.weekday;
-      final dayIndex = currentDay % 7;
-      
-      print('[HOURS] Current day index: $dayIndex, total hours entries: ${openingHours.length}');
+      final dayIndex = now.weekday == 7 ? 6 : now.weekday - 1;
       
       if (dayIndex >= openingHours.length) {
-        print('[HOURS] Day index out of bounds');
+        print('[HOURS] Day index out of bounds: $dayIndex >= ${openingHours.length}');
         return false;
       }
       
@@ -692,23 +690,26 @@ class PlaceService {
       for (var timeRange in timeRanges) {
         timeRange = timeRange.trim();
         
-        // Handle special format for 24 hours
         if (timeRange.toLowerCase().contains('24 hours') || 
             timeRange.toLowerCase() == 'open 24 hours') {
-          print('[HOURS] Time range indicates 24 hours');
           return true;
         }
         
-        final times = timeRange.split('–');
+        List<String> times = [];
+        if (timeRange.contains('–')) {
+          times = timeRange.split('–');
+        } else if (timeRange.contains('-')) {
+          times = timeRange.split('-');
+        } else if (timeRange.contains('to')) {
+          times = timeRange.split('to');
+        } else {
+          print('[HOURS] Could not parse time range: $timeRange');
+          continue;
+        }
+        
         if (times.length != 2) {
-          // Try alternative dash character
-          final altTimes = timeRange.split('-');
-          if (altTimes.length != 2) {
-            print('[HOURS] Invalid time range format: $timeRange');
-            continue;
-          }
-          times.clear();
-          times.addAll(altTimes);
+          print('[HOURS] Invalid time range format: $timeRange');
+          continue;
         }
         
         final openTimeStr = times[0].trim();
@@ -716,23 +717,16 @@ class PlaceService {
         
         print('[HOURS] Processing range: $openTimeStr - $closeTimeStr');
         
-        // Special case for 24-hour restaurants with same open/close time
-        if (openTimeStr.contains('12:00 AM') && closeTimeStr.contains('12:00 AM')) {
-          print('[HOURS] 24-hour format detected (12:00 AM - 12:00 AM)');
-          return true;
-        }
+        DateTime? openTime = _parseTimeStringImproved(openTimeStr);
+        DateTime? closeTime = _parseTimeStringImproved(closeTimeStr);
         
-        final openTime = _parseTimeString(openTimeStr);
-        final closeTime = _parseTimeString(closeTimeStr);
-        
-        if (openTime == null) {
-          print('[HOURS] Failed to parse open time: $openTimeStr');
+        if (openTime == null || closeTime == null) {
+          print('[HOURS] Failed to parse time range: $openTimeStr - $closeTimeStr');
           continue;
         }
         
-        if (closeTime == null) {
-          print('[HOURS] Failed to parse close time: $closeTimeStr');
-          continue;
+        if (closeTime.isBefore(openTime)) {
+          closeTime = closeTime.add(Duration(days: 1));
         }
         
         final currentTime = DateTime(
@@ -740,21 +734,8 @@ class PlaceService {
           now.hour, now.minute
         );
         
-        print('[HOURS] Current time: ${now.hour}:${now.minute}');
-        print('[HOURS] Open time: ${openTime.hour}:${openTime.minute}');
-        print('[HOURS] Close time: ${closeTime.hour}:${closeTime.minute}');
-        
-        // Closing time is before opening time = spans midnight
-        if (closeTime.isBefore(openTime) || closeTime.isAtSameMomentAs(openTime)) {
-          // For midnight crossing: either it's after opening time OR before closing time
-          if (currentTime.isAfter(openTime) || currentTime.isBefore(closeTime)) {
-            print('[HOURS] Place is open (midnight crossing case)');
-            return true;
-          }
-        } 
-        // Normal case: open time before close time on same day
-        else if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
-          print('[HOURS] Place is open (same day case)');
+        if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
+          print('[HOURS] Place is open - current time is within range');
           return true;
         }
       }
@@ -767,35 +748,40 @@ class PlaceService {
     }
   }
 
-  DateTime? _parseTimeString(String timeStr) {
+  DateTime? _parseTimeStringImproved(String timeStr) {
     try {
       final now = DateTime.now();
-      final normalized = timeStr.toUpperCase().replaceAll('.', '');
-      final isPM = normalized.contains('PM');
-      final isAM = normalized.contains('AM');
+      final normalized = timeStr.toUpperCase().trim().replaceAll('.', '');
       
-      // Handle special cases like "Open 24 hours" or just "Open"
       if (normalized.contains('OPEN') || normalized.contains('24 HOURS')) {
         return null;
       }
       
-      // Remove the AM/PM indicator and any other text
-      final cleanTime = normalized.replaceAll(RegExp(r'[^\d:]'), '').trim();
+      final isPM = normalized.contains('PM');
+      final isAM = normalized.contains('AM');
       
-      if (cleanTime.isEmpty) {
-        print('[TIME] Invalid time string after cleaning: "$timeStr"');
+      final timeRegex = RegExp(r'(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?', caseSensitive: false);
+      final match = timeRegex.firstMatch(normalized);
+      
+      if (match == null) {
+        print('[TIME] No time pattern found in: $timeStr');
         return null;
       }
       
-      final timeParts = cleanTime.split(':');
-      int hours = int.parse(timeParts[0]);
-      int minutes = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
+      int hours = int.parse(match.group(1)!);
+      int minutes = match.group(2) != null ? int.parse(match.group(2)!) : 0;
       
-      // Handle 12-hour clock conversion
-      if (isPM && hours < 12) {
+      bool isPmTime = isPM || 
+                     (!isAM && hours >= 12 && hours < 24) ||
+                     (match.group(3) != null && match.group(3)!.toUpperCase() == 'PM');
+      bool isAmTime = isAM || 
+                     (hours < 12) ||
+                     (match.group(3) != null && match.group(3)!.toUpperCase() == 'AM');
+      
+      if (isPmTime && hours < 12) {
         hours += 12;
-      } else if (isAM && hours == 12) {
-        hours = 0;  // 12 AM = 00:00
+      } else if (isAmTime && hours == 12) {
+        hours = 0;
       }
       
       print('[TIME] Parsed $timeStr to $hours:$minutes');

@@ -9,6 +9,7 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
+      'profile',
       'https://www.googleapis.com/auth/calendar.readonly',
     ],
     signInOption: SignInOption.standard,

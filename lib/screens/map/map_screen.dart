@@ -95,7 +95,7 @@ class _MapScreenState extends MapController {
         );
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: 110, left: 24, right: 24),
+        margin: EdgeInsets.only(bottom: 90, left: 24, right: 24),
         width: double.infinity,
         padding: kPadd10,
         decoration: BoxDecoration(
@@ -231,10 +231,10 @@ class _MapScreenState extends MapController {
                             builder: (context) {
                               try {
                                 final now = DateTime.now();
-                                final dayIndex = now.weekday % 7;
+                                final dayIndex = now.weekday == 7 ? 6 : now.weekday - 1;
                                 final weekdayTexts = selectedPlace!.openingHours!;
                                 
-                                if (weekdayTexts.isEmpty || weekdayTexts.length <= dayIndex) {
+                                if (weekdayTexts.isEmpty || dayIndex >= weekdayTexts.length) {
                                   return Text('Hours not available', style: AppTextStyles.detail);
                                 }
                                 
@@ -245,14 +245,33 @@ class _MapScreenState extends MapController {
                                   final hoursText = parts[1].trim();
                                   
                                   if (hoursText.toLowerCase() == 'closed') {
-                                    return Text('Today: Closed', style: AppTextStyles.detail);
+                                    return Text('Today: Closed', 
+                                      style: AppTextStyles.detail.copyWith(color: Colors.red),
+                                    );
                                   }
                                   
-                                  return Text(
-                                    '$hoursText',
-                                    style: AppTextStyles.detail,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  // Add an indicator for open/closed status
+                                  final isOpen = selectedPlace!.isOpenNow ?? false;
+                                  return Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: isOpen ? Colors.green : Colors.red,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          '${isOpen ? "Open" : "Closed"} · $hoursText',
+                                          style: AppTextStyles.detail,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 }
                                 return Text('Hours not available', style: AppTextStyles.detail);
@@ -285,45 +304,37 @@ class _MapScreenState extends MapController {
                             ],
                           ),
                         ),
-                      
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          selectedPlace!.walkingDistance >= 1.0
-                              ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
-                              : '${(selectedPlace!.walkingDistance * 1000).round()}m',
-                          style: AppTextStyles.detail,
+                        child: Row(
+                          children: [
+                            Text(
+                              selectedPlace!.walkingDistance >= 1.0
+                                  ? '${selectedPlace!.walkingDistance.toStringAsFixed(1)}km'
+                                  : '${(selectedPlace!.walkingDistance * 1000).round()}m',
+                              style: AppTextStyles.detail,
+                            ),
+                            Spacer(), // This pushes the buttons to the right
+                            _buildNavigationButton(
+                              icon: Icons.arrow_back_ios_rounded,
+                              onTap: navigateToPreviousPlace,
+                              size: 28,
+                            ),
+                            
+                            SizedBox(width: 4),
+                            
+                            _buildNavigationButton(
+                              icon: Icons.arrow_forward_ios_rounded,
+                              onTap: navigateToNextPlace,
+                              size: 28,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ],
-            ),
-            
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildNavigationButton(
-                      icon: Icons.arrow_back_ios_rounded,
-                      onTap: navigateToPreviousPlace,
-                      size: 28,
-                    ),
-                    
-                    SizedBox(width: 4),
-                    
-                    _buildNavigationButton(
-                      icon: Icons.arrow_forward_ios_rounded,
-                      onTap: navigateToNextPlace,
-                      size: 28,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -444,7 +455,7 @@ class _MapScreenState extends MapController {
           
           Positioned(
             right: 16,
-              bottom: showPlaceCard ? 260 : 110,
+              bottom: showPlaceCard ? 290 : 100,
             child: Column(
               children: [
                 Container(
