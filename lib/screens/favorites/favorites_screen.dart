@@ -1,3 +1,4 @@
+import 'package:chefoo/widgets/cards/restaurant_card_horizontal.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/favorites.dart';
@@ -41,21 +42,37 @@ class FavoritesScreen extends StatelessWidget {
               );
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 16, right: 16, left: 16),
-              itemCount: favoritesProvider.favorites.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       "Favorites",
                       style: Theme.of(context).textTheme.headlineLarge,
                     ),
-                  );
-                }
-                return RestaurantCard(place: favoritesProvider.favorites[index - 1]);
-              },
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      itemCount: favoritesProvider.favorites.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: RestaurantCardHorizontal(
+                              place: favoritesProvider.favorites[index]),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),
