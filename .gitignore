@@ -62,4 +62,3 @@ windows/flutter/generated_plugin_registrant.cc
 pubspec.lock
 macos/Flutter/GeneratedPluginRegistrant.swift
 server.js
-/android/app/.cxx
