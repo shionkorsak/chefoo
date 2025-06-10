@@ -7,6 +7,7 @@ import 'package:chefoo/widgets/tags/unclickable_tag.dart';
 import 'package:chefoo/widgets/buttons/circle_button.dart';
 import 'package:chefoo/widgets/star_ratings/star_rating.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:chefoo/constants.dart';
 import 'package:chefoo/services/maps.dart';
 import 'package:chefoo/screens/rating/rating_screen.dart';
@@ -276,22 +277,18 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                   const SizedBox(width: 16),
                                   ActionCircleButton(
                                     icon: Icons.navigation,
-                                    onPressed: () {
-                                      // final user = FirebaseAuth.instance.currentUser;
-                                      // final uid = user?.uid;
-                                      final uid =
-                                          AuthService().getCurrentUserUID();
+                                    onPressed: () async {
+                                      final uid = AuthService().getCurrentUserUID();
 
                                       if (uid == null) {
-                                        print(
-                                            "User not logged in. Skipping session start.");
+                                        print("User not logged in. Skipping session start.");
                                         return;
                                       }
 
-                                      final ratingSession =
-                                          Provider.of<RatingSessionProvider>(
-                                              context,
-                                              listen: false);
+                                      final ratingSession = Provider.of<RatingSessionProvider>(
+                                        context,
+                                        listen: false,
+                                      );
                                       ratingSession.startSession(
                                         id: widget.place.id,
                                         name: widget.place.name,
@@ -300,18 +297,26 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                         uid: uid,
                                       );
 
-                                      launchUrl(Uri.parse(
-                                        'https://www.google.com/maps/dir/?api=1&destination=${widget.place.lat},${widget.place.lng}',
-                                      ));
+                                      // Open Google Maps
+                                      await launchUrl(
+                                        Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${widget.place.lat},${widget.place.lng}'),
+                                      );
 
-                                      Future.delayed(
-                                          Duration(milliseconds: 300), () {
+                                      // 🔔 Schedule post-navigation notification
+                                      const platform = MethodChannel('chefoo/notifications');
+                                      try {
+                                        await platform.invokeMethod('schedulePostNavigationNotification');
+                                      } catch (e) {
+                                        print("Failed to schedule notification: $e");
+                                      }
+
+                                      // Return to main screen after delay
+                                      Future.delayed(Duration(milliseconds: 300), () {
                                         Navigator.pushAndRemoveUntil(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (_) => MainNavigation(
-                                                    showWelcomeDialog: true,
-                                                  )),
+                                            builder: (_) => MainNavigation(showWelcomeDialog: true),
+                                          ),
                                           (route) => false,
                                         );
                                       });
