@@ -474,18 +474,7 @@ abstract class GetStartedController extends State<GetStartedScreen> {
               },
               child: Text("Next"),
             ),
-            // kGap8,
-            // TextButton(
-            //   onPressed: () async {
-            //     await Future.delayed(Duration(milliseconds: 300), () {
-            //       provider.setState(7);
-            //       provider.setShowFinalScreenContent(false);
-            //     });
-            //     await Future.delayed(Duration(milliseconds: 700));
-            //     provider.setShowFinalScreenContent(true);
-            //   },
-            //   child: Text("Skip for now"),
-            // ),
+
             SizedBox(height: 48),
           ],
         );
@@ -533,10 +522,24 @@ abstract class GetStartedController extends State<GetStartedScreen> {
                   onPressed: () {
                     provider.setState(0);
                     provider.setShowFinalScreenContent(false);
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => MainNavigation(showWelcomeDialog: false)));
+
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
+                          pageBuilder: (_, animation, __) => SplashScreen(
+                            isReloading: true,
+                            onReloadComplete: () {
+                              print('[MAIN CTRL] Reload complete, going to main screen');
+                            },
+                          ),
+                          transitionsBuilder: (_, animation, __, child) {
+                            final curve = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+                            return FadeTransition(opacity: curve, child: child);
+                          },
+                          transitionDuration: const Duration(milliseconds: 800),
+                        ),
+                      );
+                    });
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

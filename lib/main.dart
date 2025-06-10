@@ -86,7 +86,12 @@ class MyApp extends StatelessWidget {
     });
 
     return MaterialApp(
-      theme: lightTheme,
+      theme: lightTheme.copyWith(
+        snackBarTheme: const SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          insetPadding: EdgeInsets.only(bottom: 85, left: 16, right: 16),
+        ),
+      ),
       navigatorKey: navigatorKey,
       home: const SplashScreen(), // All logic is handled here now
     );
