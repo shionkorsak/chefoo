@@ -1,9 +1,12 @@
 import 'package:chefoo/models/user/meal.dart';
+import 'package:chefoo/providers/meal_history.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:chefoo/styles/colors.dart';
 import 'package:chefoo/widgets/cards/meal_card_horizontal.dart';
 import 'package:flutter/material.dart';
 import 'package:chefoo/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:chefoo/providers/meal_history.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
@@ -13,13 +16,14 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  late Future<List<Meal>> _mealsFuture;
   bool _isEditMode = false;
 
   @override
   void initState() {
     super.initState();
-    _mealsFuture = HistoryService().fetchMeals();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MealHistoryProvider>(context, listen: false).fetchMeals();
+    });
   }
 
   @override
@@ -55,18 +59,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              FutureBuilder<List<Meal>>(
-                future: _mealsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+              
+              Consumer<MealHistoryProvider>(
+                builder: (context, provider, _) {
+                  if (provider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                  if (provider.hasError) {
+                    return Center(child: Text('Error: ${provider.errorMessage}'));
                   }
 
-                  final meals = snapshot.data ?? [];
+                  final meals = provider.meals;
 
                   if (meals.isEmpty) {
                     return const Center(child: Text('No meal history found.'));
@@ -114,16 +118,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   onTap: () async {
                                     final mealId = entry.value.first.mealId;
                                     try {
-                                      await HistoryService().deleteMealInput(mealId);
-                                      setState(() {
-                                        _mealsFuture = HistoryService().fetchMeals();
-                                      });
+                                      // Use the optimized method that updates state without a fetch
+                                      await Provider.of<MealHistoryProvider>(context, listen: false).deleteMeal(mealId);
+                                      
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Meal deleted successfully')),
+                                        SnackBar(
+                                          content: Text('Meal deleted successfully'),
+                                          behavior: SnackBarBehavior.floating,
+                                          margin: EdgeInsets.only(bottom: 85, left: 16, right: 16),
+                                        ),
                                       );
                                     } catch (e) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Failed to delete meal: $e')),
+                                        SnackBar(
+                                          content: Text('Failed to delete meal: $e'),
+                                          behavior: SnackBarBehavior.floating,
+                                          margin: EdgeInsets.only(bottom: 85, left: 16, right: 16),
+                                        ),
                                       );
                                     }
                                   },
@@ -156,7 +167,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                         );
                       } else {
-                        // Regular card without badge
                         return Padding(
                           padding: const EdgeInsets.only(
                               bottom: 16, right: 16, left: 16),
