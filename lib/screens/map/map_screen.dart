@@ -231,10 +231,10 @@ class _MapScreenState extends MapController {
                             builder: (context) {
                               try {
                                 final now = DateTime.now();
-                                final dayIndex = now.weekday % 7;
+                                final dayIndex = now.weekday == 7 ? 6 : now.weekday - 1;
                                 final weekdayTexts = selectedPlace!.openingHours!;
                                 
-                                if (weekdayTexts.isEmpty || weekdayTexts.length <= dayIndex) {
+                                if (weekdayTexts.isEmpty || dayIndex >= weekdayTexts.length) {
                                   return Text('Hours not available', style: AppTextStyles.detail);
                                 }
                                 
@@ -245,14 +245,33 @@ class _MapScreenState extends MapController {
                                   final hoursText = parts[1].trim();
                                   
                                   if (hoursText.toLowerCase() == 'closed') {
-                                    return Text('Today: Closed', style: AppTextStyles.detail);
+                                    return Text('Today: Closed', 
+                                      style: AppTextStyles.detail.copyWith(color: Colors.red),
+                                    );
                                   }
                                   
-                                  return Text(
-                                    '$hoursText',
-                                    style: AppTextStyles.detail,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  // Add an indicator for open/closed status
+                                  final isOpen = selectedPlace!.isOpenNow ?? false;
+                                  return Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: isOpen ? Colors.green : Colors.red,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          '${isOpen ? "Open" : "Closed"} · $hoursText',
+                                          style: AppTextStyles.detail,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 }
                                 return Text('Hours not available', style: AppTextStyles.detail);
