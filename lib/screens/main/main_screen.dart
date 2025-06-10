@@ -177,29 +177,14 @@ class _MainScreenState extends MainController {
                     if (aiGeneratedResults.isNotEmpty)
                       Column(
                         children: [
-                          SizedBox(
-                            height: 148,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              itemCount: aiGeneratedResults.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 16),
-                              itemBuilder: (context, index) {
-                                final place = aiGeneratedResults[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: SizedBox(
-                                    width: MediaQuery.of(context).size.width -
-                                        30,
-                                    child: RestaurantCardHorizontal(
-                                      place: place,
-                                      isLoading: false,
-                                    ),
-                                  ),
-                                );
-                              },
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width - 24,
+                              child: RestaurantCardHorizontal(
+                                place: aiGeneratedResults[0], // Only show the first result
+                                isLoading: false,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
