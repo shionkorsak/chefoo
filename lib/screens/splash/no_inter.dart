@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chefoo/commons.dart';
 import 'package:provider/provider.dart';
 import 'package:chefoo/services/connectivity_service.dart';
@@ -18,16 +19,12 @@ class NoInternetScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Placeholder for illustration
-                Container(
-                  width: 200,
-                  height: 200,
-                  color: AppColors.primary.withOpacity(0.2),
-                  child: const Center(
-                    child: Text(
-                      '📶!',
-                      style: TextStyle(fontSize: 60),
-                    ),
+                SizedBox(
+                  width: 160,
+                  height: 160,
+                  child: SvgPicture.asset(
+                    'assets/svgs/connection.svg',
+                    fit: BoxFit.contain,
                   ),
                 ),
                 const SizedBox(height: 24),

@@ -156,12 +156,14 @@ class _RatingScreenState extends State<RatingScreen> {
                         key: ValueKey(entry['meal']),
                         direction: DismissDirection.endToStart,
                         confirmDismiss: (_) async {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('You must have at least one meal entry.'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
+                          Future.microtask(() {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('You must have at least one meal entry.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          });
                           return false;
                         },
                         background: Container(

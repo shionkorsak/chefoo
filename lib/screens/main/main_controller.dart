@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:chefoo/commons.dart';
+import 'package:chefoo/providers/meal_history.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
@@ -353,10 +354,17 @@ abstract class MainController extends State<MainScreen> {
     final restaurantProvider =
         Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
+<<<<<<< Updated upstream
     final recommendedProvider =
         Provider.of<RecommendedProvider>(context, listen: false);
     final favoritesProvider =
         Provider.of<FavoritesProvider>(context, listen: false);
+=======
+    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
+    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
+    final mealHistoryProvider = Provider.of<MealHistoryProvider>(context, listen: false);
+    
+>>>>>>> Stashed changes
 
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
