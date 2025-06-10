@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import androidx.core.app.NotificationCompat
 import android.util.Log
+import androidx.core.content.ContextCompat
 
 class ReviewNoti : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
@@ -21,7 +22,6 @@ class ReviewNoti : BroadcastReceiver() {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentText("Remember to tell Chefoo about your meal")
             .setStyle(NotificationCompat.BigTextStyle().bigText("Remember to tell Chefoo about your delicious lunch 😋"))
-            .setColor(ContextCompat.getColor(context, R.color.primaryColor))
             .setAutoCancel(true)
             .build()
 

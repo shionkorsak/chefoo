@@ -50,7 +50,7 @@ class OtherRecomScreen extends StatelessWidget {
     //   screenTitle = "Recommendations";
     // }
 
-    screenTitle = "Recommendations";
+    screenTitle = "Other Spots";
             
     if (displayPlaces2.isEmpty) {
       return Scaffold(

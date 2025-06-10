@@ -270,7 +270,7 @@ class _MainScreenState extends MainController {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("Other Recommendations",
+                              Text("Other Spots",
                                   style: AppTextStyles.headline2
                                       .copyWith(color: AppColors.primary)),
                               IconButton(
@@ -397,7 +397,7 @@ class _MainScreenState extends MainController {
                     ),
                     HistoryList(),
                     SizedBox(height: 12),
-                    Center(child: ClearPreferencesButton()),
+                    // Center(child: ClearPreferencesButton()),
                     const SizedBox(height: 90),
                   ],
                 ),
