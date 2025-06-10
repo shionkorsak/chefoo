@@ -1,7 +1,8 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:chefoo/commons.dart';
+import 'package:provider/provider.dart';
+import 'package:chefoo/services/connectivity_service.dart';
+import 'package:chefoo/screens/splash/splash.dart';
 
 class NoInternetScreen extends StatelessWidget {
   const NoInternetScreen({super.key});
@@ -44,6 +45,33 @@ class NoInternetScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTextStyles.body.copyWith(
                     color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () async {
+                    final connectivityService =
+                        Provider.of<ConnectivityService>(context,
+                            listen: false);
+
+                    final hasInternet =
+                        await connectivityService.checkConnectivity();
+                    if (hasInternet && context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const SplashScreen()),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                  ),
+                  child: const Text(
+                    'Retry',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ],
