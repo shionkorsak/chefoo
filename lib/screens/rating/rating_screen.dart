@@ -1,5 +1,6 @@
 import 'package:chefoo/providers/meal_history.dart';
 import 'package:chefoo/providers/rating_session.dart';
+import 'package:chefoo/screens/splash/splash.dart';
 import 'package:chefoo/services/database/history_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -365,7 +366,12 @@ class _RatingScreenState extends State<RatingScreen> {
                             Provider.of<MealHistoryProvider>(context, listen: false).fetchMeals();
                           }
 
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => const SplashScreen(isReloading: true),
+                            ),
+                          );
+
                         }
                       );
                     },

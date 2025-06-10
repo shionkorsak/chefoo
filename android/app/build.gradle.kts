@@ -33,7 +33,7 @@ android {
         versionName = "1.0"
         
         manifestPlaceholders["appAuthRedirectScheme"] = "com.example.chefoo"
-        manifestPlaceholders["GOOGLE_CALENDAR_CLIENT_ID"] = "537923017808-cqegih2bhcb2cqpg50o3m70nfsbg5660.apps.googleusercontent.com"
+        manifestPlaceholders["GOOGLE_CALENDAR_CLIENT_ID"] = "246856005380-0ac2lacs5t7pti3954b10juqeoqp2d3r.apps.googleusercontent.com"
     }
 
     buildTypes {

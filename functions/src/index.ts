@@ -12,10 +12,10 @@ export { processMealAnalysis } from "./database/ai/processMeal";
 export { processMealBatch } from "./database/ai/personality";
 export { updateInsight } from "./database/user/healthInsights";
 
+export const restaurantTagsAI = onCallGenkit(restaurantTagsFlow);
 export const processMealAnalysisAI = onCallGenkit(processMealAnalysisFlow);
 export const mainPickAI = onCallGenkit(mainPickFlow);
 export const msgAIAI = onCallGenkit(msgAIFlow);
-export const restaurantTagsAI = onCallGenkit(restaurantTagsFlow);
 export const analyzeHealthInsightsAI = onCallGenkit(analyzeHealthInsightsFlow);
 export const analyzeHealthInsightsDailyAI = onCallGenkit(analyzeHealthInsightsDailyFlow);
 export const restaurantBannerAI = onCallGenkit(restaurantBannerFlow);

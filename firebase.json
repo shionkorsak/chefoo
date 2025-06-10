@@ -1,25 +1,4 @@
 {
-  "flutter": {
-    "platforms": {
-      "android": {
-        "default": {
-          "projectId": "chefoo-1",
-          "appId": "1:176036392836:android:8f4f7e7d4a9968d46977d1",
-          "fileOutput": "android/app/google-services.json"
-        }
-      },
-      "dart": {
-        "lib/firebase_options.dart": {
-          "projectId": "chefoo-1",
-          "configurations": {
-            "android": "1:176036392836:android:8f4f7e7d4a9968d46977d1",
-            "ios": "1:176036392836:ios:61567d03e26fc45b6977d1",
-            "web": "1:176036392836:web:e6392269d84ee7df6977d1"
-          }
-        }
-      }
-    }
-  },
   "functions": [
     {
       "source": "functions",
@@ -36,19 +15,29 @@
       ]
     }
   ],
-  "emulators": {
-    "auth": {
-      "port": 9099
-    },
-    "functions": {
-      "port": 5001
-    },
-    "firestore": {
-      "port": 8080
-    },
-    "ui": {
-      "enabled": true
-    },
-    "singleProjectMode": true
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "chefoo-462422",
+          "appId": "1:246856005380:android:77d8771e9a2c34f89b4251",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "chefoo-462422",
+          "configurations": {
+            "android": "1:246856005380:android:77d8771e9a2c34f89b4251"
+          }
+        }
+      }
+    }
   }
 }

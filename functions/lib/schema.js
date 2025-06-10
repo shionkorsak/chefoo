@@ -68,6 +68,7 @@ exports.userAccountSchema = zod_1.z.object({
 });
 exports.clientUpdatePreferenceSchema = zod_1.z.object({
     dietaryPreferences: zod_1.z.array(zod_1.z.string()),
-    allergies: zod_1.z.array(zod_1.z.string())
+    allergies: zod_1.z.array(zod_1.z.string()),
+    dislikedFood: zod_1.z.array(zod_1.z.string()).default([]),
 });
 //# sourceMappingURL=schema.js.map

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:chefoo/commons.dart';
 import 'package:chefoo/providers/recommended.dart';
 import 'package:chefoo/screens/main/main_screen.dart';
+import 'package:chefoo/screens/splash/no_inter.dart';
 import 'package:chefoo/screens/welcome/get_started_screen.dart';
 import 'package:chefoo/services/database/location_handler.dart';
 import 'package:chefoo/services/preload_service.dart' as preload;
@@ -10,6 +11,7 @@ import 'package:chefoo/services/recommendation/ai_recommendation_service.dart';
 import 'package:chefoo/widgets/custom_bottom_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:chefoo/services/connectivity_service.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isReloading;
@@ -61,6 +63,15 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startApp() async {
+    final connectivityService = Provider.of<ConnectivityService>(context, listen: false);
+    final hasInternet = await connectivityService.checkConnectivity();
+    if (!hasInternet) {
+      if (!mounted || _hasNavigated) return;
+      _hasNavigated = true;
+      _navigateTo(const NoInternetScreen());
+      return;
+    }
+
     final locationService =
         Provider.of<LocationService>(context, listen: false);
     final restaurantProvider =

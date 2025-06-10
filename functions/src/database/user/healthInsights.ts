@@ -244,10 +244,9 @@ export const updateInsight = functions
     const updatedWeekly = [...(existing?.weeklyData ?? [])].filter(d => d.date !== date);
     updatedWeekly.push(dailyEntry);
 
-    // 1. Sort and take latest entries
     const now = new Date();
     const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(now.getDate() - 6); // inclusive of today
+    sevenDaysAgo.setDate(now.getDate() - 6);
 
     let weeklyData = updatedWeekly
       .filter(d => {
@@ -257,13 +256,12 @@ export const updateInsight = functions
       .sort((a, b) => a.date.localeCompare(b.date));
 
 
-    // 2. Pad to exactly 7 entries if needed
     while (weeklyData.length < 7) {
       const lastDate = weeklyData.length > 0
         ? new Date(weeklyData[0].date)
         : new Date();
 
-      lastDate.setDate(lastDate.getDate() - 1);  // go backwards
+      lastDate.setDate(lastDate.getDate() - 1);
       const missingDateStr = lastDate.toISOString().split('T')[0];
 
       weeklyData.unshift({
@@ -274,10 +272,15 @@ export const updateInsight = functions
       });
     }
 
-    const healthScore = Math.round(
-      (weeklyData.reduce((sum, d) => sum + d.ratio, 0)) / weeklyData.length
-    );
 
+    const allMeals = weeklyData.flatMap(d => d.mealInput);
+    const scoredMeals = allMeals.filter(m => m.analysis?.healthyScore !== undefined);
+    const weeklyScoreSum = scoredMeals.reduce((sum, m) => sum + (m.analysis?.healthyScore ?? 0), 0);
+
+    const healthScore = scoredMeals.length > 0
+      ? Math.round(weeklyScoreSum / scoredMeals.length)
+      : 0;
+      
     const result = {
       healthScore,
       weeklyData,
