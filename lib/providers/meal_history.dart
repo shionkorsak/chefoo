@@ -32,4 +32,21 @@ class MealHistoryProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  Future<void> deleteMeal(String mealId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await HistoryService().deleteMealInput(mealId);
+
+      _meals = _meals.where((meal) => meal.mealId != mealId).toList();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

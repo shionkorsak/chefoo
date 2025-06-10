@@ -21,6 +21,7 @@ class _AIInputFieldState extends State<AIInputField> {
       widget.onSubmitted!(input);
     }
     _controller.clear();
+    FocusScope.of(context).unfocus();
     setState(() {});
   }
 

@@ -167,32 +167,24 @@ class _MainScreenState extends MainController {
                       onSubmitted: (text) => onAIQuerySubmitted(text),
                     ),
                     const SizedBox(height: 12),
+                    if (isAILoading)  
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
                     if (aiGeneratedResults.isNotEmpty)
                       Column(
                         children: [
-                          SizedBox(
-                            height: 148,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              itemCount: aiGeneratedResults.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 16),
-                              itemBuilder: (context, index) {
-                                final place = aiGeneratedResults[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: SizedBox(
-                                    width: MediaQuery.of(context).size.width -
-                                        30,
-                                    child: RestaurantCardHorizontal(
-                                      place: place,
-                                      isLoading: false,
-                                    ),
-                                  ),
-                                );
-                              },
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width - 24,
+                              child: RestaurantCardHorizontal(
+                                place: aiGeneratedResults[0], // Only show the first result
+                                isLoading: false,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
