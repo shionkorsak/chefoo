@@ -111,11 +111,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 top: -5,
                                 left: -5,
                                 child: GestureDetector(
-                                  onTap: () {
-                                    // Handle deletion here
-                                    print(
-                                        'Would delete meal: ${entry.value.first.name}');
-                                    // Add actual deletion implementation later
+                                  onTap: () async {
+                                    final mealId = entry.value.first.mealId;
+                                    try {
+                                      await HistoryService().deleteMealInput(mealId);
+                                      setState(() {
+                                        _mealsFuture = HistoryService().fetchMeals();
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Meal deleted successfully')),
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Failed to delete meal: $e')),
+                                      );
+                                    }
                                   },
                                   child: Container(
                                     padding: EdgeInsets.all(6),

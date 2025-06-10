@@ -23,7 +23,10 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -57,21 +60,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD8KceUgDzBX5K-6KFAWoZ1KtBQWcIUWgU',
-    appId: '1:176036392836:android:8f4f7e7d4a9968d46977d1',
-    messagingSenderId: '176036392836',
-    projectId: 'chefoo-1',
-    storageBucket: 'chefoo-1.firebasestorage.app',
+    apiKey: 'AIzaSyBLI5MshJGP2NdxmhnH3MFxupSNGQu37ds',
+    appId: '1:246856005380:android:77d8771e9a2c34f89b4251',
+    messagingSenderId: '246856005380',
+    projectId: 'chefoo-462422',
+    storageBucket: 'chefoo-462422.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyARxe5X81PXNO2He26SccXRHue8Ih2UdQk',
-    appId: '1:176036392836:ios:61567d03e26fc45b6977d1',
-    messagingSenderId: '176036392836',
-    projectId: 'chefoo-1',
-    storageBucket: 'chefoo-1.firebasestorage.app',
-    androidClientId: '176036392836-26vdj2i0fqf66icfasr48gopltbplafp.apps.googleusercontent.com',
-    iosClientId: '176036392836-o4g1i4e39m2su4u3l4n1mvir5nnn0ak9.apps.googleusercontent.com',
-    iosBundleId: 'com.example.flutterSkeleton',
-  );
 }
