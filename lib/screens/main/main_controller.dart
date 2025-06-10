@@ -354,17 +354,10 @@ abstract class MainController extends State<MainScreen> {
     final restaurantProvider =
         Provider.of<RestaurantProvider>(context, listen: false);
     final placeService = Provider.of<PlaceService>(context, listen: false);
-<<<<<<< Updated upstream
     final recommendedProvider =
         Provider.of<RecommendedProvider>(context, listen: false);
     final favoritesProvider =
         Provider.of<FavoritesProvider>(context, listen: false);
-=======
-    final recommendedProvider = Provider.of<RecommendedProvider>(context, listen: false);
-    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
-    final mealHistoryProvider = Provider.of<MealHistoryProvider>(context, listen: false);
-    
->>>>>>> Stashed changes
 
     final recommendationService = RecommendationService(
       restaurantProvider: restaurantProvider,
